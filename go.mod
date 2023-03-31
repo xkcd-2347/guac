@@ -8,7 +8,7 @@ require (
 	github.com/in-toto/in-toto-golang v0.7.0
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
 	github.com/secure-systems-lab/go-securesystemslib v0.5.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	go.uber.org/zap v1.24.0
 	google.golang.org/api v0.117.0
 )
@@ -169,6 +169,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nats-io/nats-server/v2 v2.9.15
 	github.com/nats-io/nats.go v1.25.0
+	github.com/openvex/go-vex v0.2.0
 	github.com/ossf/scorecard/v4 v4.10.5
 	github.com/package-url/packageurl-go v0.1.1-0.20220428063043-89078438f170
 	github.com/pkg/errors v0.9.1
@@ -181,3 +182,5 @@ require (
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+replace github.com/openvex/go-vex => github.com/lulf/go-vex v0.0.0-20230413110423-124db51ca3f8
