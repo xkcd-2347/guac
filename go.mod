@@ -183,4 +183,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/openvex/go-vex => github.com/lulf/go-vex v0.0.0-20230413110423-124db51ca3f8
+replace github.com/openvex/go-vex => github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847
