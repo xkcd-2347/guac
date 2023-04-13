@@ -1513,8 +1513,8 @@ github.com/linode/linodego v1.4.0/go.mod h1:PVsRxSlOiJyvG4/scTszpmZDTdgS+to3X6eS
 github.com/linode/linodego v1.12.0/go.mod h1:NJlzvlNtdMRRkXb0oN6UWzUkj6t+IBsyveHgZ5Ppjyk=
 github.com/linuxkit/virtsock v0.0.0-20201010232012-f8cee7dfc7a3/go.mod h1:3r6x7q95whyfWQpmGZTu3gk3v2YkMi05HEzl7Tf7YEo=
 github.com/logrusorgru/aurora/v3 v3.0.0/go.mod h1:vsR12bk5grlLvLXAYrBsb5Oc/N+LxAlxggSjiwMnCUc=
-github.com/lulf/go-vex v0.0.0-20230413110423-124db51ca3f8 h1:O8aHyvbDSbSw0QDfn2NZ+PgnsxkkshDyMjziVtYeOls=
-github.com/lulf/go-vex v0.0.0-20230413110423-124db51ca3f8/go.mod h1:PElJEKBNE2pHF7e+xGKPnF2ysbq/ec5EMzKRsDjRdh4=
+github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847 h1:KSsq23FdsKUWrtENspgqgpofjXu/qcTyt8ic4xG0TyU=
+github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847/go.mod h1:PElJEKBNE2pHF7e+xGKPnF2ysbq/ec5EMzKRsDjRdh4=
 github.com/lyft/protoc-gen-star v0.6.0/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
 github.com/lyft/protoc-gen-star v0.6.1/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=

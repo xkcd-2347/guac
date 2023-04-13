@@ -109,14 +109,25 @@ func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*gener
 	return helpers.PurlToPkg(*purl)
 }
 
-func (c *csafParser) generateVexIngest(ctx context.Context, cve *generated.CVEInputSpec, ghsa *generated.GHSAInputSpec, status string, product_id string) *assembler.VexIngest {
+func (c *csafParser) generateVexIngest(ctx context.Context, cve *generated.CVEInputSpec, ghsa *generated.GHSAInputSpec, vuln *csaf.Vulnerability, status string, product_id string) *assembler.VexIngest {
 	logger := logging.FromContext(ctx)
 	vi := &assembler.VexIngest{}
 
 	vd := generated.VexStatementInputSpec{}
 	vd.KnownSince = c.csaf.Document.Tracking.CurrentReleaseDate
 	vd.Origin = c.csaf.Document.Tracking.ID
-	vd.Justification = "known_not_affected"
+
+	for _, flag := range vuln.Flags {
+		found := false
+		for _, pid := range flag.ProductIDs {
+			if pid == product_id {
+				found = true
+			}
+		}
+		if found {
+			vd.Justification = flag.Label
+		}
+	}
 
 	vi.VexData = &vd
 	vi.CVE = cve
@@ -153,7 +164,7 @@ func (c *csafParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 				products := v.ProductStatus[status]
 				if len(products) > 0 {
 					for _, product := range products {
-						vi := c.generateVexIngest(ctx, cve, ghsa, status, product)
+						vi := c.generateVexIngest(ctx, cve, ghsa, &v, status, product)
 						if vi == nil {
 							continue
 						}
