@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/storage v1.30.1
 	github.com/fsouza/fake-gcs-server v1.44.2
-	github.com/in-toto/in-toto-golang v0.7.0
+	github.com/in-toto/in-toto-golang v0.7.1
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
 	github.com/secure-systems-lab/go-securesystemslib v0.5.0
 	github.com/spf13/cobra v1.7.0
@@ -183,4 +183,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/openvex/go-vex => github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847
+replace github.com/openvex/go-vex => github.com/lulf/go-vex v0.0.0-20230414102936-6c397cafc31e

@@ -1380,7 +1380,6 @@ github.com/imdario/mergo v0.3.13/go.mod h1:4lJ1jqUDcsbIECGy0RUJAXNIhg+6ocWgb1ALK
 github.com/in-toto/in-toto-golang v0.7.1 h1:IzOB18y7/4KoEp4/RiWnuIXUpqi9+5yGlRy/t/QRDWE=
 github.com/in-toto/in-toto-golang v0.7.1/go.mod h1:m7HiDiYvPz+7SkqU9Tnt9hNgJfA31/nr1GSlDlxrQmE=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/inconshreveable/mousetrap v1.0.1/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
@@ -1513,8 +1512,8 @@ github.com/linode/linodego v1.4.0/go.mod h1:PVsRxSlOiJyvG4/scTszpmZDTdgS+to3X6eS
 github.com/linode/linodego v1.12.0/go.mod h1:NJlzvlNtdMRRkXb0oN6UWzUkj6t+IBsyveHgZ5Ppjyk=
 github.com/linuxkit/virtsock v0.0.0-20201010232012-f8cee7dfc7a3/go.mod h1:3r6x7q95whyfWQpmGZTu3gk3v2YkMi05HEzl7Tf7YEo=
 github.com/logrusorgru/aurora/v3 v3.0.0/go.mod h1:vsR12bk5grlLvLXAYrBsb5Oc/N+LxAlxggSjiwMnCUc=
-github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847 h1:KSsq23FdsKUWrtENspgqgpofjXu/qcTyt8ic4xG0TyU=
-github.com/lulf/go-vex v0.0.0-20230413115232-c95829e95847/go.mod h1:PElJEKBNE2pHF7e+xGKPnF2ysbq/ec5EMzKRsDjRdh4=
+github.com/lulf/go-vex v0.0.0-20230414102936-6c397cafc31e h1:B6ULqASSl4atTvsScHuIk1c3W7sYy43YFsfJPJODdMA=
+github.com/lulf/go-vex v0.0.0-20230414102936-6c397cafc31e/go.mod h1:PElJEKBNE2pHF7e+xGKPnF2ysbq/ec5EMzKRsDjRdh4=
 github.com/lyft/protoc-gen-star v0.6.0/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
 github.com/lyft/protoc-gen-star v0.6.1/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=

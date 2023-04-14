@@ -30,6 +30,27 @@ import (
 	"github.com/openvex/go-vex/pkg/csaf"
 )
 
+var (
+	justificationsMap = map[string]generated.VexJustification{
+		"component_not_present":                             generated.VexJustificationComponentNotPresent,
+		"vulnerable_code_not_present":                       generated.VexJustificationVulnerableCodeNotPresent,
+		"vulnerable_code_not_in_execute_path":               generated.VexJustificationVulnerableCodeNotInExecutePath,
+		"vulnerable_code_cannot_be_controlled_by_adversary": generated.VexJustificationVulnerableCodeCannotBeControlledByAdversary,
+		"inline_mitigations_already_exist":                  generated.VexJustificationInlineMitigationsAlreadyExist,
+	}
+
+	vexStatusMap = map[string]generated.VexStatus{
+		"known_not_affected":  generated.VexStatusNotAffected,
+		"known_affected":      generated.VexStatusAffected,
+		"fixed":               generated.VexStatusFixed,
+		"first_fixed":         generated.VexStatusFixed,
+		"under_investigation": generated.VexStatusUnderInvestigation,
+		"first_affected":      generated.VexStatusAffected,
+		"last_affected":       generated.VexStatusAffected,
+		"recommended":         generated.VexStatusAffected,
+	}
+)
+
 type csafParser struct {
 	doc               *processor.Document
 	identifierStrings *common.IdentifierStrings
@@ -95,6 +116,30 @@ func findProductRef(ctx context.Context, tree csaf.ProductBranch, product_id str
 	return nil
 }
 
+func findActionStatement(tree *csaf.Vulnerability, product_id string) *string {
+	for _, r := range tree.Remediations {
+		for _, p := range r.ProductIDs {
+			if p == product_id {
+				return &r.Details
+			}
+		}
+	}
+	return nil
+}
+
+func findImpactStatement(tree *csaf.Vulnerability, product_id string) *string {
+	for _, t := range tree.Threats {
+		if t.Category == "impact" {
+			for _, p := range t.ProductIDs {
+				if p == product_id {
+					return &t.Details
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error) {
 	pref := findProductRef(ctx, c.csaf.ProductTree, product_id)
 	if pref == nil {
@@ -116,6 +161,22 @@ func (c *csafParser) generateVexIngest(ctx context.Context, cve *generated.CVEIn
 	vd := generated.VexStatementInputSpec{}
 	vd.KnownSince = c.csaf.Document.Tracking.CurrentReleaseDate
 	vd.Origin = c.csaf.Document.Tracking.ID
+	vd.VexJustification = generated.VexJustificationNotProvided
+
+	if vexStatus, ok := vexStatusMap[status]; ok {
+		vd.Status = vexStatus
+	}
+
+	var statement *string
+	if vd.Status == generated.VexStatusNotAffected {
+		statement = findImpactStatement(vuln, product_id)
+	} else {
+		statement = findActionStatement(vuln, product_id)
+	}
+
+	if statement != nil {
+		vd.Statement = *statement
+	}
 
 	for _, flag := range vuln.Flags {
 		found := false
@@ -125,7 +186,9 @@ func (c *csafParser) generateVexIngest(ctx context.Context, cve *generated.CVEIn
 			}
 		}
 		if found {
-			vd.Justification = flag.Label
+			if just, ok := justificationsMap[flag.Label]; ok {
+				vd.VexJustification = just
+			}
 		}
 	}
 
@@ -144,13 +207,10 @@ func (c *csafParser) generateVexIngest(ctx context.Context, cve *generated.CVEIn
 }
 
 func (c *csafParser) GetPredicates(ctx context.Context) *assembler.IngestPredicates {
-	logger := logging.FromContext(ctx)
-
 	rv := &assembler.IngestPredicates{}
 	var vis []assembler.VexIngest
 	var cvs []assembler.CertifyVulnIngest
 
-	logger.Infof("[csaf] starting ingestion")
 	if len(c.csaf.Vulnerabilities) > 0 {
 
 		for _, v := range c.csaf.Vulnerabilities {
