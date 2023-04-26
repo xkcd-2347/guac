@@ -1126,6 +1126,31 @@ var (
 	 ],
 	 "UpdateTime":"2022-11-21T17:45:50.52Z"
   }`
+
+	// CSAF
+	//
+	//go:embed exampledata/rhsa-2023-1441.json
+	CsafExampleRedHat []byte
+
+	CsafIngestionPredicate = assembler.IngestPredicates {
+		vexPredicates = []assembler.VexIngest {
+		}
+
+		certifyVulnPredicates = []assembler.CertifyVulnIngest {
+				{
+					Pkg: &generated.PkgInputSpec{
+						Type:       "rpm",
+						Namespace:  "redhat",
+						Name:       "openssl",
+						Version:    "1.1.1k-7.el8_6",
+						Qualifiers: []generated.PackageQualifierInputSpec{},
+					},
+					CVE:      &generated.CVEInputSpec{Year: 2023, CveId: "CVE-2023-0286"},
+					VulnData: &generated.VulnerabilityMetaDataInput{},
+				},
+		}
+	}
+
 )
 
 func GuacNodeSliceEqual(slice1, slice2 []assembler.GuacNode) bool {
