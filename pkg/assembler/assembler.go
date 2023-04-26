@@ -157,6 +157,7 @@ type IngestPredicates struct {
 	CertifyBad       []CertifyBadIngest
 	CertifyGood      []CertifyGoodIngest
 	HasSBOM          []HasSBOMIngest
+	Vex              []VexIngest
 }
 
 type CertifyScorecardIngest struct {
@@ -245,6 +246,18 @@ type HasSBOMIngest struct {
 	Artifact *generated.ArtifactInputSpec
 
 	HasSBOM *generated.HasSBOMInputSpec
+}
+
+type VexIngest struct {
+	// pkg or artifact is required
+	Pkg      *generated.PkgInputSpec
+	Artifact *generated.ArtifactInputSpec
+
+	// vulnerability should be either CVE or GHSA
+	CVE  *generated.CVEInputSpec
+	GHSA *generated.GHSAInputSpec
+
+	VexData *generated.VexStatementInputSpec
 }
 
 // AssemblerInput represents the inputs to add to the graph
