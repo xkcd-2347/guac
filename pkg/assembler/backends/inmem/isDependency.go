@@ -236,7 +236,9 @@ func (c *demoClient) buildIsDependency(link *isDependencyLink, filter *model.IsD
 			return nil, err
 		}
 	} else {
-		dep, err = c.buildPackageResponse(link.depPackageID, nil)
+		// Use a version filter by default to ensure we only get the versions of the package for our link
+		depPkgFilter := &model.PkgSpec{Version: &link.versionRange}
+		dep, err = c.buildPackageResponse(link.depPackageID, depPkgFilter)
 		if err != nil {
 			return nil, err
 		}
