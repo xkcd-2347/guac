@@ -19,7 +19,7 @@ metadata:
 spec:
   params:
   - name: dockerfile
-    value: dockerfiles/Dockerfile.goreleaser
+    value: dockerfiles/Dockerfile.guac-ubi
   - name: git-url
     value: '{{repo_url}}'
   - name: image-expires-after
