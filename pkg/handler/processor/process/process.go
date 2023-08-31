@@ -16,10 +16,13 @@
 package process
 
 import (
+	"bytes"
+	"compress/bzip2"
 	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/guacsec/guac/pkg/emitter"
@@ -133,6 +136,24 @@ func processHelper(ctx context.Context, doc *processor.Document) (*processor.Doc
 }
 
 func processDocument(ctx context.Context, i *processor.Document) ([]*processor.Document, error) {
+
+	//filetype := http.DetectContentType(i.Blob)
+	fmt.Printf("Blob %v", len(i.Blob))
+
+	if true {
+		fmt.Println("Decompressing")
+		compressedDoc := bytes.NewReader(i.Blob)
+		bzip2Reader := bzip2.NewReader(compressedDoc)
+
+		bl, err := io.ReadAll(bzip2Reader)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return nil, fmt.Errorf("unable to decompress document: %w", err)
+		}
+		i.Blob = bl
+		fmt.Printf("Idemo %+v", len(i.Blob))
+	}
+
 	if err := preProcessDocument(ctx, i); err != nil {
 		return nil, err
 	}
