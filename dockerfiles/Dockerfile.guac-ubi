@@ -1,6 +1,8 @@
-FROM docker.io/library/golang:1.19 as builder
+FROM registry.access.redhat.com/ubi9/ubi:latest as builder
+
 ADD . /go/src/github.com/guacsec/guac/
 WORKDIR /go/src/github.com/guacsec/guac/
+RUN dnf install -y go-toolset https://github.com/goreleaser/goreleaser/releases/download/v1.19.2/goreleaser-1.19.2.x86_64.rpm
 RUN rm -rf bin/ && make build
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
