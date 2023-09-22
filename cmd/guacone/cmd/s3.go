@@ -18,6 +18,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+
 	csub_client "github.com/guacsec/guac/pkg/collectsub/client"
 	"github.com/guacsec/guac/pkg/handler/collector"
 	"github.com/guacsec/guac/pkg/handler/collector/s3"
@@ -27,7 +29,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
-	"os"
 )
 
 // s3Options flags for configuring the command
