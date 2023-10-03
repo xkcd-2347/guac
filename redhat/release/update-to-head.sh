@@ -58,6 +58,9 @@ else
   git checkout $upstream_ref -B ${redhat_ref}
 fi
 
+#TODO provide proper patches
+git pull -r jmle s3-collector
+
 # Update redhat's main and take all needed files from there.
 git fetch origin $midstream_ref
 git checkout origin/$midstream_ref $custom_files
@@ -75,7 +78,9 @@ git checkout origin/$redhat_ref .tekton
 
 # Move overlays to root
 if [[ -d redhat/overlays ]]; then
-  git mv redhat/overlays/* .
+  #git mv redhat/overlays/* .
+  cp -R redhat/overlays/* .
+  git add *
 fi
 
 git add . # Adds applied patches
