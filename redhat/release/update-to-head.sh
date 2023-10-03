@@ -28,7 +28,7 @@
 
 if [ "$#" -ne 1 ]; then
     upstream_ref="main"
-    midstream_ref="main"
+    midstream_ref="redhat-main"
     redhat_ref="release-next"
 else
     upstream_ref=$1
