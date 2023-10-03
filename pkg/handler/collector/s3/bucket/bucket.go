@@ -62,7 +62,7 @@ func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string)
 		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
 	}
 
-	addr := fmt.Sprintf("http://%s:%s/%s/", d.hostname, d.port, bucket)
+	addr := fmt.Sprintf("https://%s:%s/%s/", d.hostname, d.port, bucket)
 	cfg.Region = d.region
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
@@ -96,7 +96,7 @@ func (d *s3Bucket) GetEncoding(ctx context.Context, bucket string, item string) 
 		return "", fmt.Errorf("error loading AWS SDK config: %w", err)
 	}
 
-	addr := fmt.Sprintf("http://%s:%s/%s/", d.hostname, d.port, bucket)
+	addr := fmt.Sprintf("https://%s:%s/%s/", d.hostname, d.port, bucket)
 	cfg.Region = d.region
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {

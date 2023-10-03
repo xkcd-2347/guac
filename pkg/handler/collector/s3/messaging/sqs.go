@@ -93,7 +93,7 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	}
 
 	client := sqs.NewFromConfig(cfg, func(o *sqs.Options) {
-		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%s", sqsHostname, sqsPort))
+		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s:%s", sqsHostname, sqsPort))
 		o.Region = mpConfig.Region
 	})
 
@@ -108,7 +108,7 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 func (s *SqsProvider) ReceiveMessage(ctx context.Context) (Message, error) {
 	logger := logging.FromContext(ctx)
 
-	addr := fmt.Sprintf("http://%s:%s/000000000000/%s", s.hostname, s.port, s.queue)
+	addr := fmt.Sprintf("https://%s:%s/000000000000/%s", s.hostname, s.port, s.queue)
 
 	// Receive messages from the queue
 	receiveInput := &sqs.ReceiveMessageInput{
