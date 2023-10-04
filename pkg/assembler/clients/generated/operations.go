@@ -7455,6 +7455,24 @@ type IngestBuildersResponse struct {
 // GetIngestBuilders returns IngestBuildersResponse.IngestBuilders, and is useful for accessing the field via an interface.
 func (v *IngestBuildersResponse) GetIngestBuilders() []string { return v.IngestBuilders }
 
+// IngestDependenciesResponse is returned by IngestDependencies on success.
+type IngestDependenciesResponse struct {
+	// Bulk adds a dependency between two packages. The returned array of IDs can be a an array of empty string.
+	IngestDependencies []string `json:"ingestDependencies"`
+}
+
+// GetIngestDependencies returns IngestDependenciesResponse.IngestDependencies, and is useful for accessing the field via an interface.
+func (v *IngestDependenciesResponse) GetIngestDependencies() []string { return v.IngestDependencies }
+
+// IngestDependencyResponse is returned by IngestDependency on success.
+type IngestDependencyResponse struct {
+	// Adds a dependency between two packages. The returned ID can be empty string.
+	IngestDependency string `json:"ingestDependency"`
+}
+
+// GetIngestDependency returns IngestDependencyResponse.IngestDependency, and is useful for accessing the field via an interface.
+func (v *IngestDependencyResponse) GetIngestDependency() string { return v.IngestDependency }
+
 // IngestHasSourceAtResponse is returned by IngestHasSourceAt on success.
 type IngestHasSourceAtResponse struct {
 	// Adds a certification that a package (PackageName or PackageVersion) is built from the source. The returned ID can be empty string.
@@ -7601,15 +7619,6 @@ type IngestVulnerabilityResponse struct {
 // GetIngestVulnerability returns IngestVulnerabilityResponse.IngestVulnerability, and is useful for accessing the field via an interface.
 func (v *IngestVulnerabilityResponse) GetIngestVulnerability() string { return v.IngestVulnerability }
 
-// IsDependenciesResponse is returned by IsDependencies on success.
-type IsDependenciesResponse struct {
-	// Bulk adds a dependency between two packages. The returned array of IDs can be a an array of empty string.
-	IngestDependencies []string `json:"ingestDependencies"`
-}
-
-// GetIngestDependencies returns IsDependenciesResponse.IngestDependencies, and is useful for accessing the field via an interface.
-func (v *IsDependenciesResponse) GetIngestDependencies() []string { return v.IngestDependencies }
-
 // IsDependencyInputSpec is the input to record a new dependency.
 type IsDependencyInputSpec struct {
 	// versionRange should be specified for depedentPackages that point to PackageName
@@ -7635,14 +7644,162 @@ func (v *IsDependencyInputSpec) GetOrigin() string { return v.Origin }
 // GetCollector returns IsDependencyInputSpec.Collector, and is useful for accessing the field via an interface.
 func (v *IsDependencyInputSpec) GetCollector() string { return v.Collector }
 
-// IsDependencyResponse is returned by IsDependency on success.
-type IsDependencyResponse struct {
-	// Adds a dependency between two packages. The returned ID can be empty string.
-	IngestDependency string `json:"ingestDependency"`
+// IsDependencyIsDependency includes the requested fields of the GraphQL type IsDependency.
+// The GraphQL type's documentation follows.
+//
+// IsDependency is an attestation to record that a package depends on another.
+type IsDependencyIsDependency struct {
+	AllIsDependencyTree `json:"-"`
 }
 
-// GetIngestDependency returns IsDependencyResponse.IngestDependency, and is useful for accessing the field via an interface.
-func (v *IsDependencyResponse) GetIngestDependency() string { return v.IngestDependency }
+// GetId returns IsDependencyIsDependency.Id, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetId() string { return v.AllIsDependencyTree.Id }
+
+// GetJustification returns IsDependencyIsDependency.Justification, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetJustification() string {
+	return v.AllIsDependencyTree.Justification
+}
+
+// GetPackage returns IsDependencyIsDependency.Package, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetPackage() AllIsDependencyTreePackage {
+	return v.AllIsDependencyTree.Package
+}
+
+// GetDependencyPackage returns IsDependencyIsDependency.DependencyPackage, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetDependencyPackage() AllIsDependencyTreeDependencyPackage {
+	return v.AllIsDependencyTree.DependencyPackage
+}
+
+// GetDependencyType returns IsDependencyIsDependency.DependencyType, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetDependencyType() DependencyType {
+	return v.AllIsDependencyTree.DependencyType
+}
+
+// GetVersionRange returns IsDependencyIsDependency.VersionRange, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetVersionRange() string {
+	return v.AllIsDependencyTree.VersionRange
+}
+
+// GetOrigin returns IsDependencyIsDependency.Origin, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetOrigin() string { return v.AllIsDependencyTree.Origin }
+
+// GetCollector returns IsDependencyIsDependency.Collector, and is useful for accessing the field via an interface.
+func (v *IsDependencyIsDependency) GetCollector() string { return v.AllIsDependencyTree.Collector }
+
+func (v *IsDependencyIsDependency) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*IsDependencyIsDependency
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.IsDependencyIsDependency = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.AllIsDependencyTree)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalIsDependencyIsDependency struct {
+	Id string `json:"id"`
+
+	Justification string `json:"justification"`
+
+	Package AllIsDependencyTreePackage `json:"package"`
+
+	DependencyPackage AllIsDependencyTreeDependencyPackage `json:"dependencyPackage"`
+
+	DependencyType DependencyType `json:"dependencyType"`
+
+	VersionRange string `json:"versionRange"`
+
+	Origin string `json:"origin"`
+
+	Collector string `json:"collector"`
+}
+
+func (v *IsDependencyIsDependency) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *IsDependencyIsDependency) __premarshalJSON() (*__premarshalIsDependencyIsDependency, error) {
+	var retval __premarshalIsDependencyIsDependency
+
+	retval.Id = v.AllIsDependencyTree.Id
+	retval.Justification = v.AllIsDependencyTree.Justification
+	retval.Package = v.AllIsDependencyTree.Package
+	retval.DependencyPackage = v.AllIsDependencyTree.DependencyPackage
+	retval.DependencyType = v.AllIsDependencyTree.DependencyType
+	retval.VersionRange = v.AllIsDependencyTree.VersionRange
+	retval.Origin = v.AllIsDependencyTree.Origin
+	retval.Collector = v.AllIsDependencyTree.Collector
+	return &retval, nil
+}
+
+// IsDependencyResponse is returned by IsDependency on success.
+type IsDependencyResponse struct {
+	// Returns all package dependencies that match the filter.
+	IsDependency []IsDependencyIsDependency `json:"IsDependency"`
+}
+
+// GetIsDependency returns IsDependencyResponse.IsDependency, and is useful for accessing the field via an interface.
+func (v *IsDependencyResponse) GetIsDependency() []IsDependencyIsDependency { return v.IsDependency }
+
+// IsDependencySpec allows filtering the list of dependencies to return.
+//
+// To obtain the list of dependency packages, caller must fill in the package
+// field.
+//
+// Dependency packages must be defined at PackageName, not PackageVersion.
+type IsDependencySpec struct {
+	Id                *string         `json:"id"`
+	Package           *PkgSpec        `json:"package"`
+	DependencyPackage *PkgSpec        `json:"dependencyPackage"`
+	VersionRange      *string         `json:"versionRange"`
+	DependencyType    *DependencyType `json:"dependencyType"`
+	Justification     *string         `json:"justification"`
+	Origin            *string         `json:"origin"`
+	Collector         *string         `json:"collector"`
+}
+
+// GetId returns IsDependencySpec.Id, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetId() *string { return v.Id }
+
+// GetPackage returns IsDependencySpec.Package, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetPackage() *PkgSpec { return v.Package }
+
+// GetDependencyPackage returns IsDependencySpec.DependencyPackage, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetDependencyPackage() *PkgSpec { return v.DependencyPackage }
+
+// GetVersionRange returns IsDependencySpec.VersionRange, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetVersionRange() *string { return v.VersionRange }
+
+// GetDependencyType returns IsDependencySpec.DependencyType, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetDependencyType() *DependencyType { return v.DependencyType }
+
+// GetJustification returns IsDependencySpec.Justification, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetJustification() *string { return v.Justification }
+
+// GetOrigin returns IsDependencySpec.Origin, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetOrigin() *string { return v.Origin }
+
+// GetCollector returns IsDependencySpec.Collector, and is useful for accessing the field via an interface.
+func (v *IsDependencySpec) GetCollector() *string { return v.Collector }
 
 // IsOccurrenceInputSpec represents the input to record an artifact's origin.
 type IsOccurrenceInputSpec struct {
@@ -21410,6 +21567,46 @@ type __IngestBuildersInput struct {
 // GetBuilders returns __IngestBuildersInput.Builders, and is useful for accessing the field via an interface.
 func (v *__IngestBuildersInput) GetBuilders() []BuilderInputSpec { return v.Builders }
 
+// __IngestDependenciesInput is used internally by genqlient
+type __IngestDependenciesInput struct {
+	Pkgs            []PkgInputSpec          `json:"pkgs"`
+	DepPkgs         []PkgInputSpec          `json:"depPkgs"`
+	DepPkgMatchType MatchFlags              `json:"depPkgMatchType"`
+	Dependencies    []IsDependencyInputSpec `json:"dependencies"`
+}
+
+// GetPkgs returns __IngestDependenciesInput.Pkgs, and is useful for accessing the field via an interface.
+func (v *__IngestDependenciesInput) GetPkgs() []PkgInputSpec { return v.Pkgs }
+
+// GetDepPkgs returns __IngestDependenciesInput.DepPkgs, and is useful for accessing the field via an interface.
+func (v *__IngestDependenciesInput) GetDepPkgs() []PkgInputSpec { return v.DepPkgs }
+
+// GetDepPkgMatchType returns __IngestDependenciesInput.DepPkgMatchType, and is useful for accessing the field via an interface.
+func (v *__IngestDependenciesInput) GetDepPkgMatchType() MatchFlags { return v.DepPkgMatchType }
+
+// GetDependencies returns __IngestDependenciesInput.Dependencies, and is useful for accessing the field via an interface.
+func (v *__IngestDependenciesInput) GetDependencies() []IsDependencyInputSpec { return v.Dependencies }
+
+// __IngestDependencyInput is used internally by genqlient
+type __IngestDependencyInput struct {
+	Pkg             PkgInputSpec          `json:"pkg"`
+	DepPkg          PkgInputSpec          `json:"depPkg"`
+	DepPkgMatchType MatchFlags            `json:"depPkgMatchType"`
+	Dependency      IsDependencyInputSpec `json:"dependency"`
+}
+
+// GetPkg returns __IngestDependencyInput.Pkg, and is useful for accessing the field via an interface.
+func (v *__IngestDependencyInput) GetPkg() PkgInputSpec { return v.Pkg }
+
+// GetDepPkg returns __IngestDependencyInput.DepPkg, and is useful for accessing the field via an interface.
+func (v *__IngestDependencyInput) GetDepPkg() PkgInputSpec { return v.DepPkg }
+
+// GetDepPkgMatchType returns __IngestDependencyInput.DepPkgMatchType, and is useful for accessing the field via an interface.
+func (v *__IngestDependencyInput) GetDepPkgMatchType() MatchFlags { return v.DepPkgMatchType }
+
+// GetDependency returns __IngestDependencyInput.Dependency, and is useful for accessing the field via an interface.
+func (v *__IngestDependencyInput) GetDependency() IsDependencyInputSpec { return v.Dependency }
+
 // __IngestHasSourceAtInput is used internally by genqlient
 type __IngestHasSourceAtInput struct {
 	Pkg          PkgInputSpec         `json:"pkg"`
@@ -21616,45 +21813,13 @@ type __IngestVulnerabilityInput struct {
 // GetVuln returns __IngestVulnerabilityInput.Vuln, and is useful for accessing the field via an interface.
 func (v *__IngestVulnerabilityInput) GetVuln() VulnerabilityInputSpec { return v.Vuln }
 
-// __IsDependenciesInput is used internally by genqlient
-type __IsDependenciesInput struct {
-	Pkgs            []PkgInputSpec          `json:"pkgs"`
-	DepPkgs         []PkgInputSpec          `json:"depPkgs"`
-	DepPkgMatchType MatchFlags              `json:"depPkgMatchType"`
-	Dependencies    []IsDependencyInputSpec `json:"dependencies"`
-}
-
-// GetPkgs returns __IsDependenciesInput.Pkgs, and is useful for accessing the field via an interface.
-func (v *__IsDependenciesInput) GetPkgs() []PkgInputSpec { return v.Pkgs }
-
-// GetDepPkgs returns __IsDependenciesInput.DepPkgs, and is useful for accessing the field via an interface.
-func (v *__IsDependenciesInput) GetDepPkgs() []PkgInputSpec { return v.DepPkgs }
-
-// GetDepPkgMatchType returns __IsDependenciesInput.DepPkgMatchType, and is useful for accessing the field via an interface.
-func (v *__IsDependenciesInput) GetDepPkgMatchType() MatchFlags { return v.DepPkgMatchType }
-
-// GetDependencies returns __IsDependenciesInput.Dependencies, and is useful for accessing the field via an interface.
-func (v *__IsDependenciesInput) GetDependencies() []IsDependencyInputSpec { return v.Dependencies }
-
 // __IsDependencyInput is used internally by genqlient
 type __IsDependencyInput struct {
-	Pkg             PkgInputSpec          `json:"pkg"`
-	DepPkg          PkgInputSpec          `json:"depPkg"`
-	DepPkgMatchType MatchFlags            `json:"depPkgMatchType"`
-	Dependency      IsDependencyInputSpec `json:"dependency"`
+	Filter IsDependencySpec `json:"filter"`
 }
 
-// GetPkg returns __IsDependencyInput.Pkg, and is useful for accessing the field via an interface.
-func (v *__IsDependencyInput) GetPkg() PkgInputSpec { return v.Pkg }
-
-// GetDepPkg returns __IsDependencyInput.DepPkg, and is useful for accessing the field via an interface.
-func (v *__IsDependencyInput) GetDepPkg() PkgInputSpec { return v.DepPkg }
-
-// GetDepPkgMatchType returns __IsDependencyInput.DepPkgMatchType, and is useful for accessing the field via an interface.
-func (v *__IsDependencyInput) GetDepPkgMatchType() MatchFlags { return v.DepPkgMatchType }
-
-// GetDependency returns __IsDependencyInput.Dependency, and is useful for accessing the field via an interface.
-func (v *__IsDependencyInput) GetDependency() IsDependencyInputSpec { return v.Dependency }
+// GetFilter returns __IsDependencyInput.Filter, and is useful for accessing the field via an interface.
+func (v *__IsDependencyInput) GetFilter() IsDependencySpec { return v.Filter }
 
 // __IsOccurrencePkgInput is used internally by genqlient
 type __IsOccurrencePkgInput struct {
@@ -23693,6 +23858,84 @@ func IngestBuilders(
 	return &data, err
 }
 
+// The query or mutation executed by IngestDependencies.
+const IngestDependencies_Operation = `
+mutation IngestDependencies ($pkgs: [PkgInputSpec!]!, $depPkgs: [PkgInputSpec!]!, $depPkgMatchType: MatchFlags!, $dependencies: [IsDependencyInputSpec!]!) {
+	ingestDependencies(pkgs: $pkgs, depPkgs: $depPkgs, depPkgMatchType: $depPkgMatchType, dependencies: $dependencies)
+}
+`
+
+func IngestDependencies(
+	ctx context.Context,
+	client graphql.Client,
+	pkgs []PkgInputSpec,
+	depPkgs []PkgInputSpec,
+	depPkgMatchType MatchFlags,
+	dependencies []IsDependencyInputSpec,
+) (*IngestDependenciesResponse, error) {
+	req := &graphql.Request{
+		OpName: "IngestDependencies",
+		Query:  IngestDependencies_Operation,
+		Variables: &__IngestDependenciesInput{
+			Pkgs:            pkgs,
+			DepPkgs:         depPkgs,
+			DepPkgMatchType: depPkgMatchType,
+			Dependencies:    dependencies,
+		},
+	}
+	var err error
+
+	var data IngestDependenciesResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by IngestDependency.
+const IngestDependency_Operation = `
+mutation IngestDependency ($pkg: PkgInputSpec!, $depPkg: PkgInputSpec!, $depPkgMatchType: MatchFlags!, $dependency: IsDependencyInputSpec!) {
+	ingestDependency(pkg: $pkg, depPkg: $depPkg, depPkgMatchType: $depPkgMatchType, dependency: $dependency)
+}
+`
+
+func IngestDependency(
+	ctx context.Context,
+	client graphql.Client,
+	pkg PkgInputSpec,
+	depPkg PkgInputSpec,
+	depPkgMatchType MatchFlags,
+	dependency IsDependencyInputSpec,
+) (*IngestDependencyResponse, error) {
+	req := &graphql.Request{
+		OpName: "IngestDependency",
+		Query:  IngestDependency_Operation,
+		Variables: &__IngestDependencyInput{
+			Pkg:             pkg,
+			DepPkg:          depPkg,
+			DepPkgMatchType: depPkgMatchType,
+			Dependency:      dependency,
+		},
+	}
+	var err error
+
+	var data IngestDependencyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by IngestHasSourceAt.
 const IngestHasSourceAt_Operation = `
 mutation IngestHasSourceAt ($pkg: PkgInputSpec!, $pkgMatchType: MatchFlags!, $source: SourceInputSpec!, $hasSourceAt: HasSourceAtInputSpec!) {
@@ -24257,68 +24500,60 @@ func IngestVulnerability(
 	return &data, err
 }
 
-// The query or mutation executed by IsDependencies.
-const IsDependencies_Operation = `
-mutation IsDependencies ($pkgs: [PkgInputSpec!]!, $depPkgs: [PkgInputSpec!]!, $depPkgMatchType: MatchFlags!, $dependencies: [IsDependencyInputSpec!]!) {
-	ingestDependencies(pkgs: $pkgs, depPkgs: $depPkgs, depPkgMatchType: $depPkgMatchType, dependencies: $dependencies)
-}
-`
-
-func IsDependencies(
-	ctx context.Context,
-	client graphql.Client,
-	pkgs []PkgInputSpec,
-	depPkgs []PkgInputSpec,
-	depPkgMatchType MatchFlags,
-	dependencies []IsDependencyInputSpec,
-) (*IsDependenciesResponse, error) {
-	req := &graphql.Request{
-		OpName: "IsDependencies",
-		Query:  IsDependencies_Operation,
-		Variables: &__IsDependenciesInput{
-			Pkgs:            pkgs,
-			DepPkgs:         depPkgs,
-			DepPkgMatchType: depPkgMatchType,
-			Dependencies:    dependencies,
-		},
-	}
-	var err error
-
-	var data IsDependenciesResponse
-	resp := &graphql.Response{Data: &data}
-
-	err = client.MakeRequest(
-		ctx,
-		req,
-		resp,
-	)
-
-	return &data, err
-}
-
 // The query or mutation executed by IsDependency.
 const IsDependency_Operation = `
-mutation IsDependency ($pkg: PkgInputSpec!, $depPkg: PkgInputSpec!, $depPkgMatchType: MatchFlags!, $dependency: IsDependencyInputSpec!) {
-	ingestDependency(pkg: $pkg, depPkg: $depPkg, depPkgMatchType: $depPkgMatchType, dependency: $dependency)
+query IsDependency ($filter: IsDependencySpec!) {
+	IsDependency(isDependencySpec: $filter) {
+		... AllIsDependencyTree
+	}
+}
+fragment AllIsDependencyTree on IsDependency {
+	id
+	justification
+	package {
+		... AllPkgTree
+	}
+	dependencyPackage {
+		... AllPkgTree
+	}
+	dependencyType
+	versionRange
+	origin
+	collector
+}
+fragment AllPkgTree on Package {
+	id
+	type
+	namespaces {
+		id
+		namespace
+		names {
+			id
+			name
+			versions {
+				id
+				version
+				qualifiers {
+					key
+					value
+				}
+				subpath
+			}
+		}
+	}
 }
 `
 
 func IsDependency(
 	ctx context.Context,
 	client graphql.Client,
-	pkg PkgInputSpec,
-	depPkg PkgInputSpec,
-	depPkgMatchType MatchFlags,
-	dependency IsDependencyInputSpec,
+	filter IsDependencySpec,
 ) (*IsDependencyResponse, error) {
 	req := &graphql.Request{
 		OpName: "IsDependency",
 		Query:  IsDependency_Operation,
 		Variables: &__IsDependencyInput{
-			Pkg:             pkg,
-			DepPkg:          depPkg,
-			DepPkgMatchType: depPkgMatchType,
-			Dependency:      dependency,
+			Filter: filter,
 		},
 	}
 	var err error

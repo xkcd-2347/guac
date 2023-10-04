@@ -287,7 +287,7 @@ func ingestDependency(ctx context.Context, client graphql.Client) {
 		if _, err := model.IngestPackage(ctx, client, ingest.depPkg); err != nil {
 			logger.Errorf("Error in ingesting dependency package: %v\n", err)
 		}
-		if _, err := model.IsDependency(ctx, client, ingest.pkg, ingest.depPkg, ingest.depPkgMatchFlags, ingest.dependency); err != nil {
+		if _, err := model.IngestDependency(ctx, client, ingest.pkg, ingest.depPkg, ingest.depPkgMatchFlags, ingest.dependency); err != nil {
 			logger.Errorf("Error in ingesting: %v\n", err)
 		}
 	}
@@ -2915,7 +2915,7 @@ func ingestReachabilityTestData(ctx context.Context, client graphql.Client) {
 		if _, err := model.IngestVulnerability(ctx, client, *ingest.vuln); err != nil {
 			logger.Errorf("Error in ingesting vuln: %v\n", err)
 		}
-		if _, err := model.IsDependency(ctx, client, ingest.pkg, ingest.depPkg, ingest.depPkgMatchFlags, ingest.dependency); err != nil {
+		if _, err := model.IngestDependency(ctx, client, ingest.pkg, ingest.depPkg, ingest.depPkgMatchFlags, ingest.dependency); err != nil {
 			logger.Errorf("Error in ingesting: %v\n", err)
 		}
 		if _, err := model.IsOccurrencePkg(ctx, client, ingest.depPkgWithVersion, ingest.art, ingest.occurrence); err != nil {

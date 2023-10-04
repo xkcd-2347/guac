@@ -425,13 +425,13 @@ func ingestIsDependencies(ctx context.Context, client graphql.Client, v []assemb
 	}
 
 	if len(depToVersion.pkgs) > 0 {
-		_, err := model.IsDependencies(ctx, client, depToVersion.pkgs, depToVersion.depPkgs, depToVersion.depPkgMatchFlag, depToVersion.dependencies)
+		_, err := model.IngestDependencies(ctx, client, depToVersion.pkgs, depToVersion.depPkgs, depToVersion.depPkgMatchFlag, depToVersion.dependencies)
 		if err != nil {
 			return fmt.Errorf("isDependencies failed with error: %w", err)
 		}
 	}
 	if len(depToName.pkgs) > 0 {
-		_, err := model.IsDependencies(ctx, client, depToName.pkgs, depToName.depPkgs, depToName.depPkgMatchFlag, depToName.dependencies)
+		_, err := model.IngestDependencies(ctx, client, depToName.pkgs, depToName.depPkgs, depToName.depPkgMatchFlag, depToName.dependencies)
 		if err != nil {
 			return fmt.Errorf("isDependencies failed with error: %w", err)
 		}
