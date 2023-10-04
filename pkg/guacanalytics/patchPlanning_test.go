@@ -957,7 +957,7 @@ func ingestIsDependency(ctx context.Context, client graphql.Client, graph assemb
 		if err != nil {
 			return fmt.Errorf("error in ingesting dependent package: %s\n", err)
 		}
-		_, err = model.IsDependency(ctx, client, *ingest.Pkg, *ingest.DepPkg, ingest.DepPkgMatchFlag, *ingest.IsDependency)
+		_, err = model.IngestDependency(ctx, client, *ingest.Pkg, *ingest.DepPkg, ingest.DepPkgMatchFlag, *ingest.IsDependency)
 
 		if err != nil {
 			return fmt.Errorf("error in ingesting isDependency: %s\n", err)
