@@ -27,6 +27,7 @@ import (
 )
 
 type key string
+
 const (
 	KeyGraphqlEndpoint key = "graphqlEndpoint"
 )
