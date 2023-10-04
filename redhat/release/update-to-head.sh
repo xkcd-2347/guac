@@ -59,7 +59,7 @@ else
 fi
 
 #TODO provide proper patches
-git pull -r jmle s3-collector
+git pull -r git@github.com:jmle/guac.git s3-collector
 
 # Update redhat's main and take all needed files from there.
 git fetch origin $midstream_ref
@@ -95,13 +95,13 @@ git add ci
 git commit -m "${robot_trigger_msg}"
 git push -f origin "${redhat_ref}-ci"
 
-if hash hub 2>/dev/null; then
+if hash gh 2>/dev/null; then
    # Test if there is already a sync PR in
-   COUNT=$(hub api -H "Accept: application/vnd.github.v3+json" repos/securesign/${REPO_NAME}/pulls --flat \
+   COUNT=$(gh -R trustification/guac pr list \
     | grep -c "${robot_trigger_msg}") || true
    if [ "$COUNT" = "0" ]; then
-      hub pull-request --no-edit -l "kind/sync-fork-to-upstream" -b securesign/${REPO_NAME}:${redhat_ref} -h securesign/${REPO_NAME}:${redhat_ref}-ci -m "${robot_trigger_msg}"
+      gh pr -R trustification/guac create -f -l "kind/sync-fork-to-upstream" -B ${redhat_ref} -H ${redhat_ref}-ci -t "${robot_trigger_msg}"
    fi
 else
-   echo "hub (https://github.com/github/hub) is not installed, so you'll need to create a PR manually."
+   echo "gh cli (https://cli.github.com/) is not installed, so you'll need to create a PR manually."
 fi
