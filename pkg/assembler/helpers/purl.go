@@ -105,7 +105,7 @@ func purlConvert(p purl.PackageURL) (*model.PkgInputSpec, error) {
 	// so that they can be referenced with higher specificity in GUAC
 	//
 	// PURL types not defined in purl library handled generically
-	case "alpine", "alpm", "apk", "huggingface", "githubactions", "mlflow", "qpkg", "pub", "swid", PurlTypeGuac, PurlTypeCPE:
+	case "alpine", "alpm", "apk", "huggingface", "githubactions", "mlflow", "qpkg", "pub", "swid", PurlTypeGuac, PurlTypeCPE, "rpmmod":
 		fallthrough
 	// PURL types defined in purl library handled generically
 	case purl.TypeBitbucket, purl.TypeCocoapods, purl.TypeCargo,
@@ -276,4 +276,25 @@ func CPEToPkg(wfn cpecommon.WellFormedName) (*model.PkgInputSpec, error) {
 
 func escapeCPEWfn(s string) string {
 	return strings.ReplaceAll(s, "\\", "")
+}
+
+func AllPkgTreeToPurl(pkg model.AllPkgTree, isPackageVersion bool) string {
+	version := ""
+	subpath := ""
+	var qualifiers []string
+
+	if isPackageVersion {
+		version = pkg.Namespaces[0].Names[0].Versions[0].Version
+
+		subpath = pkg.Namespaces[0].Names[0].Versions[0].Subpath
+
+		for _, qualifier := range pkg.Namespaces[0].Names[0].Versions[0].Qualifiers {
+			qualifiers = append(qualifiers, qualifier.Key, qualifier.Value)
+		}
+
+	}
+
+	pkgString := PkgToPurl(pkg.Type, pkg.Namespaces[0].Namespace, pkg.Namespaces[0].Names[0].Name, version, subpath, qualifiers)
+
+	return pkgString
 }

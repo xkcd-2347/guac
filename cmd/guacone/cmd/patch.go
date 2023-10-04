@@ -182,24 +182,7 @@ func makePOCPretty(poc model.AllPointOfContact) string {
 }
 
 func makePkgPretty(pkg model.NodeNodePackage, isPackageVersion bool) string {
-	version := ""
-	subpath := ""
-	var qualifiers []string
-
-	if isPackageVersion {
-		version = pkg.Namespaces[0].Names[0].Versions[0].Version
-
-		subpath = pkg.Namespaces[0].Names[0].Versions[0].Subpath
-
-		for _, qualifier := range pkg.Namespaces[0].Names[0].Versions[0].Qualifiers {
-			qualifiers = append(qualifiers, qualifier.Key, qualifier.Value)
-		}
-
-	}
-
-	pkgString := helpers.PkgToPurl(pkg.Type, pkg.Namespaces[0].Namespace, pkg.Namespaces[0].Names[0].Name, version, subpath, qualifiers)
-
-	return pkgString
+	return helpers.AllPkgTreeToPurl(pkg.AllPkgTree, isPackageVersion)
 }
 
 func makeSrcPretty(src model.NodeNodeSource) string {
