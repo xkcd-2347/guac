@@ -18,8 +18,13 @@ package csaf
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"sort"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/Khan/genqlient/graphql"
+	guaccasf "github.com/guacsec/guac/pkg/handler/processor/csaf"
+	cpenaming "github.com/knqyf263/go-cpe/naming"
+	"golang.org/x/exp/maps"
 
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
@@ -32,7 +37,6 @@ import (
 )
 
 var (
-	json              = jsoniter.ConfigCompatibleWithStandardLibrary
 	justificationsMap = map[string]generated.VexJustification{
 		"component_not_present":                             generated.VexJustificationComponentNotPresent,
 		"vulnerable_code_not_present":                       generated.VexJustificationVulnerableCodeNotPresent,
@@ -76,7 +80,9 @@ func NewCsafParser() common.DocumentParser {
 // Parse breaks out the document into the graph components
 func (c *csafParser) Parse(ctx context.Context, doc *processor.Document) error {
 	c.doc = doc
-	err := json.Unmarshal(doc.Blob, &c.csaf)
+	var decoded csaf.CSAF
+	err := guaccasf.UnmarshallFixingDates(doc.Blob, &decoded)
+	c.csaf = &decoded
 	if err != nil {
 		return fmt.Errorf("failed to parse CSAF: %w", err)
 	}
@@ -99,21 +105,30 @@ func (c *csafParser) GetIdentifiers(ctx context.Context) (*common.IdentifierStri
 // It recursively calls itself on each child branch of the tree in a
 // depth first search manner if the nodes name isn't equal to product_ref.
 func findPurl(ctx context.Context, tree csaf.ProductBranch, product_ref string) *string {
-	return findPurlSearch(ctx, tree, product_ref, make(map[string]bool))
+	return findIdentificationHelperSearch(ctx, "purl", tree, product_ref, make(map[string]bool))
 }
 
-func findPurlSearch(ctx context.Context, tree csaf.ProductBranch, product_ref string, visited map[string]bool) *string {
+// findCPE searches the given CSAF product tree recursively to find the
+// cpe for the specified product reference.
+//
+// It recursively calls itself on each child branch of the tree in a
+// depth first search manner if the nodes name isn't equal to product_ref.
+func findCPE(ctx context.Context, tree csaf.ProductBranch, product_ref string) *string {
+	return findIdentificationHelperSearch(ctx, "cpe", tree, product_ref, make(map[string]bool))
+}
+
+func findIdentificationHelperSearch(ctx context.Context, identificationHelperKey string, tree csaf.ProductBranch, product_ref string, visited map[string]bool) *string {
 	if visited[tree.Name] {
 		return nil
 	}
 	visited[tree.Name] = true
-	if tree.Name == product_ref {
-		purl := tree.Product.IdentificationHelper["purl"]
+	if tree.Name == product_ref || tree.Product.ID == product_ref {
+		purl := tree.Product.IdentificationHelper[identificationHelperKey]
 		return &purl
 	}
 
 	for _, b := range tree.Branches {
-		purl := findPurlSearch(ctx, b, product_ref, visited)
+		purl := findIdentificationHelperSearch(ctx, identificationHelperKey, b, product_ref, visited)
 		if purl != nil {
 			return purl
 		}
@@ -122,43 +137,43 @@ func findPurlSearch(ctx context.Context, tree csaf.ProductBranch, product_ref st
 	return nil
 }
 
-// findProductRef searches for a product reference string for the given product ID
-// by recursively traversing the CSAF product tree.
+// findProductsRef searches for a product_reference and relates_to_product_reference strings pair
+// for the given product ID by recursively traversing the CSAF product tree.
 //
-// findProductRefSearch was seperated from findProductRef so that the code can use
+// findProductRefAndRelatesToProductRefSearch was seperated from findProductsRef so that the code can use
 // a visited map and avoid infinite recursion.
 //
 // It returns a pointer to the product reference string if found,
 // otherwise nil.
-func findProductRef(ctx context.Context, tree csaf.ProductBranch, product_id string) *string {
-	return findProductRefSearch(ctx, tree, product_id, make(map[visitedProductRef]bool))
+func findProductsRef(ctx context.Context, tree csaf.ProductBranch, product_id string) (*string, *string) {
+	return findProductRefAndRelatesToProductRefSearch(ctx, tree, product_id, make(map[visitedProductRef]bool))
 }
 
-// findProductRefSearch recursively searches the product tree for a product
+// findProductRefAndRelatesToProductRefSearch recursively searches the product tree for a product
 // reference matching the given product ID. It does this with a visited map to
 // avoid infinite recursion.
 //
 // It returns a pointer to the product reference string if found,
 // otherwise nil.
-func findProductRefSearch(ctx context.Context, tree csaf.ProductBranch, product_id string, visited map[visitedProductRef]bool) *string {
+func findProductRefAndRelatesToProductRefSearch(ctx context.Context, tree csaf.ProductBranch, product_id string, visited map[visitedProductRef]bool) (*string, *string) {
 	if visited[visitedProductRef{tree.Product.Name, tree.Product.ID, tree.Name, tree.Category}] {
-		return nil
+		return nil, nil
 	}
 	visited[visitedProductRef{tree.Product.Name, tree.Product.ID, tree.Name, tree.Category}] = true
 
 	for _, r := range tree.Relationships {
 		if r.FullProductName.ID == product_id {
-			return &r.ProductRef
+			return &r.ProductRef, &r.RelatesToProductRef
 		}
 	}
 
 	for _, b := range tree.Branches {
-		pref := findProductRefSearch(ctx, b, product_id, visited)
-		if pref != nil {
-			return pref
+		prodRef, relToProdRef := findProductRefAndRelatesToProductRefSearch(ctx, b, product_id, visited)
+		if prodRef != nil {
+			return prodRef, relToProdRef
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // findActionStatement searches the given Vulnerability tree to find the action statement
@@ -197,7 +212,8 @@ func findImpactStatement(tree *csaf.Vulnerability, product_id string) *string {
 // given ID in the CSAF document. It returns a pointer to the package
 // specification if found, otherwise an error.
 func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error) {
-	pref := findProductRef(ctx, c.csaf.ProductTree, product_id)
+	logger := logging.FromContext(ctx)
+	pref, relToProdRef := findProductsRef(ctx, c.csaf.ProductTree, product_id)
 	if pref == nil {
 		return nil, fmt.Errorf("unable to locate product reference for id %s", product_id)
 	}
@@ -205,6 +221,58 @@ func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*gener
 	purl := findPurl(ctx, c.csaf.ProductTree, *pref)
 	if purl == nil {
 		return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
+	} else if *purl == "" {
+		// if no purl is available in the product reference entry, then let's try to search for it into guac
+		cpe := findCPE(ctx, c.csaf.ProductTree, *relToProdRef)
+		wfn, err := cpenaming.UnbindURI(*cpe)
+		if err != nil {
+			return nil, err
+		}
+		pkgInputSpec, err := helpers.CPEToPkg(wfn)
+		if err != nil {
+			return nil, err
+		}
+		pkg := &generated.PkgSpec{
+			Type:      &pkgInputSpec.Type,
+			Namespace: pkgInputSpec.Namespace,
+			Name:      &pkgInputSpec.Name,
+			Version:   pkgInputSpec.Version,
+		}
+		depPkg := &generated.PkgSpec{Name: pref}
+		filter := &generated.IsDependencySpec{
+			Package:           pkg,
+			DependencyPackage: depPkg,
+		}
+		httpClient := http.Client{}
+		endpoint, ok := ctx.Value(common.KeyGraphqlEndpoint).(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to locate product url for reference %s due to missing graphqlEndpoint value", *pref)
+		}
+		gqlclient := graphql.NewClient(endpoint, &httpClient)
+		isDependency, err := generated.IsDependency(ctx, gqlclient, *filter)
+		if err != nil {
+			return nil, err
+		} else if len(isDependency.IsDependency) == 0 {
+			return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
+		}
+		purlsMap := make(map[string]struct{})
+		for _, isDep := range isDependency.IsDependency {
+			toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
+			if err != nil {
+				logger.Warnf("Failed to handle the IsDependency response %+v\n", isDep)
+			} else {
+				purlsMap[helpers.PkgInputSpecToPurl(toPkg)] = struct{}{}
+			}
+		}
+		purls := maps.Keys(purlsMap)
+		sort.Strings(purls)
+		if len(purls) > 0 {
+			if len(purls) > 1 {
+				logger.Warnf("More than one dependency package with name '%v' has been found for CPE %+v\n%v\n", *pref, *cpe, purls)
+			}
+			purl = &purls[0]
+			logger.Infof("[csaf] product_id '%v' mapped to guac package %v", product_id, *purl)
+		}
 	}
 
 	return helpers.PurlToPkg(*purl)
