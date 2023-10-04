@@ -151,8 +151,9 @@ func Test_findProductRef(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := findProductRef(test.args.ctx, test.args.tree, test.args.product_id); !reflect.DeepEqual(got, test.want) {
-				t.Errorf("findProductRef() = %v, want %v", got, test.want)
+			got, _ := findProductsRef(test.args.ctx, test.args.tree, test.args.product_id)
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("findProductsRef() = %v, want %v", got, test.want)
 			}
 		})
 	}
