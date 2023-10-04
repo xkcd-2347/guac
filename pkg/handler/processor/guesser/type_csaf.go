@@ -17,6 +17,7 @@ package guesser
 
 import (
 	"github.com/guacsec/guac/pkg/handler/processor"
+	guaccasf "github.com/guacsec/guac/pkg/handler/processor/csaf"
 	"github.com/openvex/go-vex/pkg/csaf"
 )
 
@@ -27,7 +28,7 @@ func (_ *csafTypeGuesser) GuessDocumentType(blob []byte, format processor.Format
 	case processor.FormatJSON:
 		// Decode the BOM
 		var decoded csaf.CSAF
-		err := json.Unmarshal(blob, &decoded)
+		err := guaccasf.UnmarshallFixingDates(blob, &decoded)
 		if err == nil && decoded.Document.Tracking.ID != "" {
 			return processor.DocumentCsaf
 		}

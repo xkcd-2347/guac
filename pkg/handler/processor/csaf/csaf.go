@@ -17,6 +17,7 @@ package csaf
 
 import (
 	"fmt"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -39,7 +40,7 @@ func (p *CSAFProcessor) ValidateSchema(d *processor.Document) error {
 	switch d.Format {
 	case processor.FormatJSON:
 		var decoded csaf.CSAF
-		err := json.Unmarshal(d.Blob, &decoded)
+		err := UnmarshallFixingDates(d.Blob, &decoded)
 		return err
 	}
 
@@ -57,4 +58,10 @@ func (p *CSAFProcessor) Unpack(d *processor.Document) ([]*processor.Document, er
 	}
 
 	return []*processor.Document{}, nil
+}
+
+func UnmarshallFixingDates(blob []byte, csaf *csaf.CSAF) error {
+	// Go does not handle time properly. See https://github.com/golang/go/issues/20555
+	jsonString := strings.ReplaceAll(string(blob), "T00:00:00\"", "T00:00:00+00:00\"")
+	return json.UnmarshalFromString(jsonString, &csaf)
 }
