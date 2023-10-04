@@ -38,7 +38,7 @@ func Ingest(ctx context.Context, d *processor.Document, graphqlEndpoint string, 
 	logger := logging.FromContext(ctx)
 	// Get pipeline of components
 	processorFunc := GetProcessor(ctx)
-	ingestorFunc := GetIngestor(ctx)
+	ingestorFunc := GetIngestor(context.WithValue(ctx, parser_common.KeyGraphqlEndpoint, graphqlEndpoint))
 	collectSubEmitFunc := GetCollectSubEmit(ctx, csubClient)
 	assemblerFunc := GetAssembler(ctx, graphqlEndpoint)
 
@@ -46,7 +46,7 @@ func Ingest(ctx context.Context, d *processor.Document, graphqlEndpoint string, 
 
 	docTree, err := processorFunc(d)
 	if err != nil {
-		return fmt.Errorf("unable to process doc: %v, format: %v, document: %v", err, d.Format, d.Type)
+		return fmt.Errorf("unable to process doc: %v, format: %v, document: %v, source: %v", err, d.Format, d.Type, d.SourceInformation)
 	}
 
 	predicates, idstrings, err := ingestorFunc(docTree)
@@ -85,7 +85,7 @@ func MergedIngest(ctx context.Context, docs []*processor.Document, graphqlEndpoi
 	for _, d := range docs {
 		docTree, err := processorFunc(d)
 		if err != nil {
-			return fmt.Errorf("unable to process doc: %v, format: %v, document: %v", err, d.Format, d.Type)
+			return fmt.Errorf("unable to process doc: %v, format: %v, document: %v, source: %v", err, d.Format, d.Type, d.SourceInformation)
 		}
 
 		preds, idstrs, err := ingestorFunc(docTree)
