@@ -60,6 +60,7 @@ fi
 
 #TODO provide proper patches
 git pull -r git@github.com:jmle/guac.git s3-collector
+#git pull -r git@github.com:mrizzi/guac.git correlation
 
 # Update redhat's main and take all needed files from there.
 git fetch origin $midstream_ref
