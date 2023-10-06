@@ -50,7 +50,10 @@ func init() {
 	_ = RegisterDocumentParser(cyclonedx.NewCycloneDXParser, processor.DocumentCycloneDX)
 	_ = RegisterDocumentParser(scorecard.NewScorecardParser, processor.DocumentScorecard)
 	_ = RegisterDocumentParser(deps_dev.NewDepsDevParser, processor.DocumentDepsDev)
-	_ = RegisterDocumentParser(csaf.NewCsafParser, processor.DocumentCsaf)
+	// TODO restore the NewCsafParser for DocumentCsaf once everything on the CSAF Red Hat parser will be done
+	//_ = RegisterDocumentParser(csaf.NewCsafParser, processor.DocumentCsaf)
+	_ = RegisterDocumentParser(csaf.NewCsafRedHatParser, processor.DocumentCsaf)
+	_ = RegisterDocumentParser(csaf.NewCsafRedHatParser, processor.DocumentCsafRedHat)
 	_ = RegisterDocumentParser(open_vex.NewOpenVEXParser, processor.DocumentOpenVEX)
 	_ = RegisterDocumentParser(cdxVex.NewCdxVexParser, processor.DocumentCdxVex)
 }

@@ -63,6 +63,7 @@ const (
 	DocumentCycloneDX        DocumentType = "CycloneDX"
 	DocumentDepsDev          DocumentType = "DEPS_DEV"
 	DocumentCsaf             DocumentType = "CSAF"
+	DocumentCsafRedHat       DocumentType = "CSAF-RH"
 	DocumentCdxVex           DocumentType = "CDX_VEX"
 	DocumentOpenVEX          DocumentType = "OPEN_VEX"
 	DocumentIngestPredicates DocumentType = "INGEST_PREDICATES"
