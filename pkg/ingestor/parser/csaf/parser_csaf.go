@@ -18,18 +18,12 @@ package csaf
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"sort"
-
-	"github.com/Khan/genqlient/graphql"
-	guaccasf "github.com/guacsec/guac/pkg/handler/processor/csaf"
-	cpenaming "github.com/knqyf263/go-cpe/naming"
-	"golang.org/x/exp/maps"
 
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/handler/processor"
+	guaccasf "github.com/guacsec/guac/pkg/handler/processor/csaf"
 	"github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
 
@@ -56,6 +50,10 @@ var (
 		"recommended":         generated.VexStatusAffected,
 	}
 )
+
+type findPkgSpec interface {
+	findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error)
+}
 
 type csafParser struct {
 	doc               *processor.Document
@@ -212,8 +210,7 @@ func findImpactStatement(tree *csaf.Vulnerability, product_id string) *string {
 // given ID in the CSAF document. It returns a pointer to the package
 // specification if found, otherwise an error.
 func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error) {
-	logger := logging.FromContext(ctx)
-	pref, relToProdRef := findProductsRef(ctx, c.csaf.ProductTree, product_id)
+	pref, _ := findProductsRef(ctx, c.csaf.ProductTree, product_id)
 	if pref == nil {
 		return nil, fmt.Errorf("unable to locate product reference for id %s", product_id)
 	}
@@ -221,58 +218,6 @@ func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*gener
 	purl := findPurl(ctx, c.csaf.ProductTree, *pref)
 	if purl == nil {
 		return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
-	} else if *purl == "" {
-		// if no purl is available in the product reference entry, then let's try to search for it into guac
-		cpe := findCPE(ctx, c.csaf.ProductTree, *relToProdRef)
-		wfn, err := cpenaming.UnbindURI(*cpe)
-		if err != nil {
-			return nil, err
-		}
-		pkgInputSpec, err := helpers.CPEToPkg(wfn)
-		if err != nil {
-			return nil, err
-		}
-		pkg := &generated.PkgSpec{
-			Type:      &pkgInputSpec.Type,
-			Namespace: pkgInputSpec.Namespace,
-			Name:      &pkgInputSpec.Name,
-			Version:   pkgInputSpec.Version,
-		}
-		depPkg := &generated.PkgSpec{Name: pref}
-		filter := &generated.IsDependencySpec{
-			Package:           pkg,
-			DependencyPackage: depPkg,
-		}
-		httpClient := http.Client{}
-		endpoint, ok := ctx.Value(common.KeyGraphqlEndpoint).(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to locate product url for reference %s due to missing graphqlEndpoint value", *pref)
-		}
-		gqlclient := graphql.NewClient(endpoint, &httpClient)
-		isDependency, err := generated.IsDependency(ctx, gqlclient, *filter)
-		if err != nil {
-			return nil, err
-		} else if len(isDependency.IsDependency) == 0 {
-			return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
-		}
-		purlsMap := make(map[string]struct{})
-		for _, isDep := range isDependency.IsDependency {
-			toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
-			if err != nil {
-				logger.Warnf("Failed to handle the IsDependency response %+v\n", isDep)
-			} else {
-				purlsMap[helpers.PkgInputSpecToPurl(toPkg)] = struct{}{}
-			}
-		}
-		purls := maps.Keys(purlsMap)
-		sort.Strings(purls)
-		if len(purls) > 0 {
-			if len(purls) > 1 {
-				logger.Warnf("More than one dependency package with name '%v' has been found for CPE %+v\n%v\n", *pref, *cpe, purls)
-			}
-			purl = &purls[0]
-			logger.Infof("[csaf] product_id '%v' mapped to guac package %v", product_id, *purl)
-		}
 	}
 
 	return helpers.PurlToPkg(*purl)
@@ -283,7 +228,7 @@ func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*gener
 // The function maps CSAF data into a VEX ingest object for adding to the vulnerability graph.
 // It then tries to find the package for the product ID to add to ingest.
 // If it can't be found, it then returns nil, otherwise it returns a pointer to the VEX ingest object.
-func (c *csafParser) generateVexIngest(ctx context.Context, vulnInput *generated.VulnerabilityInputSpec, csafVuln *csaf.Vulnerability, status string, product_id string) *assembler.VexIngest {
+func generateVexIngest(ctx context.Context, c *csafParser, parser findPkgSpec, vulnInput *generated.VulnerabilityInputSpec, csafVuln *csaf.Vulnerability, status string, product_id string) *assembler.VexIngest {
 	logger := logging.FromContext(ctx)
 	vi := &assembler.VexIngest{}
 
@@ -325,7 +270,7 @@ func (c *csafParser) generateVexIngest(ctx context.Context, vulnInput *generated
 	vi.Vulnerability = vulnInput
 	c.identifierStrings.PurlStrings = append(c.identifierStrings.PurlStrings, product_id)
 
-	pkg, err := c.findPkgSpec(ctx, product_id)
+	pkg, err := parser.findPkgSpec(ctx, product_id)
 	if err != nil {
 		logger.Warnf("[csaf] unable to locate package for not-affected product %s", product_id)
 		return nil
@@ -354,7 +299,7 @@ func (c *csafParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 		for _, status := range statuses {
 			products := v.ProductStatus[status]
 			for _, product := range products {
-				vi := c.generateVexIngest(ctx, vuln, &v, status, product)
+				vi := generateVexIngest(ctx, c, c, vuln, &v, status, product)
 				if vi == nil {
 					continue
 				}
