@@ -20,14 +20,15 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/Khan/genqlient/graphql"
+	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
-	cpenaming "github.com/knqyf263/go-cpe/naming"
 	"golang.org/x/exp/maps"
 )
 
@@ -58,45 +59,56 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 		return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
 	} else if *purl == "" {
 		// if no purl is available in the product reference entry, then let's try to search for it into guac
-		cpe := findCPE(ctx, c.csaf.ProductTree, *relToProdRef)
-		wfn, err := cpenaming.UnbindURI(*cpe)
-		if err != nil {
-			return nil, err
-		}
-		pkgInputSpec, err := helpers.CPEToPkg(wfn)
-		if err != nil {
-			return nil, err
-		}
-		pkg := &generated.PkgSpec{
-			Type:      &pkgInputSpec.Type,
-			Namespace: pkgInputSpec.Namespace,
-			Name:      &pkgInputSpec.Name,
-			Version:   pkgInputSpec.Version,
-		}
-		depPkg := &generated.PkgSpec{Name: pref}
-		filter := &generated.IsDependencySpec{
-			Package:           pkg,
-			DependencyPackage: depPkg,
-		}
 		httpClient := http.Client{}
 		endpoint, ok := ctx.Value(common.KeyGraphqlEndpoint).(string)
 		if !ok {
 			return nil, fmt.Errorf("unable to locate product url for reference %s due to missing graphqlEndpoint value", *pref)
 		}
 		gqlclient := graphql.NewClient(endpoint, &httpClient)
-		isDependency, err := generated.IsDependency(ctx, gqlclient, *filter)
+		// get all packages with metadata with key == "cpe"
+		filterHasMetadata := &generated.HasMetadataSpec{
+			Key: ptrfrom.String("cpe"),
+		}
+		cpe := findCPE(ctx, c.csaf.ProductTree, *relToProdRef)
+		pkgsWithMetadata, err := generated.HasMetadata(ctx, gqlclient, *filterHasMetadata)
 		if err != nil {
 			return nil, err
-		} else if len(isDependency.IsDependency) == 0 {
-			return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
 		}
 		purlsMap := make(map[string]struct{})
-		for _, isDep := range isDependency.IsDependency {
-			toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
-			if err != nil {
-				logger.Warnf("Failed to handle the IsDependency response %+v\n", isDep)
-			} else {
-				purlsMap[helpers.PkgInputSpecToPurl(toPkg)] = struct{}{}
+		for _, pkgWithMetadata := range pkgsWithMetadata.HasMetadata {
+			// check the ones whose value starts with the CPE found in the VEX
+			if strings.HasPrefix(pkgWithMetadata.Value, *cpe) {
+				depPkg := &generated.PkgSpec{Name: pref}
+				filterIsDependency := &generated.IsDependencySpec{
+					DependencyPackage: depPkg,
+				}
+				switch subject := pkgWithMetadata.Subject.(type) {
+				case *generated.AllHasMetadataSubjectPackage:
+					filterIsDependency.Package = &generated.PkgSpec{
+						Type:      &subject.Type,
+						Namespace: &subject.Namespaces[0].Namespace,
+						Name:      &subject.Namespaces[0].Names[0].Name,
+						Version:   &subject.Namespaces[0].Names[0].Versions[0].Version,
+					}
+					isDependency, err := generated.IsDependency(ctx, gqlclient, *filterIsDependency)
+					if err != nil {
+						return nil, err
+					} else if len(isDependency.IsDependency) == 0 {
+						return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
+					}
+					for _, isDep := range isDependency.IsDependency {
+						toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
+						if err != nil {
+							logger.Warnf("Failed to handle the IsDependency response %+v\n", isDep)
+						} else {
+							purlsMap[helpers.PkgInputSpecToPurl(toPkg)] = struct{}{}
+						}
+					}
+				case *generated.AllHasMetadataSubjectSource:
+					continue
+				case *generated.AllHasMetadataSubjectArtifact:
+					continue
+				}
 			}
 		}
 		purls := maps.Keys(purlsMap)

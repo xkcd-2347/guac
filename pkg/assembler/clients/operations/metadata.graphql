@@ -86,3 +86,9 @@ mutation HasMetadataArtifacts(
     hasMetadataList: $hasMetadataList
   )
 }
+
+query HasMetadata($filter: HasMetadataSpec!) {
+  HasMetadata (hasMetadataSpec: $filter) {
+    ...AllHasMetadata
+  }
+}
