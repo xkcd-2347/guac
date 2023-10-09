@@ -7298,6 +7298,129 @@ func (v *HasMetadataArtifactsResponse) GetIngestBulkHasMetadata() []string {
 	return v.IngestBulkHasMetadata
 }
 
+// HasMetadataHasMetadata includes the requested fields of the GraphQL type HasMetadata.
+// The GraphQL type's documentation follows.
+//
+// HasMetadata is an attestation that a package, source, or artifact has a certain
+// attested property (key) with value (value). For example, a source may have
+// metadata "SourceRepo2FAEnabled=true".
+//
+// The intent of this evidence tree predicate is to allow extensibility of metadata
+// expressible within the GUAC ontology. Metadata that is commonly used will then
+// be promoted to a predicate on its own.
+//
+// Justification indicates how the metadata was determined.
+//
+// The metadata applies to a subject which is a package, source, or artifact.
+// If the attestation targets a package, it must target a PackageName or a
+// PackageVersion. If the attestation targets a source, it must target a
+// SourceName.
+type HasMetadataHasMetadata struct {
+	AllHasMetadata `json:"-"`
+}
+
+// GetId returns HasMetadataHasMetadata.Id, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetId() string { return v.AllHasMetadata.Id }
+
+// GetSubject returns HasMetadataHasMetadata.Subject, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetSubject() AllHasMetadataSubjectPackageSourceOrArtifact {
+	return v.AllHasMetadata.Subject
+}
+
+// GetKey returns HasMetadataHasMetadata.Key, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetKey() string { return v.AllHasMetadata.Key }
+
+// GetValue returns HasMetadataHasMetadata.Value, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetValue() string { return v.AllHasMetadata.Value }
+
+// GetTimestamp returns HasMetadataHasMetadata.Timestamp, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetTimestamp() time.Time { return v.AllHasMetadata.Timestamp }
+
+// GetJustification returns HasMetadataHasMetadata.Justification, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetJustification() string { return v.AllHasMetadata.Justification }
+
+// GetOrigin returns HasMetadataHasMetadata.Origin, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetOrigin() string { return v.AllHasMetadata.Origin }
+
+// GetCollector returns HasMetadataHasMetadata.Collector, and is useful for accessing the field via an interface.
+func (v *HasMetadataHasMetadata) GetCollector() string { return v.AllHasMetadata.Collector }
+
+func (v *HasMetadataHasMetadata) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*HasMetadataHasMetadata
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.HasMetadataHasMetadata = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.AllHasMetadata)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type __premarshalHasMetadataHasMetadata struct {
+	Id string `json:"id"`
+
+	Subject json.RawMessage `json:"subject"`
+
+	Key string `json:"key"`
+
+	Value string `json:"value"`
+
+	Timestamp time.Time `json:"timestamp"`
+
+	Justification string `json:"justification"`
+
+	Origin string `json:"origin"`
+
+	Collector string `json:"collector"`
+}
+
+func (v *HasMetadataHasMetadata) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *HasMetadataHasMetadata) __premarshalJSON() (*__premarshalHasMetadataHasMetadata, error) {
+	var retval __premarshalHasMetadataHasMetadata
+
+	retval.Id = v.AllHasMetadata.Id
+	{
+
+		dst := &retval.Subject
+		src := v.AllHasMetadata.Subject
+		var err error
+		*dst, err = __marshalAllHasMetadataSubjectPackageSourceOrArtifact(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"unable to marshal HasMetadataHasMetadata.AllHasMetadata.Subject: %w", err)
+		}
+	}
+	retval.Key = v.AllHasMetadata.Key
+	retval.Value = v.AllHasMetadata.Value
+	retval.Timestamp = v.AllHasMetadata.Timestamp
+	retval.Justification = v.AllHasMetadata.Justification
+	retval.Origin = v.AllHasMetadata.Origin
+	retval.Collector = v.AllHasMetadata.Collector
+	return &retval, nil
+}
+
 // HasMetadataInputSpec represents the mutation input to ingest a CertifyGood evidence.
 type HasMetadataInputSpec struct {
 	Key           string    `json:"key"`
@@ -7343,6 +7466,61 @@ type HasMetadataPkgsResponse struct {
 
 // GetIngestBulkHasMetadata returns HasMetadataPkgsResponse.IngestBulkHasMetadata, and is useful for accessing the field via an interface.
 func (v *HasMetadataPkgsResponse) GetIngestBulkHasMetadata() []string { return v.IngestBulkHasMetadata }
+
+// HasMetadataResponse is returned by HasMetadata on success.
+type HasMetadataResponse struct {
+	// Returns all HasMetdata attestations matching a filter.
+	HasMetadata []HasMetadataHasMetadata `json:"HasMetadata"`
+}
+
+// GetHasMetadata returns HasMetadataResponse.HasMetadata, and is useful for accessing the field via an interface.
+func (v *HasMetadataResponse) GetHasMetadata() []HasMetadataHasMetadata { return v.HasMetadata }
+
+// HasMetadataSpec allows filtering the list of HasMetadata evidence to return in a
+// query.
+//
+// If a package is specified in the subject filter, then it must be specified up
+// to PackageName or PackageVersion. That is, user must specify package name, or
+// name and one of version, qualifiers, or subpath.
+//
+// If a source is specified in the subject filter, then it must specify a name,
+// and optionally a tag and a commit.
+//
+// since specified indicates filtering timestamps after the specified time
+type HasMetadataSpec struct {
+	Id            *string                      `json:"id"`
+	Subject       *PackageSourceOrArtifactSpec `json:"subject"`
+	Since         *time.Time                   `json:"since"`
+	Key           *string                      `json:"key"`
+	Value         *string                      `json:"value"`
+	Justification *string                      `json:"justification"`
+	Origin        *string                      `json:"origin"`
+	Collector     *string                      `json:"collector"`
+}
+
+// GetId returns HasMetadataSpec.Id, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetId() *string { return v.Id }
+
+// GetSubject returns HasMetadataSpec.Subject, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetSubject() *PackageSourceOrArtifactSpec { return v.Subject }
+
+// GetSince returns HasMetadataSpec.Since, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetSince() *time.Time { return v.Since }
+
+// GetKey returns HasMetadataSpec.Key, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetKey() *string { return v.Key }
+
+// GetValue returns HasMetadataSpec.Value, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetValue() *string { return v.Value }
+
+// GetJustification returns HasMetadataSpec.Justification, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetJustification() *string { return v.Justification }
+
+// GetOrigin returns HasMetadataSpec.Origin, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetOrigin() *string { return v.Origin }
+
+// GetCollector returns HasMetadataSpec.Collector, and is useful for accessing the field via an interface.
+func (v *HasMetadataSpec) GetCollector() *string { return v.Collector }
 
 // HasMetadataSrcResponse is returned by HasMetadataSrc on success.
 type HasMetadataSrcResponse struct {
@@ -21546,6 +21724,14 @@ func (v *__HasMetadataArtifactsInput) GetHasMetadataList() []HasMetadataInputSpe
 	return v.HasMetadataList
 }
 
+// __HasMetadataInput is used internally by genqlient
+type __HasMetadataInput struct {
+	Filter HasMetadataSpec `json:"filter"`
+}
+
+// GetFilter returns __HasMetadataInput.Filter, and is useful for accessing the field via an interface.
+func (v *__HasMetadataInput) GetFilter() HasMetadataSpec { return v.Filter }
+
 // __HasMetadataPkgInput is used internally by genqlient
 type __HasMetadataPkgInput struct {
 	Pkg          PkgInputSpec         `json:"pkg"`
@@ -23481,6 +23667,102 @@ func FindSoftware(
 	var err error
 
 	var data FindSoftwareResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by HasMetadata.
+const HasMetadata_Operation = `
+query HasMetadata ($filter: HasMetadataSpec!) {
+	HasMetadata(hasMetadataSpec: $filter) {
+		... AllHasMetadata
+	}
+}
+fragment AllHasMetadata on HasMetadata {
+	id
+	subject {
+		__typename
+		... on Package {
+			... AllPkgTree
+		}
+		... on Source {
+			... AllSourceTree
+		}
+		... on Artifact {
+			... AllArtifactTree
+		}
+	}
+	key
+	value
+	timestamp
+	justification
+	origin
+	collector
+}
+fragment AllPkgTree on Package {
+	id
+	type
+	namespaces {
+		id
+		namespace
+		names {
+			id
+			name
+			versions {
+				id
+				version
+				qualifiers {
+					key
+					value
+				}
+				subpath
+			}
+		}
+	}
+}
+fragment AllSourceTree on Source {
+	id
+	type
+	namespaces {
+		id
+		namespace
+		names {
+			id
+			name
+			tag
+			commit
+		}
+	}
+}
+fragment AllArtifactTree on Artifact {
+	id
+	algorithm
+	digest
+}
+`
+
+func HasMetadata(
+	ctx context.Context,
+	client graphql.Client,
+	filter HasMetadataSpec,
+) (*HasMetadataResponse, error) {
+	req := &graphql.Request{
+		OpName: "HasMetadata",
+		Query:  HasMetadata_Operation,
+		Variables: &__HasMetadataInput{
+			Filter: filter,
+		},
+	}
+	var err error
+
+	var data HasMetadataResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

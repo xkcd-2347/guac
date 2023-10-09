@@ -227,3 +227,24 @@ func GuacFilePurl(alg string, digest string, filename *string) string {
 func GuacGenericPurl(s string) string {
 	return fmt.Sprintf("pkg:guac/generic/%s", SanitizeString(s))
 }
+
+func AllPkgTreeToPurl(pkg model.AllPkgTree, isPackageVersion bool) string {
+	version := ""
+	subpath := ""
+	var qualifiers []string
+
+	if isPackageVersion {
+		version = pkg.Namespaces[0].Names[0].Versions[0].Version
+
+		subpath = pkg.Namespaces[0].Names[0].Versions[0].Subpath
+
+		for _, qualifier := range pkg.Namespaces[0].Names[0].Versions[0].Qualifiers {
+			qualifiers = append(qualifiers, qualifier.Key, qualifier.Value)
+		}
+
+	}
+
+	pkgString := PkgToPurl(pkg.Type, pkg.Namespaces[0].Namespace, pkg.Namespaces[0].Names[0].Name, version, subpath, qualifiers)
+
+	return pkgString
+}
