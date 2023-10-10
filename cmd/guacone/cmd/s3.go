@@ -38,7 +38,7 @@ type s3Options struct {
 	s3url      string // base url of the s3 to collect from
 	s3bucket   string // name of bucket to collect from
 	s3item     string // s3 item (only for non-polling behaviour)
-	region     string // AWS region, for s3/sqs configuration (defaults to us-east-1)
+	s3region   string // AWS region, for s3/sqs configuration (defaults to us-east-1)
 	queues     string // comma-separated list of queues/topics (only for polling behaviour)
 	mp         string // message provider name (sqs or kafka, will default to kafka)
 	mpEndpoint string // endpoint for the message provider (only for polling behaviour)
@@ -57,7 +57,7 @@ var s3Cmd = &cobra.Command{
 			args,
 			viper.GetString("s3-url"),
 			viper.GetString("s3-bucket"),
-			viper.GetString("region"),
+			viper.GetString("s3-region"),
 			viper.GetString("s3-item"),
 			viper.GetString("s3-mp"),
 			viper.GetString("s3-mp-endpoint"),
@@ -129,7 +129,7 @@ var s3Cmd = &cobra.Command{
 	},
 }
 
-func validateS3Opts(args []string, s3url string, s3bucket string, region string, s3item string, mp string, mpEndpoint string, queues string, poll bool) (s3Options, error) {
+func validateS3Opts(args []string, s3url string, s3bucket string, s3region string, s3item string, mp string, mpEndpoint string, queues string, poll bool) (s3Options, error) {
 	var opts s3Options
 
 	if poll {
@@ -151,13 +151,13 @@ func validateS3Opts(args []string, s3url string, s3bucket string, region string,
 		return opts, fmt.Errorf("expected s3 bucket")
 	}
 
-	opts = s3Options{s3url, s3bucket, region, s3item, queues, mp, mpEndpoint, poll}
+	opts = s3Options{s3url, s3bucket, s3region, s3item, queues, mp, mpEndpoint, poll}
 
 	return opts, nil
 }
 
 func init() {
-	set, err := cli.BuildFlags([]string{"s3-url", "s3-bucket", "region", "s3-item", "s3-mp", "s3-mp-endpoint", "s3-queues", "poll"})
+	set, err := cli.BuildFlags([]string{"s3-url", "s3-bucket", "s3-region", "s3-item", "s3-mp", "s3-mp-endpoint", "s3-queues", "poll"})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to setup flag: %s", err)
 		os.Exit(1)
