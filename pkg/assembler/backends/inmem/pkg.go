@@ -198,7 +198,9 @@ func (n *pkgVersionStruct) Neighbors(allowedEdges edgeMap) []uint32 {
 	return out
 }
 func (n *pkgVersionNode) Neighbors(allowedEdges edgeMap) []uint32 {
-	out := []uint32{n.parent}
+	// TODO to be properly managed once https://github.com/guacsec/guac/issues/1381
+	// will get to a conclusion
+	out := []uint32{/*n.parent*/}
 
 	if allowedEdges[model.EdgePackageHasSourceAt] {
 		out = append(out, n.srcMapLinks...)
