@@ -34,4 +34,20 @@ extend type Query {
   implement this API.
   """
   findSoftware(searchText: String!): [PackageSourceOrArtifact!]!
+
+  """
+  findTopLevelPackagesRelatedToVulnerability takes in a vulnerabilityID string
+  and looks for top level packages (i.e. packages with an SBOM) related to the
+  corresponding vulnerability. findTopLevelPackagesRelatedToVulnerability
+  returns a list of Nodes, representing the path from the certify vulnerability
+  to a top level package.
+
+  All that is asked in the implementation of this API is that it follows
+  the spirit of helping to retrieve the right nodes with best effort.
+
+  Warning: This is an EXPERIMENTAL feature. This is subject to change.
+  Warning: This is an OPTIONAL feature. Backends are not required to
+  implement this API.
+  """
+  findTopLevelPackagesRelatedToVulnerability(vulnerabilityID: String!): [[Node!]!]!
 }
