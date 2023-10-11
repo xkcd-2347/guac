@@ -14,3 +14,8 @@ import (
 func (r *queryResolver) FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error) {
 	return r.Backend.FindSoftware(ctx, searchText)
 }
+
+// FindTopLevelPackagesRelatedToVulnerability is the resolver for the findTopLevelPackagesRelatedToVulnerability field.
+func (r *queryResolver) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
+	return r.Backend.FindTopLevelPackagesRelatedToVulnerability(ctx, vulnerabilityID)
+}
