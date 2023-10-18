@@ -185,6 +185,21 @@ func (mr *MockBackendMockRecorder) FindVulnerability(ctx, purl interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindVulnerability", reflect.TypeOf((*MockBackend)(nil).FindVulnerability), ctx, purl)
 }
 
+// FindVulnerabilityCPE mocks base method.
+func (m *MockBackend) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindVulnerabilityCPE", ctx, cpe)
+	ret0, _ := ret[0].([]model.CertifyVulnOrCertifyVEXStatement)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindVulnerabilityCPE indicates an expected call of FindVulnerabilityCPE.
+func (mr *MockBackendMockRecorder) FindVulnerabilityCPE(ctx, cpe interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindVulnerabilityCPE", reflect.TypeOf((*MockBackend)(nil).FindVulnerabilityCPE), ctx, cpe)
+}
+
 // HasMetadata mocks base method.
 func (m *MockBackend) HasMetadata(ctx context.Context, hasMetadataSpec *model.HasMetadataSpec) ([]*model.HasMetadata, error) {
 	m.ctrl.T.Helper()
