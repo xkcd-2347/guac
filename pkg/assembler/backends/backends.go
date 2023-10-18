@@ -111,8 +111,11 @@ type Backend interface {
 	// Search queries: queries to help find data in GUAC based on text search
 	FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error)
 
-	// Search for top level packages (i.e. packages with an SBOM) related to the vulnerability ID provided
+	// FindTopLevelPackagesRelatedToVulnerability searches for top level packages (i.e. packages with an SBOM) related to the vulnerability ID provided
 	FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error)
+
+	// FindVulnerability returns all vulnerabilities related to a package
+	FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error)
 }
 
 // BackendArgs interface allows each backend to specify the arguments needed to
