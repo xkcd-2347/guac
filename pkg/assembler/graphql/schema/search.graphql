@@ -56,4 +56,7 @@ extend type Query {
 
   "Returns all vulnerabilities related to a package."
   findVulnerability(purl: String!): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all vulnerabilities related to the package identified by the CPE"
+  findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!
 }
