@@ -19,3 +19,9 @@ func (r *queryResolver) FindSoftware(ctx context.Context, searchText string) ([]
 func (r *queryResolver) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
 	return r.Backend.FindTopLevelPackagesRelatedToVulnerability(ctx, vulnerabilityID)
 }
+
+// FindVulnerability is the resolver for the findVulnerability field.
+func (r *queryResolver) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return r.Backend.FindVulnerability(ctx, purl)
+	//return nil, nil
+}

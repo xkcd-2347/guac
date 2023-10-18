@@ -287,6 +287,7 @@ type ComplexityRoot struct {
 		CertifyVuln                                func(childComplexity int, certifyVulnSpec model.CertifyVulnSpec) int
 		FindSoftware                               func(childComplexity int, searchText string) int
 		FindTopLevelPackagesRelatedToVulnerability func(childComplexity int, vulnerabilityID string) int
+		FindVulnerability                          func(childComplexity int, purl string) int
 		HasMetadata                                func(childComplexity int, hasMetadataSpec model.HasMetadataSpec) int
 		HasSbom                                    func(childComplexity int, hasSBOMSpec model.HasSBOMSpec) int
 		HasSlsa                                    func(childComplexity int, hasSLSASpec model.HasSLSASpec) int
@@ -1914,6 +1915,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindTopLevelPackagesRelatedToVulnerability(childComplexity, args["vulnerabilityID"].(string)), true
+
+	case "Query.findVulnerability":
+		if e.complexity.Query.FindVulnerability == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findVulnerability_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindVulnerability(childComplexity, args["purl"].(string)), true
 
 	case "Query.HasMetadata":
 		if e.complexity.Query.HasMetadata == nil {
@@ -4901,6 +4914,9 @@ extend type Mutation {
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"CertifyVulnOrCertifyVEXStatement is a union of CertifyVuln and CertifyVEXStatement."
+union CertifyVulnOrCertifyVEXStatement = CertifyVuln | CertifyVEXStatement
+
 extend type Query {
   """
   findSoftware takes in a searchText string and looks for software
@@ -4938,6 +4954,9 @@ extend type Query {
   implement this API.
   """
   findTopLevelPackagesRelatedToVulnerability(vulnerabilityID: String!): [[Node!]!]!
+
+  "Returns all vulnerabilities related to a package."
+  findVulnerability(purl: String!): [CertifyVulnOrCertifyVEXStatement!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/source.graphql", Input: `#
