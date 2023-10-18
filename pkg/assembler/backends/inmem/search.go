@@ -48,11 +48,8 @@ func (c *demoClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 	if err != nil {
 		return nil, gqlerror.Errorf("FindTopLevelPackagesRelatedToVulnerability failed with err: %v", err)
 	}
-	if len(hasSBOMs) == 0 {
-		return nil, gqlerror.Errorf("FindTopLevelPackagesRelatedToVulnerability failed with err: Found no package with an SBOM")
-	}
 
-	var result [][]model.Node
+	result := [][]model.Node{}
 	for _, hasSBOM := range hasSBOMs {
 		var idProduct *string
 		switch v := hasSBOM.Subject.(type) {

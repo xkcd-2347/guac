@@ -233,6 +233,46 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 			}},
 			wantErr: false,
 		},
+		{
+			name:  "No package with SBOM found",
+			InPkg: []*model.PkgInputSpec{p1, p4, p5},
+			// p1 is a dependency ONLY of p4
+			InIsDependency: []IsDependency{
+				{
+					P1: *p1,
+					P2: *p4,
+					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					ID: model.IsDependencyInputSpec{
+						Justification: "test justification",
+					},
+				},
+			},
+			InHasSBOM: []HasSBOM{},
+			InVulnerability: []*model.VulnerabilityInputSpec{{
+				Type:            "cve",
+				VulnerabilityID: "CVE-2019-13110",
+			}},
+			// vulnerability relates to p1
+			InCertifyVuln: []CertifyVuln{{
+				Pkg: p1,
+				Vuln: &model.VulnerabilityInputSpec{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				CertifyVuln: &model.ScanMetadataInput{
+					Collector:      "test collector",
+					Origin:         "test origin",
+					ScannerVersion: "v1.0.0",
+					ScannerURI:     "test scanner uri",
+					DbVersion:      "2023.01.01",
+					DbURI:          "test db uri",
+					TimeScanned:    testdata.T1,
+				},
+			}},
+			query:   "cve-2019-13110",
+			want:    [][]model.Node{},
+			wantErr: false,
+		},
 	}
 	ignoreID := cmp.FilterPath(func(p cmp.Path) bool {
 		return strings.Compare(".ID", p[len(p)-1].String()) == 0
