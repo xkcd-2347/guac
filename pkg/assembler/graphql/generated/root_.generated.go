@@ -291,6 +291,7 @@ type ComplexityRoot struct {
 		FindSoftware                               func(childComplexity int, searchText string) int
 		FindTopLevelPackagesRelatedToVulnerability func(childComplexity int, vulnerabilityID string) int
 		FindVulnerability                          func(childComplexity int, purl string) int
+		FindVulnerabilityByCpe                     func(childComplexity int, cpe string) int
 		HasMetadata                                func(childComplexity int, hasMetadataSpec model.HasMetadataSpec) int
 		HasSbom                                    func(childComplexity int, hasSBOMSpec model.HasSBOMSpec) int
 		HasSlsa                                    func(childComplexity int, hasSLSASpec model.HasSLSASpec) int
@@ -1951,6 +1952,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindVulnerability(childComplexity, args["purl"].(string)), true
+
+	case "Query.findVulnerabilityByCPE":
+		if e.complexity.Query.FindVulnerabilityByCpe == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findVulnerabilityByCPE_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindVulnerabilityByCpe(childComplexity, args["cpe"].(string)), true
 
 	case "Query.HasMetadata":
 		if e.complexity.Query.HasMetadata == nil {
@@ -5000,6 +5013,9 @@ extend type Query {
 
   "Returns all vulnerabilities related to a package."
   findVulnerability(purl: String!): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all vulnerabilities related to the package identified by the CPE"
+  findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/source.graphql", Input: `#

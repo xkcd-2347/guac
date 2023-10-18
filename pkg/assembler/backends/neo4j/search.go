@@ -33,3 +33,7 @@ func (c *neo4jClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Con
 func (c *neo4jClient) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerability")
 }
+
+func (c *neo4jClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
+}

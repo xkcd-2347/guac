@@ -19,9 +19,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/exp/maps"
 )
 
 var edgesAllowed = []model.Edge{
@@ -99,7 +101,7 @@ func (c *demoClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 	return result, nil
 }
 
-// FindVulnerability is based upon the "guacone query vuln" CLI command (i.e. [github.com/guacsec/guac/cmd/guacone/cmd/vulnerability.go])
+// FindVulnerability returns all vulnerabilities related to a package
 func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 
 	pkgInput, err := helpers.PurlToPkg(purl)
@@ -123,6 +125,53 @@ func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]mode
 		Subpath:    pkgInput.Subpath,
 		Qualifiers: pkgQualifierFilter,
 	}
+	return c.findVulnerabilities(ctx, pkgFilter)
+}
+
+// FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
+func (c *demoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+
+	metadatas, err := c.HasMetadata(ctx, &model.HasMetadataSpec{Key: ptrfrom.String("cpe"), Value: &cpe})
+	packagesFound := map[string]*model.Package{}
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
+	}
+	// if multiple times the same key-value metadata has been attached to the same package,
+	// it means the referenced package is just only the same one.
+	for i := range metadatas {
+		pkg, ok := metadatas[i].Subject.(*model.Package)
+		if ok {
+			id := pkg.Namespaces[0].Names[0].Versions[0].ID
+			if _, found := packagesFound[id]; !found {
+				packagesFound[id] = pkg
+			}
+		}
+	}
+	if len(maps.Values(packagesFound)) != 1 {
+		return nil, gqlerror.Errorf("failed to locate a single package based on the provided CPE")
+	}
+
+	pkg := maps.Values(packagesFound)[0]
+	pkgQualifierFilter := []*model.PackageQualifierSpec{}
+	for _, qualifier := range pkg.Namespaces[0].Names[0].Versions[0].Qualifiers {
+		pkgQualifierFilter = append(pkgQualifierFilter, &model.PackageQualifierSpec{
+			Key:   qualifier.Key,
+			Value: &qualifier.Value,
+		})
+	}
+	pkgFilter := &model.PkgSpec{
+		Type:       &pkg.Type,
+		Namespace:  &pkg.Namespaces[0].Namespace,
+		Name:       &pkg.Namespaces[0].Names[0].Name,
+		Version:    &pkg.Namespaces[0].Names[0].Versions[0].Version,
+		Subpath:    &pkg.Namespaces[0].Names[0].Versions[0].Subpath,
+		Qualifiers: pkgQualifierFilter,
+	}
+	return c.findVulnerabilities(ctx, pkgFilter)
+}
+
+func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+
 	pkgResponse, err := c.Packages(ctx, pkgFilter)
 	if err != nil {
 		return nil, gqlerror.Errorf("error querying for package: %v", err)
@@ -135,7 +184,7 @@ func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]mode
 
 	vexStatements, err := c.CertifyVEXStatement(ctx, &model.CertifyVEXStatementSpec{})
 	if err != nil {
-		return nil, gqlerror.Errorf("FindVulnerability failed with err: %v", err)
+		return nil, gqlerror.Errorf("findVulnerabilities failed with err: %v", err)
 	}
 	idProduct := pkgResponse[0].Namespaces[0].Names[0].Versions[0].ID
 	for _, vexStatement := range vexStatements {
@@ -146,7 +195,7 @@ func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]mode
 	}
 	vulnStatements, err := c.CertifyVuln(ctx, &model.CertifyVulnSpec{})
 	if err != nil {
-		return nil, gqlerror.Errorf("FindVulnerability failed with err: %v", err)
+		return nil, gqlerror.Errorf("findVulnerabilities failed with err: %v", err)
 	}
 	for _, vuln := range vulnStatements {
 		path, err := c.Path(ctx, vuln.ID, idProduct, 10, edgesAllowed)
