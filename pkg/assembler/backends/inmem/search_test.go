@@ -81,8 +81,8 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 			// p1 is a dependency ONLY of p4
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p4,
+					P1: *p4,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
@@ -141,8 +141,8 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 				},
 				p1out,
 				&model.IsDependency{
-					Package:           p1out,
-					DependencyPackage: p4out,
+					Package:           p4out,
+					DependencyPackage: p1out,
 					Justification:     "test justification",
 				},
 				p5out,
@@ -155,8 +155,8 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 			// p1 is a dependency ONLY of p4
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p4,
+					P1: *p4,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
@@ -225,8 +225,8 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 				},
 				p1out,
 				&model.IsDependency{
-					Package:           p1out,
-					DependencyPackage: p4out,
+					Package:           p4out,
+					DependencyPackage: p1out,
 					Justification:     "test justification",
 				},
 				p5out,
@@ -239,8 +239,8 @@ func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 			// p1 is a dependency ONLY of p4
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p4,
+					P1: *p4,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
