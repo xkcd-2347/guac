@@ -93,8 +93,6 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 					isDependency, err := generated.IsDependency(ctx, gqlclient, *filterIsDependency)
 					if err != nil {
 						return nil, err
-					} else if len(isDependency.IsDependency) == 0 {
-						return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
 					}
 					for _, isDep := range isDependency.IsDependency {
 						toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
