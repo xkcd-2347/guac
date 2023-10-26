@@ -218,25 +218,27 @@ func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 
 	vulnerabilities := []model.CertifyVulnOrCertifyVEXStatement{}
 
-	vexStatements, err := c.CertifyVEXStatement(ctx, &model.CertifyVEXStatementSpec{})
-	if err != nil {
-		return nil, gqlerror.Errorf("findVulnerabilities failed with err: %v", err)
-	}
 	idProduct := pkgResponse[0].Namespaces[0].Names[0].Versions[0].ID
-	for _, vexStatement := range vexStatements {
-		path, err := c.Path(ctx, vexStatement.ID, idProduct, 10, edgesAllowedFindVulnerability)
-		if err == nil {
-			vulnerabilities = append(vulnerabilities, path[0].(*model.CertifyVEXStatement))
+	for _, vex := range c.vexs {
+		if vex.packageID != 0 {
+			path, err := c.PathThroughIsDependency(ctx, nodeID(vex.packageID), idProduct, 10, edgesAllowed)
+			if err == nil && len(path) > 0 {
+				vexStatementNode, err := vex.BuildModelNode(c)
+				if err != nil {
+					return nil, err
+				}
+				vulnerabilities = append(vulnerabilities, vexStatementNode.(*model.CertifyVEXStatement))
+			}
 		}
 	}
-	vulnStatements, err := c.CertifyVuln(ctx, &model.CertifyVulnSpec{})
-	if err != nil {
-		return nil, gqlerror.Errorf("findVulnerabilities failed with err: %v", err)
-	}
-	for _, vuln := range vulnStatements {
-		path, err := c.Path(ctx, vuln.ID, idProduct, 10, edgesAllowedFindVulnerability)
-		if err == nil {
-			certifyVuln := path[0].(*model.CertifyVuln)
+	for _, vuln := range c.certifyVulnerabilities {
+		path, err := c.PathThroughIsDependency(ctx, nodeID(vuln.packageID), idProduct, 10, edgesAllowed)
+		if err == nil && len(path) > 0 {
+			vulnNode, err := vuln.BuildModelNode(c)
+			if err != nil {
+				return nil, err
+			}
+			certifyVuln := vulnNode.(*model.CertifyVuln)
 			if certifyVuln.Vulnerability.Type != noVulnType {
 				vulnerabilities = append(vulnerabilities, certifyVuln)
 			}
