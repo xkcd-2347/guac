@@ -387,8 +387,8 @@ func Test_demoClient_FindVulnerability(t *testing.T) {
 			// p1 is a dependency ONLY of p2
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p2,
+					P1: *p2,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
@@ -471,8 +471,8 @@ func Test_demoClient_FindVulnerability(t *testing.T) {
 			// p1 is a dependency ONLY of p2
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p2,
+					P1: *p2,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
@@ -681,8 +681,8 @@ func Test_demoClient_FindVulnerabilityCPE(t *testing.T) {
 			// p1 is a dependency ONLY of p2
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p2,
+					P1: *p2,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
@@ -809,8 +809,8 @@ func Test_demoClient_FindVulnerabilityCPE(t *testing.T) {
 			// p1 is a dependency ONLY of p2
 			InIsDependency: []IsDependency{
 				{
-					P1: *p1,
-					P2: *p2,
+					P1: *p2,
+					P2: *p1,
 					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					ID: model.IsDependencyInputSpec{
 						Justification: "test justification",
