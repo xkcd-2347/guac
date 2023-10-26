@@ -170,6 +170,111 @@ func (c *demoClient) bfs(from, to uint32, maxLength int, allowedEdges edgeMap) (
 	return c.buildModelNodes(path)
 }
 
+func (c *demoClient) PathThroughIsDependency(ctx context.Context, source string, target string, maxPathLength int, usingOnly []model.Edge) ([]model.Node, error) {
+	sourceID, err := strconv.ParseUint(source, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	targetID, err := strconv.ParseUint(target, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	c.m.RLock()
+	defer c.m.RUnlock()
+	return c.bfsThroughIsDependency(uint32(sourceID), uint32(targetID), maxPathLength, processUsingOnly(usingOnly))
+}
+
+func (c *demoClient) bfsThroughIsDependency(from, to uint32, maxLength int, allowedEdges edgeMap) ([]model.Node, error) {
+	queue := make([]uint32, 0) // the queue of nodes in bfs
+	type dfsNode struct {
+		expanded bool // true once all node neighbors are added to queue
+		parent   uint32
+		depth    int
+	}
+	nodeMap := map[uint32]dfsNode{}
+
+	nodeMap[from] = dfsNode{}
+	queue = append(queue, from)
+
+	found := false
+	for len(queue) > 0 {
+		now := queue[0]
+		queue = queue[1:]
+		nowNode := nodeMap[now]
+
+		if now == to {
+			found = true
+			break
+		}
+
+		if nowNode.depth >= maxLength {
+			break
+		}
+
+		depPkg, err := byID[pkgNameOrVersion](now, c)
+		if err != nil {
+			return nil, gqlerror.Errorf("bfs ::  %s", err)
+		}
+		isDependencyLinks := depPkg.getIsDependencyLinks()
+		var isDependencies []*isDependencyLink
+		for i := range isDependencyLinks {
+			dependencyLink, err := byID[*isDependencyLink](isDependencyLinks[i], c)
+			if err != nil {
+				return nil, err
+			}
+			if dependencyLink.depPackageID == now {
+				isDependencies = append(isDependencies, dependencyLink)
+			}
+		}
+		for i := range isDependencies {
+			next := isDependencies[i].packageID
+			dfsN, seen := nodeMap[next]
+			if !seen {
+				dfsNIsDependency := dfsNode{
+					parent: now,
+					depth:  nowNode.depth + 1,
+				}
+				nodeMap[isDependencies[i].id] = dfsNIsDependency
+				dfsN = dfsNode{
+					parent: isDependencies[i].id,
+					depth:  nowNode.depth + 2,
+				}
+				nodeMap[next] = dfsN
+			}
+			if !dfsN.expanded {
+				queue = append(queue, next)
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		nowNode.expanded = true
+		nodeMap[now] = nowNode
+	}
+
+	if !found {
+		return nil, gqlerror.Errorf("No path found up to specified length")
+	}
+
+	reversedPath := []uint32{}
+	now := to
+	for now != from {
+		reversedPath = append(reversedPath, now)
+		now = nodeMap[now].parent
+	}
+	reversedPath = append(reversedPath, now)
+
+	// reverse path
+	path := make([]uint32, len(reversedPath))
+	for i, x := range reversedPath {
+		path[len(reversedPath)-i-1] = x
+	}
+
+	return c.buildModelNodes(path)
+}
+
 func (c *demoClient) Node(ctx context.Context, source string) (model.Node, error) {
 	id, err := strconv.ParseUint(source, 10, 32)
 	if err != nil {

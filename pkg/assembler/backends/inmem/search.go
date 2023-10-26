@@ -32,6 +32,19 @@ var edgesAllowed = []model.Edge{
 	model.EdgePackageIsDependency,
 }
 
+var edgesAllowedFindVulnerability = []model.Edge{
+	model.EdgeArtifactCertifyVexStatement,
+	model.EdgeCertifyVexStatementVulnerability,
+	model.EdgeCertifyVexStatementPackage,
+	model.EdgeCertifyVexStatementArtifact,
+	model.EdgeCertifyVulnPackage,
+	model.EdgeIsDependencyPackage,
+	model.EdgePackageCertifyVexStatement,
+	model.EdgePackageIsDependency,
+	model.EdgeVulnerabilityCertifyVexStatement,
+	model.EdgeVulnerabilityCertifyVuln,
+}
+
 func (c *demoClient) FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error) {
 	return []model.PackageSourceOrArtifact{}, fmt.Errorf("not implemented: FindSoftware")
 }
@@ -109,54 +122,17 @@ func (c *demoClient) findRelatedProducts(ctx context.Context, pkgVulnerable *mod
 		result = append(result, []model.Node{vuln, pkgVulnerable})
 		productIDsCheckedVulnerable[pkgVulnerable.Namespaces[0].Names[0].Versions[0].ID] = true
 	} else {
-		// otherwise it's worth searching only in packages dependent on the vulnerable one
-		// i.e. excluding its dependencies and all of their neighbors
-		isDependencies, err := c.IsDependency(ctx, &model.IsDependencySpec{
-			DependencyPackage: &model.PkgSpec{
-				Type:      &pkgVulnerable.Type,
-				Namespace: &pkgVulnerable.Namespaces[0].Namespace,
-				Name:      &pkgVulnerable.Namespaces[0].Names[0].Name,
-				Version:   &pkgVulnerable.Namespaces[0].Names[0].Versions[0].Version,
-			},
-			VersionRange: &pkgVulnerable.Namespaces[0].Names[0].Versions[0].Version,
-		})
-		if err != nil {
-			return nil, err
-		}
-		var dependentIsDependency []*model.IsDependency
-		for _, isDependency := range isDependencies {
-			// if the dependent package is product, then the path has been found
-			if alreadyFoundVulnerable, ok := productIDsCheckedVulnerable[isDependency.Package.Namespaces[0].Names[0].Versions[0].ID]; ok {
-				// in case it will be required for the same vulnerability to be reported multiple times
-				// then just remove the following if on alreadyFoundVulnerable
-				if !alreadyFoundVulnerable {
-					result = append(result, []model.Node{vuln, pkgVulnerable, isDependency, isDependency.Package})
-					productIDsCheckedVulnerable[isDependency.Package.Namespaces[0].Names[0].Versions[0].ID] = true
-				}
-			} else {
-				// it isn't a product (because it has no entry in the productIDsCheckedVulnerable map)
-				// hence collect the dependent package version IDs
-				dependentIsDependency = append(dependentIsDependency, isDependency)
-			}
-		}
-		for i := range dependentIsDependency {
-			// if the dependent packages is not a product, then it's safe to use it as a Path starting point
-			// if other products IDs are not excluded, shared dependencies between different products could act
-			// as "bridges" for reporting false positive vulnerable products
-			if _, ok := productIDsCheckedVulnerable[dependentIsDependency[i].Package.Namespaces[0].Names[0].Versions[0].ID]; !ok {
-				for idProduct, checkedVulnerable := range productIDsCheckedVulnerable {
-					if !checkedVulnerable {
-						// defer to the Path query endpoint to move forward in searching
-						path, err := c.Path(ctx, dependentIsDependency[i].Package.Namespaces[0].Names[0].Versions[0].ID, idProduct, 10, edgesAllowed)
-						if err == nil {
-							path = append([]model.Node{vuln, pkgVulnerable, dependentIsDependency[i]}, path...)
-							result = append(result, path)
-							productIDsCheckedVulnerable[idProduct] = true
-						}
-					}
+		for idProduct, checkedVulnerable := range productIDsCheckedVulnerable {
+			if !checkedVulnerable {
+				path, err := c.PathThroughIsDependency(ctx, pkgVulnerable.Namespaces[0].Names[0].Versions[0].ID, idProduct, 10, edgesAllowed)
+				if err == nil {
+					path = append([]model.Node{vuln}, path...)
+					result = append(result, path)
+					productIDsCheckedVulnerable[idProduct] = true
 				}
 			}
 		}
+
 	}
 	return result, nil
 }
@@ -248,7 +224,7 @@ func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 	}
 	idProduct := pkgResponse[0].Namespaces[0].Names[0].Versions[0].ID
 	for _, vexStatement := range vexStatements {
-		path, err := c.Path(ctx, vexStatement.ID, idProduct, 10, edgesAllowed)
+		path, err := c.Path(ctx, vexStatement.ID, idProduct, 10, edgesAllowedFindVulnerability)
 		if err == nil {
 			vulnerabilities = append(vulnerabilities, path[0].(*model.CertifyVEXStatement))
 		}
@@ -258,7 +234,7 @@ func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 		return nil, gqlerror.Errorf("findVulnerabilities failed with err: %v", err)
 	}
 	for _, vuln := range vulnStatements {
-		path, err := c.Path(ctx, vuln.ID, idProduct, 10, edgesAllowed)
+		path, err := c.Path(ctx, vuln.ID, idProduct, 10, edgesAllowedFindVulnerability)
 		if err == nil {
 			certifyVuln := path[0].(*model.CertifyVuln)
 			if certifyVuln.Vulnerability.Type != noVulnType {
