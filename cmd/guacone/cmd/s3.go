@@ -37,8 +37,8 @@ import (
 type s3Options struct {
 	s3url      string // base url of the s3 to collect from
 	s3bucket   string // name of bucket to collect from
-	s3item     string // s3 item (only for non-polling behaviour)
 	region     string // AWS region, for s3/sqs configuration (defaults to us-east-1)
+	s3item     string // s3 item (only for non-polling behaviour)
 	queues     string // comma-separated list of queues/topics (only for polling behaviour)
 	mp         string // message provider name (sqs or kafka, will default to kafka)
 	mpEndpoint string // endpoint for the message provider (only for polling behaviour)
@@ -141,10 +141,6 @@ func validateS3Opts(s3url string, s3bucket string, region string, s3item string,
 		}
 		if len(queues) == 0 {
 			return opts, fmt.Errorf("expected at least one queue")
-		}
-	} else {
-		if len(s3item) == 0 {
-			return opts, fmt.Errorf("expected s3 item")
 		}
 	}
 
