@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
@@ -161,7 +162,8 @@ func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]mode
 		Subpath:    pkgInput.Subpath,
 		Qualifiers: pkgQualifierFilter,
 	}
-	return c.findVulnerabilities(ctx, pkgFilter)
+	vulnerabilities, err := c.findVulnerabilities(ctx, pkgFilter)
+	return *vulnerabilities, err
 }
 
 // FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
@@ -203,10 +205,11 @@ func (c *demoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 		Subpath:    &pkg.Namespaces[0].Names[0].Versions[0].Subpath,
 		Qualifiers: pkgQualifierFilter,
 	}
-	return c.findVulnerabilities(ctx, pkgFilter)
+	vulnerabilities, err := c.findVulnerabilities(ctx, pkgFilter)
+	return *vulnerabilities, err
 }
 
-func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
 
 	pkgResponse, err := c.Packages(ctx, pkgFilter)
 	if err != nil {
@@ -216,34 +219,10 @@ func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 		return nil, gqlerror.Errorf("failed to locate package based on purl")
 	}
 
-	vulnerabilities := []model.CertifyVulnOrCertifyVEXStatement{}
-
 	idProduct := pkgResponse[0].Namespaces[0].Names[0].Versions[0].ID
-	for _, vex := range c.vexs {
-		if vex.packageID != 0 {
-			path, err := c.PathThroughIsDependency(ctx, nodeID(vex.packageID), idProduct, 10, edgesAllowed)
-			if err == nil && len(path) > 0 {
-				vexStatementNode, err := vex.BuildModelNode(c)
-				if err != nil {
-					return nil, err
-				}
-				vulnerabilities = append(vulnerabilities, vexStatementNode.(*model.CertifyVEXStatement))
-			}
-		}
+	product, err := strconv.ParseUint(idProduct, 10, 32)
+	if err != nil {
+		return nil, err
 	}
-	for _, vuln := range c.certifyVulnerabilities {
-		path, err := c.PathThroughIsDependency(ctx, nodeID(vuln.packageID), idProduct, 10, edgesAllowed)
-		if err == nil && len(path) > 0 {
-			vulnNode, err := vuln.BuildModelNode(c)
-			if err != nil {
-				return nil, err
-			}
-			certifyVuln := vulnNode.(*model.CertifyVuln)
-			if certifyVuln.Vulnerability.Type != noVulnType {
-				vulnerabilities = append(vulnerabilities, certifyVuln)
-			}
-		}
-	}
-
-	return vulnerabilities, nil
+	return c.bfsFromProduct(uint32(product))
 }
