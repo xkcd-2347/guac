@@ -163,6 +163,9 @@ func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]mode
 		Qualifiers: pkgQualifierFilter,
 	}
 	vulnerabilities, err := c.findVulnerabilities(ctx, pkgFilter)
+	if err != nil {
+		return nil, err
+	}
 	return *vulnerabilities, err
 }
 
@@ -206,7 +209,10 @@ func (c *demoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 		Qualifiers: pkgQualifierFilter,
 	}
 	vulnerabilities, err := c.findVulnerabilities(ctx, pkgFilter)
-	return *vulnerabilities, err
+	if err != nil {
+		return nil, err
+	}
+	return *vulnerabilities, nil
 }
 
 func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
