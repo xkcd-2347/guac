@@ -17,6 +17,7 @@ package inmem
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -217,37 +218,30 @@ func (c *demoClient) bfsThroughIsDependency(from, to uint32, maxLength int, allo
 			return nil, gqlerror.Errorf("bfs ::  %s", err)
 		}
 		isDependencyLinks := depPkg.getIsDependencyLinks()
-		var isDependencies []*isDependencyLink
 		for i := range isDependencyLinks {
 			dependencyLink, err := byID[*isDependencyLink](isDependencyLinks[i], c)
 			if err != nil {
 				return nil, err
 			}
 			if dependencyLink.depPackageID == now {
-				isDependencies = append(isDependencies, dependencyLink)
-			}
-		}
-		for i := range isDependencies {
-			next := isDependencies[i].packageID
-			dfsN, seen := nodeMap[next]
-			if !seen {
-				dfsNIsDependency := dfsNode{
-					parent: now,
-					depth:  nowNode.depth + 1,
+				next := dependencyLink.packageID
+				dfsN, seen := nodeMap[next]
+				if !seen {
+					dfsNIsDependency := dfsNode{
+						parent: now,
+						depth:  nowNode.depth + 1,
+					}
+					nodeMap[dependencyLink.id] = dfsNIsDependency
+					dfsN = dfsNode{
+						parent: dependencyLink.id,
+						depth:  nowNode.depth + 2,
+					}
+					nodeMap[next] = dfsN
 				}
-				nodeMap[isDependencies[i].id] = dfsNIsDependency
-				dfsN = dfsNode{
-					parent: isDependencies[i].id,
-					depth:  nowNode.depth + 2,
+				if !dfsN.expanded {
+					queue = append(queue, next)
 				}
-				nodeMap[next] = dfsN
 			}
-			if !dfsN.expanded {
-				queue = append(queue, next)
-			}
-		}
-		if err != nil {
-			return nil, err
 		}
 
 		nowNode.expanded = true
@@ -273,6 +267,73 @@ func (c *demoClient) bfsThroughIsDependency(from, to uint32, maxLength int, allo
 	}
 
 	return c.buildModelNodes(path)
+}
+
+func (c *demoClient) bfsFromProduct(product uint32) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
+	queue := make([]uint32, 0) // the queue of nodes in bfs
+	type dfsNode struct {
+		expanded bool // true once all node neighbors are added to queue
+	}
+	nodeMap := map[uint32]dfsNode{}
+
+	nodeMap[product] = dfsNode{}
+	queue = append(queue, product)
+
+	result := []model.CertifyVulnOrCertifyVEXStatement{}
+	for len(queue) > 0 {
+		now := queue[0]
+		queue = queue[1:]
+		nowNode := nodeMap[now]
+
+		pkg, err := byID[*pkgVersionNode](now, c)
+		if err != nil {
+			continue
+		}
+
+		for _, vl := range pkg.vexLinks {
+			certifyVex, err := byID[*vexLink](vl, c)
+			if err != nil {
+				return nil, err
+			}
+			vexNode, err := certifyVex.BuildModelNode(c)
+			result = append(result, vexNode.(*model.CertifyVEXStatement))
+		}
+
+		for _, vl := range pkg.certifyVulnLinks {
+			certifyVuln, err := byID[node](vl, c)
+			if err != nil {
+				return nil, err
+			}
+			vulnModelNode, err := certifyVuln.BuildModelNode(c)
+			if err != nil {
+				fmt.Printf("findVulnerabilities :: %s", err)
+			}
+			vulnNode := vulnModelNode.(*model.CertifyVuln)
+			if vulnNode.Vulnerability.Type != noVulnType {
+				result = append(result, vulnNode)
+			}
+		}
+
+		isDependencyLinks := pkg.getIsDependencyLinks()
+		for i := range isDependencyLinks {
+			dependencyLink, err := byID[*isDependencyLink](isDependencyLinks[i], c)
+			if err != nil {
+				return nil, err
+			}
+			if dependencyLink.packageID == now {
+				next := dependencyLink.depPackageID
+				dfsN, _ := nodeMap[next]
+				if !dfsN.expanded {
+					queue = append(queue, next)
+				}
+			}
+		}
+
+		nowNode.expanded = true
+		nodeMap[now] = nowNode
+	}
+
+	return &result, nil
 }
 
 func (c *demoClient) Node(ctx context.Context, source string) (model.Node, error) {
