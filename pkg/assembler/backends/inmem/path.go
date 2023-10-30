@@ -270,6 +270,8 @@ func (c *demoClient) bfsThroughIsDependency(from, to uint32, maxLength int, allo
 }
 
 func (c *demoClient) bfsFromProduct(product uint32) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
+	c.m.RLock()
+	defer c.m.RUnlock()
 	queue := make([]uint32, 0) // the queue of nodes in bfs
 	type dfsNode struct {
 		expanded bool // true once all node neighbors are added to queue
