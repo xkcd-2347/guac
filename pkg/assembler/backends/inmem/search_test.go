@@ -41,6 +41,19 @@ var p6 = &model.PkgInputSpec{
 	Version: ptrfrom.String("3.0.4"),
 }
 
+var p6out = &model.Package{
+	Type: p2out.Type,
+	Namespaces: []*model.PackageNamespace{{
+		Names: []*model.PackageName{{
+			Name: p2out.Namespaces[0].Names[0].Name,
+			Versions: []*model.PackageVersion{{
+				Version:    "3.0.4",
+				Qualifiers: []*model.PackageQualifier{},
+			}},
+		}},
+	}},
+}
+
 func Test_demoClient_FindTopLevelPackagesRelatedToVulnerability(t *testing.T) {
 	ctx := context.Background()
 	type IsDependency struct {
@@ -560,6 +573,75 @@ func Test_demoClient_FindVulnerability(t *testing.T) {
 			}},
 			query:   helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
 			want:    []model.CertifyVulnOrCertifyVEXStatement{},
+			wantErr: false,
+		},
+		{
+			name:  "Multiple VEX",
+			InPkg: []*model.PkgInputSpec{p1, p2, p6},
+			// p1 is a dependency ONLY of p2
+			InIsDependency: []IsDependency{
+				{
+					P1: *p2,
+					P2: *p1,
+					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					ID: model.IsDependencyInputSpec{
+						Justification: "test justification",
+					},
+				},
+			},
+			InVulnerability: []*model.VulnerabilityInputSpec{
+				{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2021-2202",
+				},
+			},
+			InCertifyVexStatement: []CertifyVEXStatement{
+				// a vulnerability relates to p1
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p1,
+					},
+					Vuln: model.VulnerabilityInputSpec{
+						Type:            "cve",
+						VulnerabilityID: "CVE-2019-13110",
+					},
+					In: model.VexStatementInputSpec{
+						VexJustification: "test justification",
+						KnownSince:       time.Unix(1e9, 0),
+					},
+				},
+				// a vulnerability relates to p6
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p6,
+					},
+					Vuln: model.VulnerabilityInputSpec{
+						Type:            "cve",
+						VulnerabilityID: "CVE-2021-2202",
+					},
+					In: model.VexStatementInputSpec{
+						VexJustification: "test justification",
+						KnownSince:       time.Unix(1e9, 0),
+					},
+				}},
+			query: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
+			want: []model.CertifyVulnOrCertifyVEXStatement{
+				&model.CertifyVEXStatement{
+					Subject: p6out,
+					Vulnerability: &model.Vulnerability{
+						Type: "cve",
+						VulnerabilityIDs: []*model.VulnerabilityID{
+							{VulnerabilityID: "cve-2021-2202"},
+						},
+					},
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			},
 			wantErr: false,
 		}}
 	ignoreID := cmp.FilterPath(func(p cmp.Path) bool {
