@@ -94,7 +94,7 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 			Encoding: bucket.ExtractEncoding(enc, item),
 			SourceInformation: processor.SourceInformation{
 				Collector: S3CollectorType,
-				Source:    "S3",
+				Source:    item,
 			},
 		}
 		docChannel <- doc
@@ -117,6 +117,11 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 					continue
 				}
 
+				if len(blob) > 6291456 {
+					logger.Infof("Skipping %s due to its size %d", item, len(blob))
+					continue
+				}
+
 				enc, err := downloader.GetEncoding(ctx, s.config.S3Bucket, item)
 				if err != nil {
 					logger.Errorf("could not get encoding for item %v, skipping: %v", item, err)
@@ -130,9 +135,12 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 					Encoding: bucket.ExtractEncoding(enc, item),
 					SourceInformation: processor.SourceInformation{
 						Collector: S3CollectorType,
-						Source:    "S3",
+						Source:    item,
 					},
 				}
+
+				logger.Infof("Ingesting item %s of size %d", item, len(blob))
+
 				docChannel <- doc
 
 				total += 1
@@ -236,7 +244,7 @@ func retrieveWithPoll(s S3Collector, ctx context.Context, docChannel chan<- *pro
 						Encoding: bucket.ExtractEncoding(enc, item),
 						SourceInformation: processor.SourceInformation{
 							Collector: S3CollectorType,
-							Source:    "S3",
+							Source:    item,
 						},
 					}
 					docChannel <- doc
