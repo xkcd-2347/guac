@@ -92,6 +92,7 @@ func init() {
 	set.String("s3-url", "", "url of the s3 endpoint")
 	set.String("s3-bucket", "", "bucket in the s3 provider")
 	set.String("s3-item", "", "item in the s3 provider")
+	set.Int("limit", 0, "max number of files to download from bucket")
 	set.String("s3-mp", "kafka", "message provider (sqs or kafka)")
 	set.String("s3-mp-endpoint", "", "endpoint for the message provider")
 	set.String("s3-queues", "", "comma-separated list of queue/topic names")
