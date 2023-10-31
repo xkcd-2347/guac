@@ -41,6 +41,7 @@ type S3CollectorConfig struct {
 	MessageProviderEndpoint string                           // optional if using the sqs message provider
 	S3Url                   string                           // optional (uses aws sdk defaults)
 	S3Bucket                string                           // bucket name to collect from
+	Limit                   int                              // optional max number of files to download from the bucket
 	S3Item                  string                           // optional (only for non-polling behaviour)
 	S3Region                string                           // optional (defaults to us-east-1, assumes same region for s3 and sqs)
 	Queues                  string                           // optional (comma-separated list of queues/topics)
@@ -100,6 +101,7 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 	} else {
 		var token *string
 		const MaxKeys = 100
+		var total = 0
 		for {
 			files, t, err := downloader.ListFiles(ctx, s.config.S3Bucket, token, MaxKeys)
 			if err != nil {
@@ -132,6 +134,12 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 					},
 				}
 				docChannel <- doc
+
+				total += 1
+				if s.config.Limit > 0 && total >= s.config.Limit {
+					logger.Infof("Configured limit of %d reached. Exiting.", s.config.Limit)
+					break
+				}
 			}
 
 			if len(files) < MaxKeys {

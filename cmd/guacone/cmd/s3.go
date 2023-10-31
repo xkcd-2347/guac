@@ -39,6 +39,7 @@ type s3Options struct {
 	s3bucket   string // name of bucket to collect from
 	region     string // AWS region, for s3/sqs configuration (defaults to us-east-1)
 	s3item     string // s3 item (only for non-polling behaviour)
+	limit      int    // max number of files to download from bucket
 	queues     string // comma-separated list of queues/topics (only for polling behaviour)
 	mp         string // message provider name (sqs or kafka, will default to kafka)
 	mpEndpoint string // endpoint for the message provider (only for polling behaviour)
@@ -58,6 +59,7 @@ var s3Cmd = &cobra.Command{
 			viper.GetString("s3-bucket"),
 			viper.GetString("s3-region"),
 			viper.GetString("s3-item"),
+			viper.GetInt("limit"),
 			viper.GetString("s3-mp"),
 			viper.GetString("s3-mp-endpoint"),
 			viper.GetString("s3-queues"),
@@ -77,6 +79,7 @@ var s3Cmd = &cobra.Command{
 			S3Bucket:                s3Opts.s3bucket,
 			S3Region:                s3Opts.region,
 			S3Item:                  s3Opts.s3item,
+			Limit:                   s3Opts.limit,
 			MessageProvider:         s3Opts.mp,
 			MessageProviderEndpoint: s3Opts.mpEndpoint,
 			Queues:                  s3Opts.queues,
@@ -130,7 +133,7 @@ var s3Cmd = &cobra.Command{
 	},
 }
 
-func validateS3Opts(s3url string, s3bucket string, region string, s3item string, mp string, mpEndpoint string, queues string, poll bool) (s3Options, error) {
+func validateS3Opts(s3url string, s3bucket string, region string, s3item string, limit int, mp string, mpEndpoint string, queues string, poll bool) (s3Options, error) {
 	var opts s3Options
 
 	if poll {
@@ -148,13 +151,13 @@ func validateS3Opts(s3url string, s3bucket string, region string, s3item string,
 		return opts, fmt.Errorf("expected s3 bucket")
 	}
 
-	opts = s3Options{s3url, s3bucket, region, s3item, queues, mp, mpEndpoint, poll}
+	opts = s3Options{s3url, s3bucket, region, s3item, limit, queues, mp, mpEndpoint, poll}
 
 	return opts, nil
 }
 
 func init() {
-	set, err := cli.BuildFlags([]string{"s3-url", "s3-bucket", "s3-region", "s3-item", "s3-mp", "s3-mp-endpoint", "s3-queues", "poll"})
+	set, err := cli.BuildFlags([]string{"s3-url", "s3-bucket", "s3-region", "s3-item", "limit", "s3-mp", "s3-mp-endpoint", "s3-queues", "poll"})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to setup flag: %s", err)
 		os.Exit(1)
