@@ -181,10 +181,10 @@ func GetBulkAssembler(ctx context.Context, gqlclient graphql.Client) func([]asse
 				logger.Errorf("ingestPkgEquals failed with error: %v", err)
 			}
 
-			logger.Infof("assembling CertifyLegal : %v", len(p.CertifyLegal))
-			if err := ingestCertifyLegals(ctx, gqlclient, p.CertifyLegal); err != nil {
-				logger.Errorf("ingestCertifyLegals failed with error: %v", err)
-			}
+			//logger.Infof("assembling CertifyLegal : %v", len(p.CertifyLegal))
+			//if err := ingestCertifyLegals(ctx, gqlclient, p.CertifyLegal); err != nil {
+			//	logger.Errorf("ingestCertifyLegals failed with error: %v", err)
+			//}
 		}
 		return nil
 	}

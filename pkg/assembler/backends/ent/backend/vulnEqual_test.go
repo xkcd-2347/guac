@@ -609,12 +609,12 @@ func (s *Suite) TestIngestVulnEquals() {
 				&model.VulnEqual{
 					Vulnerabilities: []*model.Vulnerability{
 						&model.Vulnerability{
-							Type:             "osv",
-							VulnerabilityIDs: []*model.VulnerabilityID{o2out},
-						},
-						&model.Vulnerability{
 							Type:             "ghsa",
 							VulnerabilityIDs: []*model.VulnerabilityID{g2out},
+						},
+						&model.Vulnerability{
+							Type:             "osv",
+							VulnerabilityIDs: []*model.VulnerabilityID{o2out},
 						},
 					},
 					Justification: "test justification",
@@ -622,9 +622,6 @@ func (s *Suite) TestIngestVulnEquals() {
 			},
 		},
 	}
-	ignoreID := cmp.FilterPath(func(p cmp.Path) bool {
-		return strings.Compare(".ID", p[len(p)-1].String()) == 0
-	}, cmp.Ignore())
 	ctx := context.Background()
 	for _, test := range tests {
 		s.Run(test.Name, func() {
@@ -653,7 +650,7 @@ func (s *Suite) TestIngestVulnEquals() {
 			if err != nil {
 				return
 			}
-			if diff := cmp.Diff(test.ExpVulnEqual, got, ignoreID); diff != "" {
+			if diff := cmp.Diff(test.ExpVulnEqual, got, IngestPredicatesCmpOpts...); diff != "" {
 				t.Errorf("Unexpected results. (-want +got):\n%s", diff)
 			}
 		})

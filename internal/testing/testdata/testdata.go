@@ -823,6 +823,17 @@ var (
 			},
 		},
 		{
+			Pkg:          baselayoutPack,
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "topLevelPackage",
+				Value:         "pkg:guac/spdx/gcr.io/google-containers/alpine-latest",
+				Justification: "spdx top level package reference",
+				Origin:        "GUAC SPDX",
+				Collector:     "GUAC",
+			},
+		},
+		{
 			Pkg:          baselayoutdataPack,
 			PkgMatchFlag: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 			HasMetadata: &model.HasMetadataInputSpec{
@@ -840,6 +851,17 @@ var (
 				Key:           "cpe",
 				Value:         "cpe:2.3:a:alpine-baselayout-data:alpine_baselayout_data:3.2.0-r22:*:*:*:*:*:*:*",
 				Justification: "spdx cpe external reference",
+				Origin:        "GUAC SPDX",
+				Collector:     "GUAC",
+			},
+		},
+		{
+			Pkg:          baselayoutdataPack,
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "topLevelPackage",
+				Value:         "pkg:guac/spdx/gcr.io/google-containers/alpine-latest",
+				Justification: "spdx top level package reference",
 				Origin:        "GUAC SPDX",
 				Collector:     "GUAC",
 			},
@@ -884,6 +906,17 @@ var (
 				Key:           "cpe",
 				Value:         "cpe:2.3:a:alpine:alpine_keys:2.4-r1:*:*:*:*:*:*:*",
 				Justification: "spdx cpe external reference",
+				Origin:        "GUAC SPDX",
+				Collector:     "GUAC",
+			},
+		},
+		{
+			Pkg:          keysPack,
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "topLevelPackage",
+				Value:         "pkg:guac/spdx/gcr.io/google-containers/alpine-latest",
+				Justification: "spdx top level package reference",
 				Origin:        "GUAC SPDX",
 				Collector:     "GUAC",
 			},

@@ -13527,6 +13527,9 @@ type PackageVersionMutation struct {
 	equal_packages        map[int]struct{}
 	removedequal_packages map[int]struct{}
 	clearedequal_packages bool
+	has_metadata          map[int]struct{}
+	removedhas_metadata   map[int]struct{}
+	clearedhas_metadata   bool
 	done                  bool
 	oldValue              func(context.Context) (*PackageVersion, error)
 	predicates            []predicate.PackageVersion
@@ -14028,6 +14031,60 @@ func (m *PackageVersionMutation) ResetEqualPackages() {
 	m.removedequal_packages = nil
 }
 
+// AddHasMetadatumIDs adds the "has_metadata" edge to the HasMetadata entity by ids.
+func (m *PackageVersionMutation) AddHasMetadatumIDs(ids ...int) {
+	if m.has_metadata == nil {
+		m.has_metadata = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.has_metadata[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHasMetadata clears the "has_metadata" edge to the HasMetadata entity.
+func (m *PackageVersionMutation) ClearHasMetadata() {
+	m.clearedhas_metadata = true
+}
+
+// HasMetadataCleared reports if the "has_metadata" edge to the HasMetadata entity was cleared.
+func (m *PackageVersionMutation) HasMetadataCleared() bool {
+	return m.clearedhas_metadata
+}
+
+// RemoveHasMetadatumIDs removes the "has_metadata" edge to the HasMetadata entity by IDs.
+func (m *PackageVersionMutation) RemoveHasMetadatumIDs(ids ...int) {
+	if m.removedhas_metadata == nil {
+		m.removedhas_metadata = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.has_metadata, ids[i])
+		m.removedhas_metadata[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHasMetadata returns the removed IDs of the "has_metadata" edge to the HasMetadata entity.
+func (m *PackageVersionMutation) RemovedHasMetadataIDs() (ids []int) {
+	for id := range m.removedhas_metadata {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HasMetadataIDs returns the "has_metadata" edge IDs in the mutation.
+func (m *PackageVersionMutation) HasMetadataIDs() (ids []int) {
+	for id := range m.has_metadata {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHasMetadata resets all changes to the "has_metadata" edge.
+func (m *PackageVersionMutation) ResetHasMetadata() {
+	m.has_metadata = nil
+	m.clearedhas_metadata = false
+	m.removedhas_metadata = nil
+}
+
 // Where appends a list predicates to the PackageVersionMutation builder.
 func (m *PackageVersionMutation) Where(ps ...predicate.PackageVersion) {
 	m.predicates = append(m.predicates, ps...)
@@ -14241,7 +14298,7 @@ func (m *PackageVersionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PackageVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.name != nil {
 		edges = append(edges, packageversion.EdgeName)
 	}
@@ -14253,6 +14310,9 @@ func (m *PackageVersionMutation) AddedEdges() []string {
 	}
 	if m.equal_packages != nil {
 		edges = append(edges, packageversion.EdgeEqualPackages)
+	}
+	if m.has_metadata != nil {
+		edges = append(edges, packageversion.EdgeHasMetadata)
 	}
 	return edges
 }
@@ -14283,13 +14343,19 @@ func (m *PackageVersionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case packageversion.EdgeHasMetadata:
+		ids := make([]ent.Value, 0, len(m.has_metadata))
+		for id := range m.has_metadata {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PackageVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedoccurrences != nil {
 		edges = append(edges, packageversion.EdgeOccurrences)
 	}
@@ -14298,6 +14364,9 @@ func (m *PackageVersionMutation) RemovedEdges() []string {
 	}
 	if m.removedequal_packages != nil {
 		edges = append(edges, packageversion.EdgeEqualPackages)
+	}
+	if m.removedhas_metadata != nil {
+		edges = append(edges, packageversion.EdgeHasMetadata)
 	}
 	return edges
 }
@@ -14324,13 +14393,19 @@ func (m *PackageVersionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case packageversion.EdgeHasMetadata:
+		ids := make([]ent.Value, 0, len(m.removedhas_metadata))
+		for id := range m.removedhas_metadata {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PackageVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedname {
 		edges = append(edges, packageversion.EdgeName)
 	}
@@ -14342,6 +14417,9 @@ func (m *PackageVersionMutation) ClearedEdges() []string {
 	}
 	if m.clearedequal_packages {
 		edges = append(edges, packageversion.EdgeEqualPackages)
+	}
+	if m.clearedhas_metadata {
+		edges = append(edges, packageversion.EdgeHasMetadata)
 	}
 	return edges
 }
@@ -14358,6 +14436,8 @@ func (m *PackageVersionMutation) EdgeCleared(name string) bool {
 		return m.clearedsbom
 	case packageversion.EdgeEqualPackages:
 		return m.clearedequal_packages
+	case packageversion.EdgeHasMetadata:
+		return m.clearedhas_metadata
 	}
 	return false
 }
@@ -14388,6 +14468,9 @@ func (m *PackageVersionMutation) ResetEdge(name string) error {
 		return nil
 	case packageversion.EdgeEqualPackages:
 		m.ResetEqualPackages()
+		return nil
+	case packageversion.EdgeHasMetadata:
+		m.ResetHasMetadata()
 		return nil
 	}
 	return fmt.Errorf("unknown PackageVersion edge %s", name)

@@ -45,15 +45,18 @@ type PackageVersionEdges struct {
 	Sbom []*BillOfMaterials `json:"sbom,omitempty"`
 	// EqualPackages holds the value of the equal_packages edge.
 	EqualPackages []*PkgEqual `json:"equal_packages,omitempty"`
+	// HasMetadata holds the value of the has_metadata edge.
+	HasMetadata []*HasMetadata `json:"has_metadata,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [5]map[string]int
 
 	namedOccurrences   map[string][]*Occurrence
 	namedSbom          map[string][]*BillOfMaterials
 	namedEqualPackages map[string][]*PkgEqual
+	namedHasMetadata   map[string][]*HasMetadata
 }
 
 // NameOrErr returns the Name value or an error if the edge
@@ -94,6 +97,15 @@ func (e PackageVersionEdges) EqualPackagesOrErr() ([]*PkgEqual, error) {
 		return e.EqualPackages, nil
 	}
 	return nil, &NotLoadedError{edge: "equal_packages"}
+}
+
+// HasMetadataOrErr returns the HasMetadata value or an error if the edge
+// was not loaded in eager-loading.
+func (e PackageVersionEdges) HasMetadataOrErr() ([]*HasMetadata, error) {
+	if e.loadedTypes[4] {
+		return e.HasMetadata, nil
+	}
+	return nil, &NotLoadedError{edge: "has_metadata"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -191,6 +203,11 @@ func (pv *PackageVersion) QuerySbom() *BillOfMaterialsQuery {
 // QueryEqualPackages queries the "equal_packages" edge of the PackageVersion entity.
 func (pv *PackageVersion) QueryEqualPackages() *PkgEqualQuery {
 	return NewPackageVersionClient(pv.config).QueryEqualPackages(pv)
+}
+
+// QueryHasMetadata queries the "has_metadata" edge of the PackageVersion entity.
+func (pv *PackageVersion) QueryHasMetadata() *HasMetadataQuery {
+	return NewPackageVersionClient(pv.config).QueryHasMetadata(pv)
 }
 
 // Update returns a builder for updating this PackageVersion.
@@ -303,6 +320,30 @@ func (pv *PackageVersion) appendNamedEqualPackages(name string, edges ...*PkgEqu
 		pv.Edges.namedEqualPackages[name] = []*PkgEqual{}
 	} else {
 		pv.Edges.namedEqualPackages[name] = append(pv.Edges.namedEqualPackages[name], edges...)
+	}
+}
+
+// NamedHasMetadata returns the HasMetadata named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (pv *PackageVersion) NamedHasMetadata(name string) ([]*HasMetadata, error) {
+	if pv.Edges.namedHasMetadata == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := pv.Edges.namedHasMetadata[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (pv *PackageVersion) appendNamedHasMetadata(name string, edges ...*HasMetadata) {
+	if pv.Edges.namedHasMetadata == nil {
+		pv.Edges.namedHasMetadata = make(map[string][]*HasMetadata)
+	}
+	if len(edges) == 0 {
+		pv.Edges.namedHasMetadata[name] = []*HasMetadata{}
+	} else {
+		pv.Edges.namedHasMetadata[name] = append(pv.Edges.namedHasMetadata[name], edges...)
 	}
 }
 

@@ -34,6 +34,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/helper"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 func (b *EntBackend) Packages(ctx context.Context, pkgSpec *model.PkgSpec) ([]*model.Package, error) {
@@ -103,12 +104,20 @@ func (b *EntBackend) Packages(ctx context.Context, pkgSpec *model.PkgSpec) ([]*m
 func (b *EntBackend) IngestPackages(ctx context.Context, pkgs []*model.PkgInputSpec) ([]*model.Package, error) {
 	// FIXME: (ivanvanderbyl) This will be suboptimal because we can't batch insert relations with upserts. See Readme.
 	models := make([]*model.Package, len(pkgs))
-	for i, pkg := range pkgs {
-		p, err := b.IngestPackage(ctx, *pkg)
-		if err != nil {
-			return nil, err
-		}
-		models[i] = p
+	eg, ctx := errgroup.WithContext(ctx)
+	for i := range pkgs {
+		index := i
+		pkg := pkgs[index]
+		concurrently(eg, func() error {
+			p, err := b.IngestPackage(ctx, *pkg)
+			if err == nil {
+				models[index] = p
+			}
+			return err
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 	return models, nil
 }
@@ -467,18 +476,25 @@ func backReferencePackageNamespace(pns *ent.PackageNamespace) *ent.PackageType {
 // and should allow using the db index.
 
 func getPkgName(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (*ent.PackageName, error) {
-	return client.PackageName.Query().Where(packageNameInputQuery(pkgin)).Only(ctx)
+	return getPkgNameQuery(ctx, client, pkgin).Only(ctx)
+}
+
+func getPkgNameID(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (int, error) {
+	return getPkgNameQuery(ctx, client, pkgin).OnlyID(ctx)
+}
+
+func getPkgNameQuery(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) *ent.PackageNameQuery {
+	return client.PackageName.Query().Where(packageNameInputQuery(pkgin))
 }
 
 func getPkgVersion(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (*ent.PackageVersion, error) {
-	return client.PackageVersion.Query().Where(packageVersionInputQuery(pkgin)).Only(ctx)
-	// return client.PackageType.Query().
-	// 	Where(packagetype.Type(pkgin.Type)).
-	// 	QueryNamespaces().Where(packagenamespace.NamespaceEQ(valueOrDefault(pkgin.Namespace, ""))).
-	// 	QueryNames().Where(packagename.NameEQ(pkgin.Name)).
-	// 	QueryVersions().
-	// 	Where(
-	// 		packageVersionInputQuery(pkgin),
-	// 	).
-	// 	Only(ctx)
+	return getPkgVersionQuery(ctx, client, pkgin).Only(ctx)
+}
+
+func getPkgVersionID(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (int, error) {
+	return getPkgVersionQuery(ctx, client, pkgin).OnlyID(ctx)
+}
+
+func getPkgVersionQuery(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) *ent.PackageVersionQuery {
+	return client.PackageVersion.Query().Where(packageVersionInputQuery(pkgin))
 }

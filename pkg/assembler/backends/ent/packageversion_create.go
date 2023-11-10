@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/hasmetadata"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/occurrence"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packageversion"
@@ -120,6 +121,21 @@ func (pvc *PackageVersionCreate) AddEqualPackages(p ...*PkgEqual) *PackageVersio
 		ids[i] = p[i].ID
 	}
 	return pvc.AddEqualPackageIDs(ids...)
+}
+
+// AddHasMetadatumIDs adds the "has_metadata" edge to the HasMetadata entity by IDs.
+func (pvc *PackageVersionCreate) AddHasMetadatumIDs(ids ...int) *PackageVersionCreate {
+	pvc.mutation.AddHasMetadatumIDs(ids...)
+	return pvc
+}
+
+// AddHasMetadata adds the "has_metadata" edges to the HasMetadata entity.
+func (pvc *PackageVersionCreate) AddHasMetadata(h ...*HasMetadata) *PackageVersionCreate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return pvc.AddHasMetadatumIDs(ids...)
 }
 
 // Mutation returns the PackageVersionMutation object of the builder.
@@ -285,6 +301,22 @@ func (pvc *PackageVersionCreate) createSpec() (*PackageVersion, *sqlgraph.Create
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(pkgequal.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pvc.mutation.HasMetadataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

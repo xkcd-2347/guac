@@ -464,6 +464,18 @@ func (pv *PackageVersion) EqualPackages(ctx context.Context) (result []*PkgEqual
 	return result, err
 }
 
+func (pv *PackageVersion) HasMetadata(ctx context.Context) (result []*HasMetadata, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pv.NamedHasMetadata(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pv.Edges.HasMetadataOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pv.QueryHasMetadata().All(ctx)
+	}
+	return result, err
+}
+
 func (pe *PkgEqual) Packages(ctx context.Context) (result []*PackageVersion, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = pe.NamedPackages(graphql.GetFieldContext(ctx).Field.Alias)

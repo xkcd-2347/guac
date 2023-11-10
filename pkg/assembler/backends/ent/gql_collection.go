@@ -2264,6 +2264,18 @@ func (pv *PackageVersionQuery) collectField(ctx context.Context, opCtx *graphql.
 			pv.WithNamedEqualPackages(alias, func(wq *PkgEqualQuery) {
 				*wq = *query
 			})
+		case "hasMetadata":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&HasMetadataClient{config: pv.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			pv.WithNamedHasMetadata(alias, func(wq *HasMetadataQuery) {
+				*wq = *query
+			})
 		case "nameID":
 			if _, ok := fieldSeen[packageversion.FieldNameID]; !ok {
 				selectedFields = append(selectedFields, packageversion.FieldNameID)

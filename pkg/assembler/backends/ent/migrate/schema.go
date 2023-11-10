@@ -417,6 +417,16 @@ var (
 					Where: "dependent_package_name_id IS NULL AND dependent_package_version_id IS NOT NULL",
 				},
 			},
+			{
+				Name:    "dependency_dependent_package_name_id_dependent_package_version_id_package_id",
+				Unique:  false,
+				Columns: []*schema.Column{DependenciesColumns[7], DependenciesColumns[8], DependenciesColumns[6]},
+			},
+			{
+				Name:    "dependency_dependent_package_version_id",
+				Unique:  false,
+				Columns: []*schema.Column{DependenciesColumns[8]},
+			},
 		},
 	}
 	// HasMetadataColumns holds the columns for the "has_metadata" table.
@@ -466,36 +476,46 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "hasmetadata_timestamp_key_value_justification_origin_collector_source_id",
+				Name:    "hasmetadata_key_value_justification_origin_collector_source_id",
 				Unique:  true,
-				Columns: []*schema.Column{HasMetadataColumns[1], HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[7]},
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[7]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "source_id IS NOT NULL AND package_version_id IS NULL AND package_name_id IS NULL AND artifact_id IS NULL",
 				},
 			},
 			{
-				Name:    "hasmetadata_timestamp_key_value_justification_origin_collector_package_version_id",
+				Name:    "hasmetadata_key_value_justification_origin_collector_package_version_id",
 				Unique:  true,
-				Columns: []*schema.Column{HasMetadataColumns[1], HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[8]},
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[8]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "source_id IS NULL AND package_version_id IS NOT NULL AND package_name_id IS NULL AND artifact_id IS NULL",
 				},
 			},
 			{
-				Name:    "hasmetadata_timestamp_key_value_justification_origin_collector_package_name_id",
+				Name:    "hasmetadata_key_value_justification_origin_collector_package_name_id",
 				Unique:  true,
-				Columns: []*schema.Column{HasMetadataColumns[1], HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[9]},
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "source_id IS NULL AND package_version_id IS NULL AND package_name_id IS NOT NULL AND artifact_id IS NULL",
 				},
 			},
 			{
-				Name:    "hasmetadata_timestamp_key_value_justification_origin_collector_artifact_id",
+				Name:    "hasmetadata_key_value_justification_origin_collector_artifact_id",
 				Unique:  true,
-				Columns: []*schema.Column{HasMetadataColumns[1], HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[10]},
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[4], HasMetadataColumns[5], HasMetadataColumns[6], HasMetadataColumns[10]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "source_id IS NULL AND package_version_id IS NULL AND package_name_id IS NULL AND artifact_id IS NOT NULL",
 				},
+			},
+			{
+				Name:    "hasmetadata_key_value_package_name_id_package_version_id",
+				Unique:  false,
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3], HasMetadataColumns[9], HasMetadataColumns[8]},
+			},
+			{
+				Name:    "hasmetadata_key_value",
+				Unique:  false,
+				Columns: []*schema.Column{HasMetadataColumns[2], HasMetadataColumns[3]},
 			},
 		},
 	}
@@ -803,6 +823,16 @@ var (
 						"postgres": "GIN",
 					},
 				},
+			},
+			{
+				Name:    "packageversion_version_subpath_qualifiers_name_id",
+				Unique:  true,
+				Columns: []*schema.Column{PackageVersionsColumns[1], PackageVersionsColumns[2], PackageVersionsColumns[3], PackageVersionsColumns[5]},
+			},
+			{
+				Name:    "packageversion_name_id",
+				Unique:  false,
+				Columns: []*schema.Column{PackageVersionsColumns[5]},
 			},
 		},
 	}

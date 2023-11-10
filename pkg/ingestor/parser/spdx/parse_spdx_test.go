@@ -72,6 +72,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.HasSBOMIngest{},
 					"HasSBOM"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -153,6 +155,20 @@ func Test_spdxParser(t *testing.T) {
 						},
 					},
 				},
+
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:guac/spdx/sbom-sha256%253Aa743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -161,6 +177,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.HasSBOMIngest{},
 					"HasSBOM"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -202,6 +220,19 @@ func Test_spdxParser(t *testing.T) {
 				HasSBOM: []assembler.HasSBOMIngest{
 					{Pkg: pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson")},
 				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -210,6 +241,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.HasSBOMIngest{},
 					"HasSBOM"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -268,6 +301,52 @@ func Test_spdxParser(t *testing.T) {
 					{Pkg: pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson")},
 					{Pkg: pUrlToPkgDiscardError("pkg:oci/image@sha256:abc123?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson")},
 				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:abc123?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:abc123?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:abc123?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:abc123?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -276,6 +355,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.HasSBOMIngest{},
 					"HasSBOM"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -316,6 +397,19 @@ func Test_spdxParser(t *testing.T) {
 			wantPredicates: &assembler.IngestPredicates{
 				HasSBOM: []assembler.HasSBOMIngest{
 					{Pkg: pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson")},
+				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediaType=application%2Fvnd.oci.image.manifest.v1%2Bjson"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/image@sha256:a743268cd3c56f921f3fb706cc0425c8ab78119fd433e38bb7c5dcd5635b0d10?mediatype=application%2Fvnd.oci.image.manifest.v1+json",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -361,6 +455,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.HasSBOMIngest{},
 					"HasSBOM"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -434,6 +530,30 @@ func Test_spdxParser(t *testing.T) {
 				},
 				HasSBOM: []assembler.HasSBOMIngest{
 					{Pkg: pUrlToPkgDiscardError("pkg:oci/redhat/ubi9-container@sha256:4227a4b5013999a412196237c62e40d778d09cdc751720a66ff3701fbe5a4a9d?repository_url=registry.redhat.io/ubi9&tag=9.1.0-1750")},
+				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:oci/redhat/ubi9-container@sha256:4227a4b5013999a412196237c62e40d778d09cdc751720a66ff3701fbe5a4a9d?repository_url=registry.redhat.io/ubi9&tag=9.1.0-1750"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/ubi9-container@sha256:4227a4b5013999a412196237c62e40d778d09cdc751720a66ff3701fbe5a4a9d?tag=9.1.0-1750&repository_url=registry.redhat.",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:rpm/redhat/python3-libcomps@0.1.18-1.el9?arch=x86_64"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:oci/ubi9-container@sha256:4227a4b5013999a412196237c62e40d778d09cdc751720a66ff3701fbe5a4a9d?tag=9.1.0-1750&repository_url=registry.redhat.",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -804,6 +924,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.IngestPredicates{},
 					"HasSBOM", "IsDependency", "IsOccurrence"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -878,6 +1000,19 @@ func Test_spdxParser(t *testing.T) {
 						},
 					},
 				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:guac/pkg/mypackage@3.2.0-r22"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:guac/spdx/testsbom",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -886,6 +1021,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.IngestPredicates{},
 					"HasSBOM", "IsDependency", "IsOccurrence"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -957,6 +1094,19 @@ func Test_spdxParser(t *testing.T) {
 						},
 					},
 				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:guac/pkg/mypackage@3.2.0-r22"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:guac/spdx/testsbom",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
+						},
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -965,6 +1115,8 @@ func Test_spdxParser(t *testing.T) {
 			additionalOpts: []cmp.Option{
 				cmpopts.IgnoreFields(assembler.IngestPredicates{},
 					"HasSBOM", "IsDependency", "IsOccurrence"),
+				cmpopts.IgnoreFields(generated.HasMetadataInputSpec{},
+					"Timestamp"),
 			},
 			doc: &processor.Document{
 				Blob: []byte(`
@@ -1027,6 +1179,19 @@ func Test_spdxParser(t *testing.T) {
 							Attribution:     "Copyright (c) 2022 Authors of MyPackage",
 							Justification:   "Found in SPDX document.",
 							TimeScanned:     parseRfc3339("2022-09-24T17:27:55.556104Z"),
+						},
+					},
+				},
+				HasMetadata: []assembler.HasMetadataIngest{
+					{
+						Pkg:          pUrlToPkgDiscardError("pkg:guac/pkg/mypackage@3.2.0-r22"),
+						PkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+						HasMetadata: &generated.HasMetadataInputSpec{
+							Key:           "topLevelPackage",
+							Value:         "pkg:guac/spdx/testsbom",
+							Justification: "spdx top level package reference",
+							Origin:        "GUAC SPDX",
+							Collector:     "GUAC",
 						},
 					},
 				},
