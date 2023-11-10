@@ -362,18 +362,19 @@ func (s *spdxParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 
 	for _, pkg := range s.spdxDoc.Packages {
 		pkgInputSpecs := s.getPackageElement(string(pkg.PackageSPDXIdentifier))
-		for _, extRef := range pkg.PackageExternalReferences {
-			if extRef.Category == spdx_common.CategorySecurity {
-				locator := extRef.Locator
-				metadataInputSpec := &model.HasMetadataInputSpec{
-					Key:           "cpe",
-					Value:         locator,
-					Timestamp:     time.Now().UTC(),
-					Justification: "spdx cpe external reference",
-					Origin:        "GUAC SPDX",
-					Collector:     "GUAC",
-				}
-				for i := range pkgInputSpecs {
+		for i := range pkgInputSpecs {
+			// add all CPEs found for each package with HasMetadata nodes
+			for _, extRef := range pkg.PackageExternalReferences {
+				if extRef.Category == spdx_common.CategorySecurity {
+					locator := extRef.Locator
+					metadataInputSpec := &model.HasMetadataInputSpec{
+						Key:           "cpe",
+						Value:         locator,
+						Timestamp:     time.Now().UTC(),
+						Justification: "spdx cpe external reference",
+						Origin:        "GUAC SPDX",
+						Collector:     "GUAC",
+					}
 					hasMetadata := assembler.HasMetadataIngest{
 						Pkg:          pkgInputSpecs[i],
 						PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
@@ -381,6 +382,22 @@ func (s *spdxParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 					}
 					preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
 				}
+			}
+			// add top level package reference to each package with a HasMetadata node
+			for _, topLevelPkg := range topLevel {
+				hasMetadata := assembler.HasMetadataIngest{
+					Pkg:          pkgInputSpecs[i],
+					PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+					HasMetadata: &model.HasMetadataInputSpec{
+						Key:           "topLevelPackage",
+						Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
+						Timestamp:     time.Now().UTC(),
+						Justification: "spdx top level package reference",
+						Origin:        "GUAC SPDX",
+						Collector:     "GUAC",
+					},
+				}
+				preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
 			}
 		}
 	}

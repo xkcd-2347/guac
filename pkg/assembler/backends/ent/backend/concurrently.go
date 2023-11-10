@@ -25,24 +25,39 @@ import (
 )
 
 var concurrent chan struct{}
+var concurrentRead chan struct{}
 
 const MaxConcurrentBulkIngestionString string = "MAX_CONCURRENT_BULK_INGESTION"
 const defaultMaxConcurrentBulkIngestion int = 50
+const MaxConcurrentReadString string = "MAX_CONCURRENT_READ"
+const defaultMaxConcurrentRead int = 40
 
 func init() {
 	logger := logging.FromContext(context.Background())
-	size := defaultMaxConcurrentBulkIngestion
+	concurrentSize := defaultMaxConcurrentBulkIngestion
 	maxConcurrentBulkIngestionEnv, found := os.LookupEnv(MaxConcurrentBulkIngestionString)
 	if found {
 		maxConcurrentBulkIngestion, err := strconv.Atoi(maxConcurrentBulkIngestionEnv)
 		if err != nil {
 			logger.Warnf("failed to convert %v value %v to integer. Default value %v will be applied", MaxConcurrentBulkIngestionString, maxConcurrentBulkIngestionEnv, defaultMaxConcurrentBulkIngestion)
-			size = defaultMaxConcurrentBulkIngestion
+			concurrentSize = defaultMaxConcurrentBulkIngestion
 		} else {
-			size = maxConcurrentBulkIngestion
+			concurrentSize = maxConcurrentBulkIngestion
 		}
 	}
-	concurrent = make(chan struct{}, size)
+	concurrent = make(chan struct{}, concurrentSize)
+
+	concurrentReadSize := defaultMaxConcurrentRead
+	maxConcurrentReadEnv, found := os.LookupEnv(MaxConcurrentReadString)
+	if found {
+		maxConcurrentBulkIngestion, err := strconv.Atoi(maxConcurrentReadEnv)
+		if err != nil {
+			logger.Warnf("failed to convert %v value %v to integer. Default value applied is %v\n", MaxConcurrentReadString, maxConcurrentReadEnv, concurrentReadSize)
+		} else {
+			concurrentReadSize = maxConcurrentBulkIngestion
+		}
+	}
+	concurrentRead = make(chan struct{}, concurrentReadSize)
 }
 
 func concurrently(eg *errgroup.Group, fn func() error) {
@@ -50,6 +65,15 @@ func concurrently(eg *errgroup.Group, fn func() error) {
 		concurrent <- struct{}{}
 		err := fn()
 		<-concurrent
+		return err
+	})
+}
+
+func concurrentlyRead(eg *errgroup.Group, fn func() error) {
+	eg.Go(func() error {
+		concurrentRead <- struct{}{}
+		err := fn()
+		<-concurrentRead
 		return err
 	})
 }

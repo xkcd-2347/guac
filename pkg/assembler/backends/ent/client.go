@@ -3714,6 +3714,22 @@ func (c *PackageVersionClient) QueryEqualPackages(pv *PackageVersion) *PkgEqualQ
 	return query
 }
 
+// QueryHasMetadata queries the has_metadata edge of a PackageVersion.
+func (c *PackageVersionClient) QueryHasMetadata(pv *PackageVersion) *HasMetadataQuery {
+	query := (&HasMetadataClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(packageversion.Table, packageversion.FieldID, id),
+			sqlgraph.To(hasmetadata.Table, hasmetadata.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, packageversion.HasMetadataTable, packageversion.HasMetadataColumn),
+		)
+		fromV = sqlgraph.Neighbors(pv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PackageVersionClient) Hooks() []Hook {
 	return c.hooks.PackageVersion

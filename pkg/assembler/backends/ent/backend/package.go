@@ -476,18 +476,25 @@ func backReferencePackageNamespace(pns *ent.PackageNamespace) *ent.PackageType {
 // and should allow using the db index.
 
 func getPkgName(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (*ent.PackageName, error) {
-	return client.PackageName.Query().Where(packageNameInputQuery(pkgin)).Only(ctx)
+	return getPkgNameQuery(ctx, client, pkgin).Only(ctx)
+}
+
+func getPkgNameID(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (int, error) {
+	return getPkgNameQuery(ctx, client, pkgin).OnlyID(ctx)
+}
+
+func getPkgNameQuery(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) *ent.PackageNameQuery {
+	return client.PackageName.Query().Where(packageNameInputQuery(pkgin))
 }
 
 func getPkgVersion(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (*ent.PackageVersion, error) {
-	return client.PackageVersion.Query().Where(packageVersionInputQuery(pkgin)).Only(ctx)
-	// return client.PackageType.Query().
-	// 	Where(packagetype.Type(pkgin.Type)).
-	// 	QueryNamespaces().Where(packagenamespace.NamespaceEQ(valueOrDefault(pkgin.Namespace, ""))).
-	// 	QueryNames().Where(packagename.NameEQ(pkgin.Name)).
-	// 	QueryVersions().
-	// 	Where(
-	// 		packageVersionInputQuery(pkgin),
-	// 	).
-	// 	Only(ctx)
+	return getPkgVersionQuery(ctx, client, pkgin).Only(ctx)
+}
+
+func getPkgVersionID(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) (int, error) {
+	return getPkgVersionQuery(ctx, client, pkgin).OnlyID(ctx)
+}
+
+func getPkgVersionQuery(ctx context.Context, client *ent.Client, pkgin model.PkgInputSpec) *ent.PackageVersionQuery {
+	return client.PackageVersion.Query().Where(packageVersionInputQuery(pkgin))
 }

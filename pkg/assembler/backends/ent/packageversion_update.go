@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/hasmetadata"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/occurrence"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packageversion"
@@ -141,6 +142,21 @@ func (pvu *PackageVersionUpdate) AddEqualPackages(p ...*PkgEqual) *PackageVersio
 	return pvu.AddEqualPackageIDs(ids...)
 }
 
+// AddHasMetadatumIDs adds the "has_metadata" edge to the HasMetadata entity by IDs.
+func (pvu *PackageVersionUpdate) AddHasMetadatumIDs(ids ...int) *PackageVersionUpdate {
+	pvu.mutation.AddHasMetadatumIDs(ids...)
+	return pvu
+}
+
+// AddHasMetadata adds the "has_metadata" edges to the HasMetadata entity.
+func (pvu *PackageVersionUpdate) AddHasMetadata(h ...*HasMetadata) *PackageVersionUpdate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return pvu.AddHasMetadatumIDs(ids...)
+}
+
 // Mutation returns the PackageVersionMutation object of the builder.
 func (pvu *PackageVersionUpdate) Mutation() *PackageVersionMutation {
 	return pvu.mutation
@@ -213,6 +229,27 @@ func (pvu *PackageVersionUpdate) RemoveEqualPackages(p ...*PkgEqual) *PackageVer
 		ids[i] = p[i].ID
 	}
 	return pvu.RemoveEqualPackageIDs(ids...)
+}
+
+// ClearHasMetadata clears all "has_metadata" edges to the HasMetadata entity.
+func (pvu *PackageVersionUpdate) ClearHasMetadata() *PackageVersionUpdate {
+	pvu.mutation.ClearHasMetadata()
+	return pvu
+}
+
+// RemoveHasMetadatumIDs removes the "has_metadata" edge to HasMetadata entities by IDs.
+func (pvu *PackageVersionUpdate) RemoveHasMetadatumIDs(ids ...int) *PackageVersionUpdate {
+	pvu.mutation.RemoveHasMetadatumIDs(ids...)
+	return pvu
+}
+
+// RemoveHasMetadata removes "has_metadata" edges to HasMetadata entities.
+func (pvu *PackageVersionUpdate) RemoveHasMetadata(h ...*HasMetadata) *PackageVersionUpdate {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return pvu.RemoveHasMetadatumIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -446,6 +483,51 @@ func (pvu *PackageVersionUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pvu.mutation.HasMetadataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pvu.mutation.RemovedHasMetadataIDs(); len(nodes) > 0 && !pvu.mutation.HasMetadataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pvu.mutation.HasMetadataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pvu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{packageversion.Label}
@@ -574,6 +656,21 @@ func (pvuo *PackageVersionUpdateOne) AddEqualPackages(p ...*PkgEqual) *PackageVe
 	return pvuo.AddEqualPackageIDs(ids...)
 }
 
+// AddHasMetadatumIDs adds the "has_metadata" edge to the HasMetadata entity by IDs.
+func (pvuo *PackageVersionUpdateOne) AddHasMetadatumIDs(ids ...int) *PackageVersionUpdateOne {
+	pvuo.mutation.AddHasMetadatumIDs(ids...)
+	return pvuo
+}
+
+// AddHasMetadata adds the "has_metadata" edges to the HasMetadata entity.
+func (pvuo *PackageVersionUpdateOne) AddHasMetadata(h ...*HasMetadata) *PackageVersionUpdateOne {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return pvuo.AddHasMetadatumIDs(ids...)
+}
+
 // Mutation returns the PackageVersionMutation object of the builder.
 func (pvuo *PackageVersionUpdateOne) Mutation() *PackageVersionMutation {
 	return pvuo.mutation
@@ -646,6 +743,27 @@ func (pvuo *PackageVersionUpdateOne) RemoveEqualPackages(p ...*PkgEqual) *Packag
 		ids[i] = p[i].ID
 	}
 	return pvuo.RemoveEqualPackageIDs(ids...)
+}
+
+// ClearHasMetadata clears all "has_metadata" edges to the HasMetadata entity.
+func (pvuo *PackageVersionUpdateOne) ClearHasMetadata() *PackageVersionUpdateOne {
+	pvuo.mutation.ClearHasMetadata()
+	return pvuo
+}
+
+// RemoveHasMetadatumIDs removes the "has_metadata" edge to HasMetadata entities by IDs.
+func (pvuo *PackageVersionUpdateOne) RemoveHasMetadatumIDs(ids ...int) *PackageVersionUpdateOne {
+	pvuo.mutation.RemoveHasMetadatumIDs(ids...)
+	return pvuo
+}
+
+// RemoveHasMetadata removes "has_metadata" edges to HasMetadata entities.
+func (pvuo *PackageVersionUpdateOne) RemoveHasMetadata(h ...*HasMetadata) *PackageVersionUpdateOne {
+	ids := make([]int, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return pvuo.RemoveHasMetadatumIDs(ids...)
 }
 
 // Where appends a list predicates to the PackageVersionUpdate builder.
@@ -902,6 +1020,51 @@ func (pvuo *PackageVersionUpdateOne) sqlSave(ctx context.Context) (_node *Packag
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(pkgequal.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pvuo.mutation.HasMetadataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pvuo.mutation.RemovedHasMetadataIDs(); len(nodes) > 0 && !pvuo.mutation.HasMetadataCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pvuo.mutation.HasMetadataIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   packageversion.HasMetadataTable,
+			Columns: []string{packageversion.HasMetadataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hasmetadata.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -21,18 +21,19 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/hasmetadata"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/predicate"
-	"github.com/guacsec/guac/pkg/assembler/backends/helper"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/sync/errgroup"
 )
 
 func (b *EntBackend) HasMetadata(ctx context.Context, filter *model.HasMetadataSpec) ([]*model.HasMetadata, error) {
 	records, err := b.client.HasMetadata.Query().
-		Where(hasMetadataPredicate(filter)).
+		Where(hasMetadataPredicate(filter, nil)).
 		Limit(MaxPageSize).
 		WithSource(withSourceNameTreeQuery()).
 		WithArtifact().
@@ -59,8 +60,11 @@ func (b *EntBackend) IngestHasMetadata(ctx context.Context, subject model.Packag
 }
 
 func (b *EntBackend) IngestBulkHasMetadata(ctx context.Context, subjects model.PackageSourceOrArtifactInputs, pkgMatchType *model.MatchFlags, hasMetadataList []*model.HasMetadataInputSpec) ([]string, error) {
-	var results []string
+	var results = make([]string, len(hasMetadataList))
+	eg, ctx := errgroup.WithContext(ctx)
 	for i := range hasMetadataList {
+		index := i
+		hmSpec := *hasMetadataList[i]
 		var subject model.PackageSourceOrArtifactInput
 		if len(subjects.Packages) > 0 {
 			subject = model.PackageSourceOrArtifactInput{Package: subjects.Packages[i]}
@@ -69,16 +73,23 @@ func (b *EntBackend) IngestBulkHasMetadata(ctx context.Context, subjects model.P
 		} else {
 			subject = model.PackageSourceOrArtifactInput{Source: subjects.Sources[i]}
 		}
-		hm, err := b.IngestHasMetadata(ctx, subject, pkgMatchType, *hasMetadataList[i])
-		if err != nil {
-			return nil, gqlerror.Errorf("IngestBulkHasMetadata failed with element #%v with err: %v", i, err)
-		}
-		results = append(results, hm.ID)
+		concurrently(eg, func() error {
+			hm, err := b.IngestHasMetadata(ctx, subject, pkgMatchType, hmSpec)
+			if err == nil {
+				results[index] = hm.ID
+				return err
+			} else {
+				return gqlerror.Errorf("IngestBulkHasMetadata failed with element #%v %+v with err: %v", i, *subject.Package, err)
+			}
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 	return results, nil
 }
 
-func hasMetadataPredicate(filter *model.HasMetadataSpec) predicate.HasMetadata {
+func hasMetadataPredicate(filter *model.HasMetadataSpec, pkgMatchType *model.MatchFlags) predicate.HasMetadata {
 	predicates := []predicate.HasMetadata{
 		optionalPredicate(filter.ID, IDEQ),
 		optionalPredicate(filter.Since, hasmetadata.TimestampGTE),
@@ -92,14 +103,59 @@ func hasMetadataPredicate(filter *model.HasMetadataSpec) predicate.HasMetadata {
 	if filter.Subject != nil {
 		switch {
 		case filter.Subject.Artifact != nil:
-			predicates = append(predicates, hasmetadata.HasArtifactWith(artifactQueryPredicates(filter.Subject.Artifact)))
+			if filter.Subject.Artifact.ID != nil {
+				predicates = append(predicates,
+					sql.FieldEQ(hasmetadata.FieldArtifactID, filter.Subject.Artifact.ID),
+				)
+			} else {
+				predicates = append(predicates,
+					hasmetadata.HasArtifactWith(artifactQueryPredicates(filter.Subject.Artifact)),
+				)
+			}
+			predicates = append(predicates,
+				hasmetadata.SourceIDIsNil(),
+				hasmetadata.PackageNameIDIsNil(),
+				hasmetadata.PackageVersionIDIsNil(),
+			)
 		case filter.Subject.Package != nil:
-			predicates = append(predicates, hasmetadata.Or(
-				hasmetadata.HasAllVersionsWith(packageNameQuery(pkgNameQueryFromPkgSpec(filter.Subject.Package))),
-				hasmetadata.HasPackageVersionWith(packageVersionQuery(filter.Subject.Package)),
-			))
+			if filter.Subject.Package.ID != nil {
+				if (pkgMatchType != nil && pkgMatchType.Pkg == model.PkgMatchTypeSpecificVersion) ||
+					filter.Subject.Package.Version != nil {
+					predicates = append(predicates,
+						sql.FieldEQ(hasmetadata.FieldPackageVersionID, filter.Subject.Package.ID),
+						hasmetadata.PackageNameIDIsNil(),
+					)
+				} else {
+					predicates = append(predicates,
+						hasmetadata.PackageVersionIDIsNil(),
+						sql.FieldEQ(hasmetadata.FieldPackageNameID, filter.Subject.Package.ID),
+					)
+				}
+			} else {
+				predicates = append(predicates, hasmetadata.Or(
+					hasmetadata.HasAllVersionsWith(packageNameQuery(pkgNameQueryFromPkgSpec(filter.Subject.Package))),
+					hasmetadata.HasPackageVersionWith(packageVersionQuery(filter.Subject.Package)),
+				))
+			}
+			predicates = append(predicates,
+				hasmetadata.SourceIDIsNil(),
+				hasmetadata.ArtifactIDIsNil(),
+			)
 		case filter.Subject.Source != nil:
-			predicates = append(predicates, hasmetadata.HasSourceWith(sourceQuery(filter.Subject.Source)))
+			if filter.Subject.Source.ID != nil {
+				predicates = append(predicates,
+					sql.FieldEQ(hasmetadata.FieldSourceID, filter.Subject.Source.ID),
+				)
+			} else {
+				predicates = append(predicates,
+					hasmetadata.HasSourceWith(sourceQuery(filter.Subject.Source)),
+				)
+			}
+			predicates = append(predicates,
+				hasmetadata.PackageNameIDIsNil(),
+				hasmetadata.PackageVersionIDIsNil(),
+				hasmetadata.ArtifactIDIsNil(),
+			)
 		}
 	}
 	return hasmetadata.And(predicates...)
@@ -115,7 +171,6 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 		SetCollector(spec.Collector)
 
 	conflictColumns := []string{
-		hasmetadata.FieldTimestamp,
 		hasmetadata.FieldKey,
 		hasmetadata.FieldValue,
 		hasmetadata.FieldJustification,
@@ -124,13 +179,14 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 	}
 	var conflictWhere *sql.Predicate
 
+	var subjectSpec *model.PackageSourceOrArtifactSpec
 	switch {
 	case subject.Artifact != nil:
-		art, err := client.Artifact.Query().Where(artifactQueryInputPredicates(*subject.Artifact)).Only(ctx)
+		art, err := client.Artifact.Query().Where(artifactQueryInputPredicates(*subject.Artifact)).OnlyID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve subject artifact :: %s", err)
 		}
-		insert.SetArtifact(art)
+		insert.SetArtifactID(art)
 		conflictColumns = append(conflictColumns, hasmetadata.FieldArtifactID)
 		conflictWhere = sql.And(
 			sql.NotNull(hasmetadata.FieldArtifactID),
@@ -138,14 +194,17 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 			sql.IsNull(hasmetadata.FieldPackageVersionID),
 			sql.IsNull(hasmetadata.FieldSourceID),
 		)
+		subjectSpec = &model.PackageSourceOrArtifactSpec{
+			Artifact: &model.ArtifactSpec{ID: ptrfrom.String(nodeID(art))},
+		}
 
 	case subject.Package != nil:
 		if pkgMatchType.Pkg == model.PkgMatchTypeSpecificVersion {
-			pv, err := getPkgVersion(ctx, client.Client(), *subject.Package)
+			pv, err := getPkgVersionID(ctx, client.Client(), *subject.Package)
 			if err != nil {
 				return nil, fmt.Errorf("failed to retrieve subject package version :: %s", err)
 			}
-			insert.SetPackageVersion(pv)
+			insert.SetPackageVersionID(pv)
 			conflictColumns = append(conflictColumns, hasmetadata.FieldPackageVersionID)
 			conflictWhere = sql.And(
 				sql.IsNull(hasmetadata.FieldArtifactID),
@@ -153,12 +212,15 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 				sql.IsNull(hasmetadata.FieldPackageNameID),
 				sql.IsNull(hasmetadata.FieldSourceID),
 			)
+			subjectSpec = &model.PackageSourceOrArtifactSpec{
+				Package: &model.PkgSpec{ID: ptrfrom.String(nodeID(pv))},
+			}
 		} else {
-			pn, err := getPkgName(ctx, client.Client(), *subject.Package)
+			pn, err := getPkgNameID(ctx, client.Client(), *subject.Package)
 			if err != nil {
 				return nil, fmt.Errorf("failed to retrieve subject package name :: %s", err)
 			}
-			insert.SetAllVersions(pn)
+			insert.SetAllVersionsID(pn)
 			conflictColumns = append(conflictColumns, hasmetadata.FieldPackageNameID)
 			conflictWhere = sql.And(
 				sql.IsNull(hasmetadata.FieldArtifactID),
@@ -166,6 +228,10 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 				sql.NotNull(hasmetadata.FieldPackageNameID),
 				sql.IsNull(hasmetadata.FieldSourceID),
 			)
+			//subject.Package.Version = nil
+			subjectSpec = &model.PackageSourceOrArtifactSpec{
+				Package: &model.PkgSpec{ID: ptrfrom.String(nodeID(pn))},
+			}
 		}
 
 	case subject.Source != nil:
@@ -181,6 +247,9 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 			sql.IsNull(hasmetadata.FieldPackageNameID),
 			sql.NotNull(hasmetadata.FieldSourceID),
 		)
+		subjectSpec = &model.PackageSourceOrArtifactSpec{
+			Source: &model.SourceSpec{ID: ptrfrom.String(nodeID(srcID))},
+		}
 	}
 
 	id, err := insert.OnConflict(
@@ -194,7 +263,7 @@ func upsertHasMetadata(ctx context.Context, client *ent.Tx, subject model.Packag
 			return nil, errors.Wrap(err, "upsert HasMetadata node")
 		}
 		id, err = client.HasMetadata.Query().
-			Where(hasMetadataInputPredicate(subject, pkgMatchType, spec)).
+			Where(hasMetadataInputPredicate(subjectSpec, pkgMatchType, spec)).
 			OnlyID(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "get HasMetadata")
@@ -233,31 +302,14 @@ func toModelHasMetadata(v *ent.HasMetadata) *model.HasMetadata {
 	}
 }
 
-func hasMetadataInputPredicate(subject model.PackageSourceOrArtifactInput, pkgMatchType *model.MatchFlags, filter model.HasMetadataInputSpec) predicate.HasMetadata {
-	var subjectSpec *model.PackageSourceOrArtifactSpec
-	if subject.Package != nil {
-		if pkgMatchType != nil && pkgMatchType.Pkg == model.PkgMatchTypeAllVersions {
-			subject.Package.Version = nil
-		}
-		subjectSpec = &model.PackageSourceOrArtifactSpec{
-			Package: helper.ConvertPkgInputSpecToPkgSpec(subject.Package),
-		}
-	} else if subject.Artifact != nil {
-		subjectSpec = &model.PackageSourceOrArtifactSpec{
-			Artifact: helper.ConvertArtInputSpecToArtSpec(subject.Artifact),
-		}
-	} else {
-		subjectSpec = &model.PackageSourceOrArtifactSpec{
-			Source: helper.ConvertSrcInputSpecToSrcSpec(subject.Source),
-		}
-	}
+func hasMetadataInputPredicate(subjectSpec *model.PackageSourceOrArtifactSpec, pkgMatchType *model.MatchFlags, filter model.HasMetadataInputSpec) predicate.HasMetadata {
 	return hasMetadataPredicate(&model.HasMetadataSpec{
 		Subject:       subjectSpec,
-		Since:         &filter.Timestamp,
 		Key:           &filter.Key,
 		Value:         &filter.Value,
 		Justification: &filter.Justification,
 		Origin:        &filter.Origin,
 		Collector:     &filter.Collector,
-	})
+	},
+		pkgMatchType)
 }

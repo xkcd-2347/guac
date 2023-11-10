@@ -390,6 +390,29 @@ func HasEqualPackagesWith(preds ...predicate.PkgEqual) predicate.PackageVersion 
 	})
 }
 
+// HasHasMetadata applies the HasEdge predicate on the "has_metadata" edge.
+func HasHasMetadata() predicate.PackageVersion {
+	return predicate.PackageVersion(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, HasMetadataTable, HasMetadataColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHasMetadataWith applies the HasEdge predicate on the "has_metadata" edge with a given conditions (other predicates).
+func HasHasMetadataWith(preds ...predicate.HasMetadata) predicate.PackageVersion {
+	return predicate.PackageVersion(func(s *sql.Selector) {
+		step := newHasMetadataStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.PackageVersion) predicate.PackageVersion {
 	return predicate.PackageVersion(sql.AndPredicates(predicates...))

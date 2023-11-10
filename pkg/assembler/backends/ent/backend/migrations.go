@@ -57,6 +57,7 @@ func SetupBackend(ctx context.Context, options *BackendOptions) (*ent.Client, er
 	client := ent.NewClient(ent.Driver(dialectsql.OpenDB(driver, db)))
 
 	if options.AutoMigrate {
+		logger.Infof("ent migrations started")
 		// Run db migrations
 		err = client.Schema.Create(
 			ctx,

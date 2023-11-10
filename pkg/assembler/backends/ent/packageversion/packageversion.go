@@ -30,6 +30,8 @@ const (
 	EdgeSbom = "sbom"
 	// EdgeEqualPackages holds the string denoting the equal_packages edge name in mutations.
 	EdgeEqualPackages = "equal_packages"
+	// EdgeHasMetadata holds the string denoting the has_metadata edge name in mutations.
+	EdgeHasMetadata = "has_metadata"
 	// Table holds the table name of the packageversion in the database.
 	Table = "package_versions"
 	// NameTable is the table that holds the name relation/edge.
@@ -58,6 +60,13 @@ const (
 	// EqualPackagesInverseTable is the table name for the PkgEqual entity.
 	// It exists in this package in order to avoid circular dependency with the "pkgequal" package.
 	EqualPackagesInverseTable = "pkg_equals"
+	// HasMetadataTable is the table that holds the has_metadata relation/edge.
+	HasMetadataTable = "has_metadata"
+	// HasMetadataInverseTable is the table name for the HasMetadata entity.
+	// It exists in this package in order to avoid circular dependency with the "hasmetadata" package.
+	HasMetadataInverseTable = "has_metadata"
+	// HasMetadataColumn is the table column denoting the has_metadata relation/edge.
+	HasMetadataColumn = "package_version_id"
 )
 
 // Columns holds all SQL columns for packageversion fields.
@@ -169,6 +178,20 @@ func ByEqualPackages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newEqualPackagesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByHasMetadataCount orders the results by has_metadata count.
+func ByHasMetadataCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHasMetadataStep(), opts...)
+	}
+}
+
+// ByHasMetadata orders the results by has_metadata terms.
+func ByHasMetadata(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHasMetadataStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newNameStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -195,5 +218,12 @@ func newEqualPackagesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EqualPackagesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, EqualPackagesTable, EqualPackagesPrimaryKey...),
+	)
+}
+func newHasMetadataStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HasMetadataInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, HasMetadataTable, HasMetadataColumn),
 	)
 }

@@ -78,28 +78,35 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 		for _, pkgWithMetadata := range pkgsWithMetadata.HasMetadata {
 			// check the ones whose value starts with the CPE found in the VEX
 			if strings.HasPrefix(pkgWithMetadata.Value, *cpe) {
-				depPkg := &generated.PkgSpec{Name: pref}
-				filterIsDependency := &generated.IsDependencySpec{
-					DependencyPackage: depPkg,
-				}
-				switch subject := pkgWithMetadata.Subject.(type) {
+				switch productPkg := pkgWithMetadata.Subject.(type) {
 				case *generated.AllHasMetadataSubjectPackage:
-					filterIsDependency.Package = &generated.PkgSpec{
-						Type:      &subject.Type,
-						Namespace: &subject.Namespaces[0].Namespace,
-						Name:      &subject.Namespaces[0].Names[0].Name,
-						Version:   &subject.Namespaces[0].Names[0].Versions[0].Version,
+					toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(productPkg.AllPkgTree, true))
+					if err != nil {
+						logger.Warnf("Failed to handle the HasMetadata response %+v\n", productPkg)
+						continue
 					}
-					isDependency, err := generated.IsDependency(ctx, gqlclient, *filterIsDependency)
+					filterProductDependenciesHasMetadata := &generated.HasMetadataSpec{
+						Key:   ptrfrom.String("topLevelPackage"),
+						Value: ptrfrom.String(helpers.PkgInputSpecToPurl(toPkg)),
+						Subject: &generated.PackageSourceOrArtifactSpec{
+							Package: &generated.PkgSpec{Name: pref},
+						},
+					}
+					dependenciesHasMetadataResponse, err := generated.HasMetadata(ctx, gqlclient, *filterProductDependenciesHasMetadata)
 					if err != nil {
 						return nil, err
 					}
-					for _, isDep := range isDependency.IsDependency {
-						toPkg, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(isDep.DependencyPackage.AllPkgTree, true))
-						if err != nil {
-							logger.Warnf("Failed to handle the IsDependency response %+v\n", isDep)
-						} else {
-							purlsMap[helpers.PkgInputSpecToPurl(toPkg)] = struct{}{}
+					for _, dependencyHasMetadata := range dependenciesHasMetadataResponse.HasMetadata {
+						switch vulnerableDependencyPkg := dependencyHasMetadata.Subject.(type) {
+						case *generated.AllHasMetadataSubjectPackage:
+							vulnerablePkgInputSpec, err := helpers.PurlToPkg(helpers.AllPkgTreeToPurl(vulnerableDependencyPkg.AllPkgTree, true))
+							if err != nil {
+								logger.Warnf("Failed to handle the IsDependency response %+v\n", dependencyHasMetadata)
+							} else {
+								purlsMap[helpers.PkgInputSpecToPurl(vulnerablePkgInputSpec)] = struct{}{}
+							}
+						default:
+							continue
 						}
 					}
 				case *generated.AllHasMetadataSubjectSource:

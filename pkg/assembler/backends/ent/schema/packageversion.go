@@ -51,6 +51,7 @@ func (PackageVersion) Edges() []ent.Edge {
 		// edge.To("equal_packages", PackageVersion.Type).Through("equals", PkgEqual.Type),
 		edge.From("equal_packages", PkgEqual.Type).Ref("packages"),
 		// edge.From("pkg_equal_dependant", PkgEqual.Type).Ref("dependant_package"),
+		edge.From("has_metadata", HasMetadata.Type).Ref("package_version"),
 	}
 }
 
@@ -62,5 +63,6 @@ func (PackageVersion) Indexes() []ent.Index {
 			entsql.IndexTypes(map[string]string{dialect.Postgres: "GIN"}),
 		),
 		index.Fields("version", "subpath", "qualifiers").Edges("name").Unique(),
+		index.Fields("name_id"),
 	}
 }

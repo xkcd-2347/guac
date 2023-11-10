@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/hasmetadata"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/occurrence"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packageversion"
@@ -30,11 +31,13 @@ type PackageVersionQuery struct {
 	withOccurrences        *OccurrenceQuery
 	withSbom               *BillOfMaterialsQuery
 	withEqualPackages      *PkgEqualQuery
+	withHasMetadata        *HasMetadataQuery
 	modifiers              []func(*sql.Selector)
 	loadTotal              []func(context.Context, []*PackageVersion) error
 	withNamedOccurrences   map[string]*OccurrenceQuery
 	withNamedSbom          map[string]*BillOfMaterialsQuery
 	withNamedEqualPackages map[string]*PkgEqualQuery
+	withNamedHasMetadata   map[string]*HasMetadataQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -152,6 +155,28 @@ func (pvq *PackageVersionQuery) QueryEqualPackages() *PkgEqualQuery {
 			sqlgraph.From(packageversion.Table, packageversion.FieldID, selector),
 			sqlgraph.To(pkgequal.Table, pkgequal.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, packageversion.EqualPackagesTable, packageversion.EqualPackagesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHasMetadata chains the current query on the "has_metadata" edge.
+func (pvq *PackageVersionQuery) QueryHasMetadata() *HasMetadataQuery {
+	query := (&HasMetadataClient{config: pvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(packageversion.Table, packageversion.FieldID, selector),
+			sqlgraph.To(hasmetadata.Table, hasmetadata.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, packageversion.HasMetadataTable, packageversion.HasMetadataColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pvq.driver.Dialect(), step)
 		return fromU, nil
@@ -355,6 +380,7 @@ func (pvq *PackageVersionQuery) Clone() *PackageVersionQuery {
 		withOccurrences:   pvq.withOccurrences.Clone(),
 		withSbom:          pvq.withSbom.Clone(),
 		withEqualPackages: pvq.withEqualPackages.Clone(),
+		withHasMetadata:   pvq.withHasMetadata.Clone(),
 		// clone intermediate query.
 		sql:  pvq.sql.Clone(),
 		path: pvq.path,
@@ -402,6 +428,17 @@ func (pvq *PackageVersionQuery) WithEqualPackages(opts ...func(*PkgEqualQuery)) 
 		opt(query)
 	}
 	pvq.withEqualPackages = query
+	return pvq
+}
+
+// WithHasMetadata tells the query-builder to eager-load the nodes that are connected to
+// the "has_metadata" edge. The optional arguments are used to configure the query builder of the edge.
+func (pvq *PackageVersionQuery) WithHasMetadata(opts ...func(*HasMetadataQuery)) *PackageVersionQuery {
+	query := (&HasMetadataClient{config: pvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pvq.withHasMetadata = query
 	return pvq
 }
 
@@ -483,11 +520,12 @@ func (pvq *PackageVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*PackageVersion{}
 		_spec       = pvq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			pvq.withName != nil,
 			pvq.withOccurrences != nil,
 			pvq.withSbom != nil,
 			pvq.withEqualPackages != nil,
+			pvq.withHasMetadata != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -538,6 +576,13 @@ func (pvq *PackageVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
+	if query := pvq.withHasMetadata; query != nil {
+		if err := pvq.loadHasMetadata(ctx, query, nodes,
+			func(n *PackageVersion) { n.Edges.HasMetadata = []*HasMetadata{} },
+			func(n *PackageVersion, e *HasMetadata) { n.Edges.HasMetadata = append(n.Edges.HasMetadata, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range pvq.withNamedOccurrences {
 		if err := pvq.loadOccurrences(ctx, query, nodes,
 			func(n *PackageVersion) { n.appendNamedOccurrences(name) },
@@ -556,6 +601,13 @@ func (pvq *PackageVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		if err := pvq.loadEqualPackages(ctx, query, nodes,
 			func(n *PackageVersion) { n.appendNamedEqualPackages(name) },
 			func(n *PackageVersion, e *PkgEqual) { n.appendNamedEqualPackages(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range pvq.withNamedHasMetadata {
+		if err := pvq.loadHasMetadata(ctx, query, nodes,
+			func(n *PackageVersion) { n.appendNamedHasMetadata(name) },
+			func(n *PackageVersion, e *HasMetadata) { n.appendNamedHasMetadata(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -723,6 +775,39 @@ func (pvq *PackageVersionQuery) loadEqualPackages(ctx context.Context, query *Pk
 	}
 	return nil
 }
+func (pvq *PackageVersionQuery) loadHasMetadata(ctx context.Context, query *HasMetadataQuery, nodes []*PackageVersion, init func(*PackageVersion), assign func(*PackageVersion, *HasMetadata)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*PackageVersion)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(hasmetadata.FieldPackageVersionID)
+	}
+	query.Where(predicate.HasMetadata(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(packageversion.HasMetadataColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PackageVersionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "package_version_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "package_version_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (pvq *PackageVersionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pvq.querySpec()
@@ -850,6 +935,20 @@ func (pvq *PackageVersionQuery) WithNamedEqualPackages(name string, opts ...func
 		pvq.withNamedEqualPackages = make(map[string]*PkgEqualQuery)
 	}
 	pvq.withNamedEqualPackages[name] = query
+	return pvq
+}
+
+// WithNamedHasMetadata tells the query-builder to eager-load the nodes that are connected to the "has_metadata"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (pvq *PackageVersionQuery) WithNamedHasMetadata(name string, opts ...func(*HasMetadataQuery)) *PackageVersionQuery {
+	query := (&HasMetadataClient{config: pvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if pvq.withNamedHasMetadata == nil {
+		pvq.withNamedHasMetadata = make(map[string]*HasMetadataQuery)
+	}
+	pvq.withNamedHasMetadata[name] = query
 	return pvq
 }
 

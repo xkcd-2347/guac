@@ -242,6 +242,7 @@
 ./pkg/assembler/graphql/generated/prelude.generated.go
 ./pkg/assembler/graphql/generated/root_.generated.go
 ./pkg/assembler/graphql/generated/schema.generated.go
+./pkg/assembler/graphql/generated/search.generated.go
 ./pkg/assembler/graphql/generated/source.generated.go
 ./pkg/assembler/graphql/generated/vulnEqual.generated.go
 ./pkg/assembler/graphql/generated/vulnMetadata.generated.go

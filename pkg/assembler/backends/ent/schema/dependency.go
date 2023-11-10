@@ -78,5 +78,9 @@ func (Dependency) Indexes() []ent.Index {
 			Edges("package", "dependent_package_version").
 			Unique().
 			Annotations(entsql.IndexWhere("dependent_package_name_id IS NULL AND dependent_package_version_id IS NOT NULL")).StorageKey("dep_package_version"),
+		// sustain parser_csaf_red_hat.go in finding the correlation
+		index.Fields("dependent_package_name_id", "dependent_package_version_id", "package_id"),
+		// sustain bfsFromVulnerablePackage
+		index.Fields("dependent_package_version_id"),
 	}
 }
