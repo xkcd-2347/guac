@@ -290,7 +290,7 @@ type ComplexityRoot struct {
 		CertifyVuln                                func(childComplexity int, certifyVulnSpec model.CertifyVulnSpec) int
 		FindSoftware                               func(childComplexity int, searchText string) int
 		FindTopLevelPackagesRelatedToVulnerability func(childComplexity int, vulnerabilityID string) int
-		FindVulnerability                          func(childComplexity int, purl string) int
+		FindVulnerability                          func(childComplexity int, purl string, offset *int, limit *int) int
 		FindVulnerabilityByCpe                     func(childComplexity int, cpe string) int
 		HasMetadata                                func(childComplexity int, hasMetadataSpec model.HasMetadataSpec) int
 		HasSbom                                    func(childComplexity int, hasSBOMSpec model.HasSBOMSpec) int
@@ -1951,7 +1951,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindVulnerability(childComplexity, args["purl"].(string)), true
+		return e.complexity.Query.FindVulnerability(childComplexity, args["purl"].(string), args["offset"].(*int), args["limit"].(*int)), true
 
 	case "Query.findVulnerabilityByCPE":
 		if e.complexity.Query.FindVulnerabilityByCpe == nil {
@@ -5012,7 +5012,7 @@ extend type Query {
   findTopLevelPackagesRelatedToVulnerability(vulnerabilityID: String!): [[Node!]!]!
 
   "Returns all vulnerabilities related to a package."
-  findVulnerability(purl: String!): [CertifyVulnOrCertifyVEXStatement!]!
+  findVulnerability(purl: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
 
   "Returns all vulnerabilities related to the package identified by the CPE"
   findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!

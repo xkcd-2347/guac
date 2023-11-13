@@ -55,7 +55,7 @@ extend type Query {
   findTopLevelPackagesRelatedToVulnerability(vulnerabilityID: String!): [[Node!]!]!
 
   "Returns all vulnerabilities related to a package."
-  findVulnerability(purl: String!): [CertifyVulnOrCertifyVEXStatement!]!
+  findVulnerability(purl: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
 
   "Returns all vulnerabilities related to the package identified by the CPE"
   findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!

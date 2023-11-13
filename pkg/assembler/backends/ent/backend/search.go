@@ -208,7 +208,7 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 }
 
 // FindVulnerability returns all vulnerabilities related to a package
-func (b *EntBackend) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+func (b *EntBackend) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 
 	pkgInput, err := helpers.PurlToPkg(purl)
 	if err != nil {
@@ -232,7 +232,7 @@ func (b *EntBackend) FindVulnerability(ctx context.Context, purl string) ([]mode
 		Qualifiers: pkgQualifierFilter,
 	}
 
-	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purl)
+	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purl, offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -286,14 +286,14 @@ func (b *EntBackend) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 	if err != nil {
 		return nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
 	}
-	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purlMetadata.Value)
+	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purlMetadata.Value, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	return *vulnerabilities, nil
 }
 
-func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec, purl string) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
+func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec, purl string, offset *int, limit *int) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
 	// check the provided input
 	_, err := b.client.PackageVersion.Query().
 		Where(packageVersionQuery(pkgFilter)).
@@ -304,7 +304,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 	vulnerabilities := make(chan model.CertifyVulnOrCertifyVEXStatement)
 	eg, ctx := errgroup.WithContext(ctx)
 	concurrentlyRead(eg, func() error {
-		certifyVexes, err := b.client.CertifyVex.Query().
+		query := b.client.CertifyVex.Query().
 			Where(
 				certifyvex.HasPackageWith(
 					packageversion.HasHasMetadataWith(
@@ -325,7 +325,17 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 				q.WithType()
 			}).
 			WithPackage(withPackageVersionTree()).
-			All(ctx)
+			Order(ent.Desc(vulnerabilityid.FieldID))
+
+		if offset != nil {
+			query.Offset(*offset)
+		}
+
+		if limit != nil {
+			query.Limit(*limit)
+		}
+
+		certifyVexes, err := query.All(ctx)
 		if err != nil {
 			return err
 		}
@@ -336,7 +346,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 		return nil
 	})
 	concurrentlyRead(eg, func() error {
-		certifyVulns, err := b.client.CertifyVuln.Query().
+		query := b.client.CertifyVuln.Query().
 			Where(
 				certifyvuln.HasPackageWith(
 					packageversion.HasHasMetadataWith(
@@ -357,7 +367,17 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 				q.WithType()
 			}).
 			WithPackage(withPackageVersionTree()).
-			All(ctx)
+			Order(ent.Desc(vulnerabilityid.FieldID))
+
+		if offset != nil {
+			query.Offset(*offset)
+		}
+
+		if limit != nil {
+			query.Limit(*limit)
+		}
+
+		certifyVulns, err := query.All(ctx)
 		if err != nil {
 			return err
 		}

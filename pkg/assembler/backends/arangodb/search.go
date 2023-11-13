@@ -204,7 +204,7 @@ func (c *arangoClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Co
 	return nil, fmt.Errorf("not implemented: FindTopLevelPackagesRelatedToVulnerability")
 }
 
-func (c *arangoClient) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+func (c *arangoClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerability")
 }
 
