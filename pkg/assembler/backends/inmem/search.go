@@ -139,7 +139,7 @@ func (c *demoClient) findRelatedProducts(ctx context.Context, pkgVulnerable *mod
 }
 
 // FindVulnerability returns all vulnerabilities related to a package
-func (c *demoClient) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+func (c *demoClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 
 	pkgInput, err := helpers.PurlToPkg(purl)
 	if err != nil {

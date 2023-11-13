@@ -21,8 +21,8 @@ func (r *queryResolver) FindTopLevelPackagesRelatedToVulnerability(ctx context.C
 }
 
 // FindVulnerability is the resolver for the findVulnerability field.
-func (r *queryResolver) FindVulnerability(ctx context.Context, purl string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
-	return r.Backend.FindVulnerability(ctx, purl)
+func (r *queryResolver) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return r.Backend.FindVulnerability(ctx, purl, offset, limit)
 }
 
 // FindVulnerabilityByCpe is the resolver for the findVulnerabilityByCPE field.

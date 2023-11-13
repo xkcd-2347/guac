@@ -628,7 +628,7 @@ func Test_demoClient_FindVulnerability(t *testing.T) {
 				}
 			}
 
-			got, err := b.FindVulnerability(ctx, tt.query)
+			got, err := b.FindVulnerability(ctx, tt.query, nil, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindVulnerability error = %v, wantErr %v", err, tt.wantErr)
 				return
