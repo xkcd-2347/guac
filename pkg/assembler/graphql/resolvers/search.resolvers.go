@@ -29,3 +29,8 @@ func (r *queryResolver) FindVulnerability(ctx context.Context, purl string, offs
 func (r *queryResolver) FindVulnerabilityByCpe(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return r.Backend.FindVulnerabilityCPE(ctx, cpe)
 }
+
+// FindVulnerabilityBySbomURI is the resolver for the findVulnerabilityBySbomURI field.
+func (r *queryResolver) FindVulnerabilityBySbomURI(ctx context.Context, sbomURI string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return r.Backend.FindVulnerabilitySbomURI(ctx, sbomURI, offset, limit)
+}

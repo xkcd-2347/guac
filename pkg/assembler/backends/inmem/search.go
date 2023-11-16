@@ -215,6 +215,10 @@ func (c *demoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 	return *vulnerabilities, nil
 }
 
+func (c *demoClient) FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return []model.CertifyVulnOrCertifyVEXStatement{}, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}
+
 func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
 
 	pkgResponse, err := c.Packages(ctx, pkgFilter)

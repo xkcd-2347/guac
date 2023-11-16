@@ -292,6 +292,7 @@ type ComplexityRoot struct {
 		FindTopLevelPackagesRelatedToVulnerability func(childComplexity int, vulnerabilityID string) int
 		FindVulnerability                          func(childComplexity int, purl string, offset *int, limit *int) int
 		FindVulnerabilityByCpe                     func(childComplexity int, cpe string) int
+		FindVulnerabilityBySbomURI                 func(childComplexity int, sbomURI string, offset *int, limit *int) int
 		HasMetadata                                func(childComplexity int, hasMetadataSpec model.HasMetadataSpec) int
 		HasSbom                                    func(childComplexity int, hasSBOMSpec model.HasSBOMSpec) int
 		HasSlsa                                    func(childComplexity int, hasSLSASpec model.HasSLSASpec) int
@@ -1964,6 +1965,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindVulnerabilityByCpe(childComplexity, args["cpe"].(string)), true
+
+	case "Query.findVulnerabilityBySbomURI":
+		if e.complexity.Query.FindVulnerabilityBySbomURI == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findVulnerabilityBySbomURI_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindVulnerabilityBySbomURI(childComplexity, args["sbomURI"].(string), args["offset"].(*int), args["limit"].(*int)), true
 
 	case "Query.HasMetadata":
 		if e.complexity.Query.HasMetadata == nil {
@@ -5016,6 +5029,9 @@ extend type Query {
 
   "Returns all vulnerabilities related to the package identified by the CPE"
   findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all vulnerabilities related to the package identified by the SBOM URI"
+  findVulnerabilityBySbomURI(sbomURI: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/source.graphql", Input: `#

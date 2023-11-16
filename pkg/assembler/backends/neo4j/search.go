@@ -37,3 +37,7 @@ func (c *neo4jClient) FindVulnerability(ctx context.Context, purl string, offset
 func (c *neo4jClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
 }
+
+func (c *neo4jClient) FindVulnerabilitySbomURI(ctx context.Context, cpe string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}
