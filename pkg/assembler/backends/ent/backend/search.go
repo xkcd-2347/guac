@@ -259,23 +259,64 @@ func (b *EntBackend) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 		}
 	}
 	if len(maps.Values(packagesFound)) != 1 {
-		return nil, gqlerror.Errorf("failed to locate a single package based on the provided CPE")
+		return nil, gqlerror.Errorf("failed to locate a single package based on the provided CPE %v", cpe)
 	}
 
 	pkg := maps.Values(packagesFound)[0]
-	pkgQualifierFilter := []*model.PackageQualifierSpec{}
-	for _, qualifier := range pkg.Namespaces[0].Names[0].Versions[0].Qualifiers {
-		pkgQualifierFilter = append(pkgQualifierFilter, &model.PackageQualifierSpec{
-			Key:   qualifier.Key,
-			Value: &qualifier.Value,
-		})
+	pkgFilter, purl, gqlError := b.getPkgSpecAndPurl(ctx, pkg)
+	if gqlError != nil {
+		return nil, gqlError
 	}
+	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, *purl, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return *vulnerabilities, nil
+}
+
+// FindVulnerabilitySbomURI returns all vulnerabilities related to the package identified by the SBOM ID
+func (b *EntBackend) FindVulnerabilitySbomURI(ctx context.Context, sbomURI string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+
+	packagesFound := map[string]*model.Package{}
+	hasSboms, err := b.HasSBOM(ctx, &model.HasSBOMSpec{URI: ptrfrom.String(sbomURI)})
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
+	}
+	// if multiple times the same key-value metadata has been attached to the same package,
+	// it means the referenced package is just only the same one.
+	for i := range hasSboms {
+		pkg, ok := hasSboms[i].Subject.(*model.Package)
+		if ok {
+			id := pkg.Namespaces[0].Names[0].Versions[0].ID
+			if _, found := packagesFound[id]; !found {
+				packagesFound[id] = pkg
+			}
+		}
+	}
+	if len(maps.Values(packagesFound)) != 1 {
+		return nil, gqlerror.Errorf("failed to locate a single package based on the provided SBOM URI %v", sbomURI)
+	}
+
+	pkg := maps.Values(packagesFound)[0]
+
+	pkgFilter, purl, gqlError := b.getPkgSpecAndPurl(ctx, pkg)
+	if gqlError != nil {
+		return nil, gqlError
+	}
+	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, *purl, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return *vulnerabilities, nil
+}
+
+func (b *EntBackend) getPkgSpecAndPurl(ctx context.Context, pkg *model.Package) (*model.PkgSpec, *string, *gqlerror.Error) {
 	pkgFilter := &model.PkgSpec{
 		ID: &pkg.Namespaces[0].Names[0].Versions[0].ID,
 	}
 	pkgID, err := strconv.Atoi(*pkgFilter.ID)
 	if err != nil {
-		return nil, gqlerror.Errorf("error converting pkg.ID: %v", pkg.ID)
+		return nil, nil, gqlerror.Errorf("error converting pkg.ID: %v", pkg.ID)
 	}
 	purlMetadata, err := b.client.HasMetadata.Query().Select(hasmetadata.FieldValue).
 		Where(
@@ -284,13 +325,9 @@ func (b *EntBackend) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]mo
 		).
 		Only(ctx)
 	if err != nil {
-		return nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
+		return nil, nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
 	}
-	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purlMetadata.Value, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return *vulnerabilities, nil
+	return pkgFilter, &purlMetadata.Value, nil
 }
 
 func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.PkgSpec, purl string, offset *int, limit *int) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {

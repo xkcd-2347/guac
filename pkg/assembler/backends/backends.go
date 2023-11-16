@@ -119,6 +119,9 @@ type Backend interface {
 
 	// FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
 	FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindVulnerabilitySbomURI returns all vulnerabilities related to the package identified by the SBOM ID
+	FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
 }
 
 // BackendArgs interface allows each backend to specify the arguments needed to

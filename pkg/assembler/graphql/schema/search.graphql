@@ -59,4 +59,7 @@ extend type Query {
 
   "Returns all vulnerabilities related to the package identified by the CPE"
   findVulnerabilityByCPE(cpe: String!): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all vulnerabilities related to the package identified by the SBOM URI"
+  findVulnerabilityBySbomURI(sbomURI: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
 }
