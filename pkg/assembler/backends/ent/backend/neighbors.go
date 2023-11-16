@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/dependency"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagenamespace"
@@ -183,10 +184,15 @@ func (b *EntBackend) bfsFromVulnerablePackage(ctx context.Context, pkg int) ([][
 			}
 		}
 		// if none of the dependencies found has 'depPkg' as dependency package,
-		// then it means 'depPkg' is a top level package (i.e. "product")
-		// to be 100% the 'HasSBOM' check should/could be added
+		// then it could mean 'depPkg' is a top level package (i.e. "product")
 		if !foundDependentPkg {
-			productsFound = append(productsFound, now)
+			// to be 100% check it has 'HasSBOM'
+			_, err := b.client.BillOfMaterials.Query().
+				Where(billofmaterials.PackageID(now)).
+				OnlyID(ctx)
+			if err == nil {
+				productsFound = append(productsFound, now)
+			}
 		}
 
 		nowNode.expanded = true
