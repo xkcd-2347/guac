@@ -166,11 +166,11 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 			if err != nil {
 				return nil, err
 			}
-			for i := range paths {
-				paths[i] = append([]model.Node{vexStatement}, paths[i]...)
-			}
-			result = append(result, paths...)
 			if len(paths) > 0 {
+				for i := range paths {
+					paths[i] = append([]model.Node{vexStatement}, paths[i]...)
+				}
+				result = append(result, paths...)
 				packagesAlreadyInvestigated = append(packagesAlreadyInvestigated, pkg)
 			}
 		}
