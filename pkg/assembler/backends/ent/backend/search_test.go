@@ -342,6 +342,94 @@ func (s *Suite) Test_FindTopLevelPackagesRelatedToVulnerability() {
 			want:    [][]model.Node{},
 			wantErr: false,
 		},
+		{
+			name:  "VEX exclude not affected",
+			InPkg: []*model.PkgInputSpec{p1, p4, p5},
+			// p1 is a dependency ONLY of p4
+			InIsDependency: []IsDependency{
+				{
+					P1: *p4,
+					P2: *p1,
+					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					ID: model.IsDependencyInputSpec{
+						Justification: "test justification",
+					},
+				},
+			},
+			// both p4 and p5 are top level packages, i.e. with an SBOM
+			InHasSBOM: []HasSBOM{
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p4,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri",
+					},
+				},
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p5,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri",
+					},
+				},
+			},
+			InVulnerability: []*model.VulnerabilityInputSpec{{
+				Type:            "cve",
+				VulnerabilityID: "CVE-2019-13110",
+			}},
+			// vulnerability relates to p1
+			InCertifyVexStatement: []CertifyVEXStatement{{
+				Sub: model.PackageOrArtifactInput{
+					Package: p1,
+				},
+				Vuln: model.VulnerabilityInputSpec{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				In: model.VexStatementInputSpec{
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			}, {
+				Sub: model.PackageOrArtifactInput{
+					Package: p4,
+				},
+				Vuln: model.VulnerabilityInputSpec{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				In: model.VexStatementInputSpec{
+					Status:           model.VexStatusNotAffected,
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			}},
+			query: "cve-2019-13110",
+			want: [][]model.Node{{
+				&model.CertifyVEXStatement{
+					Subject: p1out,
+					Vulnerability: &model.Vulnerability{
+						Type: "cve",
+						VulnerabilityIDs: []*model.VulnerabilityID{
+							{VulnerabilityID: "cve-2019-13110"},
+						},
+					},
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+				p1out,
+				&model.IsDependency{
+					Package:           p4out,
+					DependencyPackage: p1out,
+					DependencyType:    model.DependencyTypeUnknown,
+					Justification:     "test justification",
+				},
+				p5out,
+			}},
+			wantErr: false,
+		},
 	}
 	ctx := s.Ctx
 	for _, tt := range tests {
@@ -652,15 +740,29 @@ func (s *Suite) Test_FindVulnerability() {
 			query:   helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
 			wantErr: true,
 		},
-		/*		InHasMetadata: []HasMetadata{
+		{
+			name:  "VEX exclude not affected",
+			InPkg: []*model.PkgInputSpec{p1, p6, p5},
+			// p1 is a dependency ONLY of p6
+			InIsDependency: []IsDependency{
+				{
+					P1: *p6,
+					P2: *p1,
+					MF: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					ID: model.IsDependencyInputSpec{
+						Justification: "test justification",
+					},
+				},
+			},
+			InHasMetadata: []HasMetadata{
 				{
 					Sub: model.PackageSourceOrArtifactInput{
-						Package: p2,
+						Package: p1,
 					},
 					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					HM: model.HasMetadataInputSpec{
-						Key:   "cpe",
-						Value: "cpe:2.3:a:log4j-core:log4j_core:2.8.1:*:*:*:*:*:*:*",
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
 					},
 				},
 				{
@@ -669,11 +771,77 @@ func (s *Suite) Test_FindVulnerability() {
 					},
 					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
 					HM: model.HasMetadataInputSpec{
-						Key:   "cpe",
-						Value: "cpe:2.3:a:grep:grep:3.6-1:*:*:*:*:*:*:*",
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
 					},
 				},
-			},*/
+			},
+			// both p6 and p5 are top level packages, i.e. with an SBOM
+			InHasSBOM: []HasSBOM{
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p6,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri",
+					},
+				},
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p5,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri",
+					},
+				},
+			},
+			InVulnerability: []*model.VulnerabilityInputSpec{{
+				Type:            "cve",
+				VulnerabilityID: "CVE-2019-13110",
+			}},
+			// vulnerability relates to p1
+			InCertifyVexStatement: []CertifyVEXStatement{{
+				Sub: model.PackageOrArtifactInput{
+					Package: p1,
+				},
+				Vuln: model.VulnerabilityInputSpec{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				In: model.VexStatementInputSpec{
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			}, {
+				Sub: model.PackageOrArtifactInput{
+					Package: p6,
+				},
+				Vuln: model.VulnerabilityInputSpec{
+					Type:            "cve",
+					VulnerabilityID: "CVE-2019-13110",
+				},
+				In: model.VexStatementInputSpec{
+					Status:           model.VexStatusNotAffected,
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			}},
+			query: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
+			want: []model.CertifyVulnOrCertifyVEXStatement{
+				&model.CertifyVEXStatement{
+					Subject: p1out,
+					Vulnerability: &model.Vulnerability{
+						Type: "cve",
+						VulnerabilityIDs: []*model.VulnerabilityID{
+							{VulnerabilityID: "cve-2019-13110"},
+						},
+					},
+					VexJustification: "test justification",
+					KnownSince:       time.Unix(1e9, 0),
+				},
+			},
+			wantErr: false,
+		},
 	}
 	ctx := s.Ctx
 	for _, tt := range tests {

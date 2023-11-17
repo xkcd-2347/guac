@@ -18,10 +18,10 @@ package backend
 import (
 	"context"
 	"log"
+	"slices"
 	"strconv"
 
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
-	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/dependency"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagenamespace"
@@ -30,6 +30,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/sourcetype"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/exp/maps"
 )
 
 func (b *EntBackend) Neighbors(ctx context.Context, node string, usingOnly []model.Edge) ([]model.Node, error) {
@@ -139,7 +140,7 @@ func (b *EntBackend) Nodes(ctx context.Context, nodes []string) ([]model.Node, e
 	return rv, nil
 }
 
-func (b *EntBackend) bfsFromVulnerablePackage(ctx context.Context, pkg int) ([][]model.Node, error) {
+func (b *EntBackend) bfsFromVulnerablePackage(ctx context.Context, pkg int, productIDs *map[string]bool) ([][]model.Node, error) {
 	queue := make([]int, 0) // the queue of nodes in bfs
 	type dfsNode struct {
 		expanded bool // true once all node neighbors are added to queue
@@ -164,9 +165,7 @@ func (b *EntBackend) bfsFromVulnerablePackage(ctx context.Context, pkg int) ([][
 		if err != nil {
 			return nil, gqlerror.Errorf("bfsThroughIsDependency ::  %s", err)
 		}
-		foundDependentPkg := false
 		for _, isDependency := range isDependencies {
-			foundDependentPkg = true
 			next := isDependency.PackageID
 			dfsN, seen := nodeMap[next]
 			if !seen {
@@ -185,14 +184,10 @@ func (b *EntBackend) bfsFromVulnerablePackage(ctx context.Context, pkg int) ([][
 		}
 		// if none of the dependencies found has 'depPkg' as dependency package,
 		// then it could mean 'depPkg' is a top level package (i.e. "product")
-		if !foundDependentPkg {
-			// to be 100% check it has 'HasSBOM'
-			_, err := b.client.BillOfMaterials.Query().
-				Where(billofmaterials.PackageID(now)).
-				OnlyID(ctx)
-			if err == nil {
-				productsFound = append(productsFound, now)
-			}
+		// to be 100% check it has 'HasSBOM' (i.e. listed in productIDs)
+		if slices.Contains(maps.Keys(*productIDs), strconv.Itoa(now)) &&
+			!slices.Contains(productsFound, now) {
+			productsFound = append(productsFound, now)
 		}
 
 		nowNode.expanded = true
