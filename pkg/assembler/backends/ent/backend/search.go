@@ -140,38 +140,38 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 	}
 
 	if len(productIDsCheckedVulnerable) != 0 {
-		vexStatements, err := b.CertifyVEXStatement(ctx, &model.CertifyVEXStatementSpec{
-			Vulnerability: &model.VulnerabilitySpec{
-				VulnerabilityID: &vulnerabilityID,
-			},
-		})
+		vexStatements, err := b.client.CertifyVex.Query().
+			Where(
+				certifyvex.HasVulnerabilityWith(vulnerabilityid.VulnerabilityIDEqualFold(vulnerabilityID)),
+				certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
+				certifyvex.PackageIDNotNil(),
+			).
+			WithVulnerability(func(q *ent.VulnerabilityIDQuery) {
+				q.WithType()
+			}).
+			WithPackage(func(q *ent.PackageVersionQuery) {
+				q.WithName(func(q *ent.PackageNameQuery) {
+					q.WithNamespace(func(q *ent.PackageNamespaceQuery) {
+						q.WithPackage()
+					})
+				})
+			}).
+			All(ctx)
 		if err != nil {
 			return nil, gqlerror.Errorf("FindTopLevelPackagesRelatedToVulnerability failed with err: %v", err)
 		}
 		packagesAlreadyInvestigated := make([]int, 0)
 		for _, vexStatement := range vexStatements {
-			subject := vexStatement.Subject
-			var pkgVulnerable *model.Package
-			switch v := subject.(type) {
-			case *model.Package:
-				pkgVulnerable = v
-			case *model.Artifact:
-				continue
-			}
-			pkg, err := strconv.Atoi(pkgVulnerable.Namespaces[0].Names[0].Versions[0].ID)
-			if err != nil {
-				return nil, err
-			}
-			paths, err := b.bfsFromVulnerablePackage(ctx, pkg)
+			paths, err := b.bfsFromVulnerablePackage(ctx, *vexStatement.PackageID, &productIDsCheckedVulnerable)
 			if err != nil {
 				return nil, err
 			}
 			if len(paths) > 0 {
 				for i := range paths {
-					paths[i] = append([]model.Node{vexStatement}, paths[i]...)
+					paths[i] = append([]model.Node{toModelCertifyVEXStatement(vexStatement)}, paths[i]...)
 				}
 				result = append(result, paths...)
-				packagesAlreadyInvestigated = append(packagesAlreadyInvestigated, pkg)
+				packagesAlreadyInvestigated = append(packagesAlreadyInvestigated, *vexStatement.PackageID)
 			}
 		}
 		// if no VEX Statements have been found or no path from any VEX statement to product has been found
@@ -191,7 +191,7 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 					return nil, err
 				}
 				if !slices.Contains(packagesAlreadyInvestigated, pkg) {
-					products, err := b.bfsFromVulnerablePackage(ctx, pkg)
+					products, err := b.bfsFromVulnerablePackage(ctx, pkg, &productIDsCheckedVulnerable)
 					if err != nil {
 						return nil, err
 					}
@@ -202,7 +202,6 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 				}
 			}
 		}
-
 	}
 	return result, nil
 }
@@ -343,6 +342,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 	concurrentlyRead(eg, func() error {
 		query := b.client.CertifyVex.Query().
 			Where(
+				certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
 				certifyvex.HasPackageWith(
 					packageversion.HasHasMetadataWith(
 						hasmetadata.KeyEQ("topLevelPackage"),
