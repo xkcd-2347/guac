@@ -13,18 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !(386 || arm || mips)
+
 package cmd
 
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/guacsec/guac/pkg/assembler/backends"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/backend"
 	entbackend "github.com/guacsec/guac/pkg/assembler/backends/ent/backend"
 	_ "github.com/guacsec/guac/pkg/assembler/backends/inmem"
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 const (
