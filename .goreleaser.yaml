@@ -141,6 +141,22 @@ builds:
         goarch: arm64
       - goos: windows
         goarch: arm
+  - main: ./cmd/guacmigrate
+    id: guacmigrate
+    binary: guacmigrate-{{ .Os }}-{{ .Arch }}
+    ldflags:
+      - -X {{.Env.PKG}}.Commit={{.FullCommit}}
+      - -X {{.Env.PKG}}.Date={{.Date}}
+      - -X {{.Env.PKG}}.Version={{.Summary}}
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
 
 universal_binaries:
   - replace: true
@@ -168,6 +184,11 @@ universal_binaries:
     id: guacgql
     ids:
       - guacgql
+  - replace: true
+    name_template: guacmigrate
+    id: guacmigrate
+    ids:
+      - guacmigrate
 
 sboms:
   - id: bins
