@@ -18,6 +18,7 @@ package csaf
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
@@ -116,16 +117,17 @@ func findCPE(ctx context.Context, tree csaf.ProductBranch, product_ref string) *
 }
 
 func findIdentificationHelperSearch(ctx context.Context, identificationHelperKey string, tree csaf.ProductBranch, product_ref string, visited map[string]bool) *string {
-	if visited[tree.Name] {
-		return nil
-	}
-	visited[tree.Name] = true
 	if tree.Name == product_ref || tree.Product.ID == product_ref {
 		purl := tree.Product.IdentificationHelper[identificationHelperKey]
 		return &purl
 	}
 
-	for _, b := range tree.Branches {
+	for i, b := range tree.Branches {
+		key := fmt.Sprintf("%v-%v-%v", tree.Name, strconv.Itoa(i), b.Name)
+		if visited[key] {
+			continue
+		}
+		visited[key] = true
 		purl := findIdentificationHelperSearch(ctx, identificationHelperKey, b, product_ref, visited)
 		if purl != nil {
 			return purl

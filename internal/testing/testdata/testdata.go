@@ -2401,6 +2401,29 @@ For the update to take effect, all services linked to the OpenSSL library must b
 				Origin:     "RHSA-2023:1441",
 			},
 		},
+		{
+			Pkg: &model.PkgInputSpec{
+				Type:       "rpm",
+				Namespace:  strP("redhat"),
+				Name:       "nginx",
+				Version:    strP("1.20.1-1.module+el8.8.0+20359+9bd89172.1"),
+				Qualifiers: []model.PackageQualifierInputSpec{{Key: "arch", Value: "x86_64"}, {Key: "epoch", Value: "1"}},
+				Subpath:    strP(""),
+			},
+			Vulnerability: &model.VulnerabilityInputSpec{Type: "cve", VulnerabilityID: "cve-2023-0286"},
+			VexData: &model.VexStatementInputSpec{
+				Status:           generated.VexStatusFixed,
+				VexJustification: generated.VexJustificationNotProvided,
+				Statement: `For details on how to apply this update, which includes the changes described in this advisory, refer to:
+
+https://access.redhat.com/articles/11258
+
+For the update to take effect, all services linked to the OpenSSL library must be restarted, or the system rebooted.`,
+
+				KnownSince: parseRfc3339("2023-03-23T11:14:00Z"),
+				Origin:     "RHSA-2023:1441",
+			},
+		},
 	}
 	CsafCertifyVulnIngest = []assembler.CertifyVulnIngest{
 		{
@@ -2933,6 +2956,7 @@ var IngestPredicatesCmpOpts = []cmp.Option{
 	cmpopts.SortSlices(certifyLegalInputSpecLess),
 	cmpopts.SortSlices(licenseInputSpecLess),
 	cmpopts.SortSlices(hasMetadataLess),
+	cmpopts.SortSlices(vexLess),
 }
 
 func certifyScorecardLess(e1, e2 assembler.CertifyScorecardIngest) bool {
@@ -2967,6 +2991,10 @@ func licenseInputSpecLess(e1, e2 generated.LicenseInputSpec) bool {
 	return gLess(e1, e2)
 }
 func hasMetadataLess(e1, e2 assembler.HasMetadataIngest) bool {
+	return gLess(e1, e2)
+}
+
+func vexLess(e1, e2 assembler.VexIngest) bool {
 	return gLess(e1, e2)
 }
 
