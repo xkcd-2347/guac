@@ -60,6 +60,12 @@ services:
   - collector/certifier name
   - polling options
 
+**guacmigrate**
+
+- what it does: run DB migration
+- options:
+  - ent specific options
+
 ## Collectors and Certifiers
 
 These appear both in `guacone` and in `guaccollect`. The difference is that
