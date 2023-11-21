@@ -111,6 +111,13 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 			token = t
 
 			for _, item := range files {
+				logger.Infof("Processing %v", item)
+
+				if !strings.HasPrefix(item, "data/") {
+					logger.Infof("Skipping non-data file")
+					continue
+				}
+
 				blob, err := downloader.DownloadFile(ctx, s.config.S3Bucket, item)
 				if err != nil {
 					logger.Errorf("could not download item %v, skipping: %v", item, err)
