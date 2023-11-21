@@ -215,3 +215,7 @@ func (c *arangoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]
 func (c *arangoClient) FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
 }
+
+func (c *arangoClient) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	return nil, fmt.Errorf("not implemented: FindDependentProduct")
+}

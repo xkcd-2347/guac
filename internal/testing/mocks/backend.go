@@ -140,6 +140,21 @@ func (mr *MockBackendMockRecorder) CertifyVuln(ctx, certifyVulnSpec interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CertifyVuln", reflect.TypeOf((*MockBackend)(nil).CertifyVuln), ctx, certifyVulnSpec)
 }
 
+// FindDependentProduct mocks base method.
+func (m *MockBackend) FindDependentProduct(ctx context.Context, purl string, offset, limit *int) ([]*model.HasSbom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindDependentProduct", ctx, purl, offset, limit)
+	ret0, _ := ret[0].([]*model.HasSbom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDependentProduct indicates an expected call of FindDependentProduct.
+func (mr *MockBackendMockRecorder) FindDependentProduct(ctx, purl, offset, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDependentProduct", reflect.TypeOf((*MockBackend)(nil).FindDependentProduct), ctx, purl, offset, limit)
+}
+
 // FindSoftware mocks base method.
 func (m *MockBackend) FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error) {
 	m.ctrl.T.Helper()

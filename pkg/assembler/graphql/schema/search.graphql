@@ -62,4 +62,7 @@ extend type Query {
 
   "Returns all vulnerabilities related to the package identified by the SBOM URI"
   findVulnerabilityBySbomURI(sbomURI: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all top level packages (i.e. products) dependent on the input PURL package"
+  findDependentProduct(purl: String!, offset: Int, limit: Int): [HasSBOM!]!
 }

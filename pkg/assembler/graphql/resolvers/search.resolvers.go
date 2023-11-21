@@ -34,3 +34,8 @@ func (r *queryResolver) FindVulnerabilityByCpe(ctx context.Context, cpe string) 
 func (r *queryResolver) FindVulnerabilityBySbomURI(ctx context.Context, sbomURI string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return r.Backend.FindVulnerabilitySbomURI(ctx, sbomURI, offset, limit)
 }
+
+// FindDependentProduct is the resolver for the findDependentProduct field.
+func (r *queryResolver) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	return r.Backend.FindDependentProduct(ctx, purl, offset, limit)
+}

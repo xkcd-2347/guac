@@ -24,6 +24,7 @@ import (
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/artifact"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvex"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvuln"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/hasmetadata"
@@ -208,17 +209,29 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 
 // FindVulnerability returns all vulnerabilities related to a package
 func (b *EntBackend) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
-
-	pkgInput, err := helpers.PurlToPkg(purl)
+	pkgFilter, err := PurlToPkgSpec(purl)
 	if err != nil {
 		return nil, gqlerror.Errorf("failed to parse PURL: %v", err)
+	}
+
+	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purl, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return *vulnerabilities, err
+}
+
+func PurlToPkgSpec(purl string) (*model.PkgSpec, error) {
+	pkgInput, err := helpers.PurlToPkg(purl)
+	if err != nil {
+		return nil, err
 	}
 
 	pkgQualifierFilter := []*model.PackageQualifierSpec{}
 	for _, qualifier := range pkgInput.Qualifiers {
 		pkgQualifierFilter = append(pkgQualifierFilter, &model.PackageQualifierSpec{
 			Key:   qualifier.Key,
-			Value: &qualifier.Value,
+			Value: ptrfrom.String(qualifier.Value),
 		})
 	}
 
@@ -230,12 +243,7 @@ func (b *EntBackend) FindVulnerability(ctx context.Context, purl string, offset 
 		Subpath:    pkgInput.Subpath,
 		Qualifiers: pkgQualifierFilter,
 	}
-
-	vulnerabilities, err := b.findVulnerabilities(ctx, pkgFilter, purl, offset, limit)
-	if err != nil {
-		return nil, err
-	}
-	return *vulnerabilities, err
+	return pkgFilter, nil
 }
 
 // FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
@@ -435,4 +443,52 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 		result = append(result, vulnerability)
 	}
 	return &result, nil
+}
+
+func (b *EntBackend) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	pkgFilter, err := PurlToPkgSpec(purl)
+	if err != nil {
+		return nil, gqlerror.Errorf("failed to parse PURL: %v", err)
+	}
+
+	query := b.client.HasMetadata.Query().Select(hasmetadata.FieldValue).
+		Where(
+			hasmetadata.HasPackageVersionWith(packageVersionQuery(pkgFilter)),
+			hasmetadata.KeyEQ("topLevelPackage"),
+		)
+	if offset != nil {
+		query.Offset(*offset)
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	productPurls, err := query.All(ctx)
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for HasMetadata: %v", err)
+	}
+
+	var result []*model.HasSbom
+	for _, productPurl := range productPurls {
+		// retrieve the package for the found purl
+		productFilter, err := PurlToPkgSpec(productPurl.Value)
+		if err != nil {
+			return nil, err
+		}
+		// retrieve the SBOM for the found package
+		sbom, err := b.client.BillOfMaterials.Query().
+			Where(billofmaterials.HasPackageWith(packageVersionQuery(productFilter))).
+			WithPackage(func(q *ent.PackageVersionQuery) {
+				q.WithName(func(q *ent.PackageNameQuery) {
+					q.WithNamespace(func(q *ent.PackageNamespaceQuery) {
+						q.WithPackage()
+					})
+				})
+			}).
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, toModelHasSBOM(sbom))
+	}
+	return result, nil
 }

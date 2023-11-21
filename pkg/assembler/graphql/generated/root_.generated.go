@@ -288,6 +288,7 @@ type ComplexityRoot struct {
 		CertifyLegal                               func(childComplexity int, certifyLegalSpec model.CertifyLegalSpec) int
 		CertifyVEXStatement                        func(childComplexity int, certifyVEXStatementSpec model.CertifyVEXStatementSpec) int
 		CertifyVuln                                func(childComplexity int, certifyVulnSpec model.CertifyVulnSpec) int
+		FindDependentProduct                       func(childComplexity int, purl string, offset *int, limit *int) int
 		FindSoftware                               func(childComplexity int, searchText string) int
 		FindTopLevelPackagesRelatedToVulnerability func(childComplexity int, vulnerabilityID string) int
 		FindVulnerability                          func(childComplexity int, purl string, offset *int, limit *int) int
@@ -1917,6 +1918,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CertifyVuln(childComplexity, args["certifyVulnSpec"].(model.CertifyVulnSpec)), true
+
+	case "Query.findDependentProduct":
+		if e.complexity.Query.FindDependentProduct == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findDependentProduct_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindDependentProduct(childComplexity, args["purl"].(string), args["offset"].(*int), args["limit"].(*int)), true
 
 	case "Query.findSoftware":
 		if e.complexity.Query.FindSoftware == nil {
@@ -5032,6 +5045,9 @@ extend type Query {
 
   "Returns all vulnerabilities related to the package identified by the SBOM URI"
   findVulnerabilityBySbomURI(sbomURI: String!, offset: Int, limit: Int): [CertifyVulnOrCertifyVEXStatement!]!
+
+  "Returns all top level packages (i.e. products) dependent on the input PURL package"
+  findDependentProduct(purl: String!, offset: Int, limit: Int): [HasSBOM!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/source.graphql", Input: `#
