@@ -236,3 +236,7 @@ func (c *demoClient) findVulnerabilities(ctx context.Context, pkgFilter *model.P
 	}
 	return c.bfsFromProduct(uint32(product))
 }
+
+func (c *demoClient) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	return []*model.HasSbom{}, fmt.Errorf("not implemented: FindDependentProduct")
+}

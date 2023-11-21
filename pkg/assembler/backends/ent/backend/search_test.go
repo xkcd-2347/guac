@@ -28,20 +28,20 @@ import (
 )
 
 var p5 = &model.PkgInputSpec{
-	Type:      p4.Type,
+	Type:      "rpm",
 	Namespace: p4.Namespace,
 	Name:      p4.Name,
 	Version:   ptrfrom.String("3.0.4"),
 }
 
 var p5out = &model.Package{
-	Type: p4out.Type,
+	Type: "rpm",
 	Namespaces: []*model.PackageNamespace{{
 		Namespace: p4out.Namespaces[0].Namespace,
 		Names: []*model.PackageName{{
 			Name: p4out.Namespaces[0].Names[0].Name,
 			Versions: []*model.PackageVersion{{
-				Version:    p4out.Namespaces[0].Names[0].Versions[0].Version,
+				Version:    "3.0.4",
 				Qualifiers: []*model.PackageQualifier{},
 			}},
 		}},
@@ -52,6 +52,19 @@ var p6 = &model.PkgInputSpec{
 	Type:    p2.Type,
 	Name:    p2.Name,
 	Version: ptrfrom.String("3.0.4"),
+}
+
+var p6out = &model.Package{
+	Type: p2out.Type,
+	Namespaces: []*model.PackageNamespace{{
+		Names: []*model.PackageName{{
+			Name: p2out.Namespaces[0].Names[0].Name,
+			Versions: []*model.PackageVersion{{
+				Version:    "3.0.4",
+				Qualifiers: []*model.PackageQualifier{},
+			}},
+		}},
+	}},
 }
 
 func (s *Suite) Test_FindSoftware() {
@@ -213,7 +226,7 @@ func (s *Suite) Test_FindTopLevelPackagesRelatedToVulnerability() {
 					DependencyType:    model.DependencyTypeUnknown,
 					Justification:     "test justification",
 				},
-				p5out,
+				p4out,
 			}},
 			wantErr: false,
 		},
@@ -298,7 +311,7 @@ func (s *Suite) Test_FindTopLevelPackagesRelatedToVulnerability() {
 					DependencyType:    model.DependencyTypeUnknown,
 					Justification:     "test justification",
 				},
-				p5out,
+				p4out,
 			}},
 			wantErr: false,
 		},
@@ -426,7 +439,7 @@ func (s *Suite) Test_FindTopLevelPackagesRelatedToVulnerability() {
 					DependencyType:    model.DependencyTypeUnknown,
 					Justification:     "test justification",
 				},
-				p5out,
+				p4out,
 			}},
 			wantErr: false,
 		},
@@ -1600,6 +1613,161 @@ func (s *Suite) Test_FindVulnerabilitySbomURI() {
 			got, err := b.FindVulnerabilitySbomURI(ctx, tt.query, ptrfrom.Int(0), ptrfrom.Int(10))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindTopLevelPackagesRelatedToVulnerability error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(tt.want, got, ignoreID); diff != "" {
+				t.Errorf("Unexpected results. (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+func (s *Suite) Test_FindDependentProduct() {
+	type HasMetadata struct {
+		Sub model.PackageSourceOrArtifactInput
+		PMT *model.MatchFlags
+		HM  model.HasMetadataInputSpec
+	}
+	type HasSBOM struct {
+		Sub model.PackageOrArtifactInput
+		HS  model.HasSBOMInputSpec
+	}
+	tests := []struct {
+		name          string
+		InPkg         []*model.PkgInputSpec
+		InHasMetadata []HasMetadata
+		InHasSBOM     []HasSBOM
+		query         string
+		want          []*model.HasSbom
+		wantErr       bool
+	}{
+		{
+			name:  "Happy Path",
+			InPkg: []*model.PkgInputSpec{p1, p6, p5},
+			InHasMetadata: []HasMetadata{
+				{
+					Sub: model.PackageSourceOrArtifactInput{
+						Package: p1,
+					},
+					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HM: model.HasMetadataInputSpec{
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
+					},
+				},
+				{
+					Sub: model.PackageSourceOrArtifactInput{
+						Package: p6,
+					},
+					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HM: model.HasMetadataInputSpec{
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p6.Type, "", p6.Name, *p6.Version, "", []string{}),
+					},
+				},
+				{
+					Sub: model.PackageSourceOrArtifactInput{
+						Package: p1,
+					},
+					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HM: model.HasMetadataInputSpec{
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p5.Type, *p5.Namespace, p5.Name, *p5.Version, "", []string{}),
+					},
+				},
+				{
+					Sub: model.PackageSourceOrArtifactInput{
+						Package: p5,
+					},
+					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HM: model.HasMetadataInputSpec{
+						Key:   "topLevelPackage",
+						Value: helpers.PkgToPurl(p5.Type, *p5.Namespace, p5.Name, *p5.Version, "", []string{}),
+					},
+				},
+				{
+					Sub: model.PackageSourceOrArtifactInput{
+						Package: p6,
+					},
+					PMT: &model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HM: model.HasMetadataInputSpec{
+						Key:   "cpe",
+						Value: "cpe:/o:redhat:enterprise_linux:7::server",
+					},
+				},
+			},
+			// both p6 and p5 are top level packages, i.e. with an SBOM
+			InHasSBOM: []HasSBOM{
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p6,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri 1",
+					},
+				},
+				{
+					Sub: model.PackageOrArtifactInput{
+						Package: p5,
+					},
+					HS: model.HasSBOMInputSpec{
+						URI: "test uri 2",
+					},
+				},
+			},
+			query: helpers.PkgToPurl(p1.Type, "", p1.Name, "", "", []string{}),
+			want: []*model.HasSbom{
+				{
+					Subject: p6out,
+					URI:     "test uri 1",
+				},
+				{
+					Subject: p5out,
+					URI:     "test uri 2",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	ctx := s.Ctx
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			t := s.T()
+			b, err := GetBackend(s.Client)
+			if err != nil {
+				t.Fatalf("Could not instantiate testing backend: %v", err)
+			}
+
+			_, err = b.IngestPackages(ctx, tt.InPkg)
+			if err != nil {
+				t.Fatalf("did not get expected ingest error, %v", err)
+			}
+			if err != nil {
+				return
+			}
+
+			for _, hasMetadata := range tt.InHasMetadata {
+				_, err := b.IngestHasMetadata(ctx, hasMetadata.Sub, hasMetadata.PMT, hasMetadata.HM)
+				if err != nil {
+					t.Fatalf("did not get expected ingest error, %v", err)
+				}
+				if err != nil {
+					return
+				}
+			}
+
+			for _, hasSBOM := range tt.InHasSBOM {
+				_, err := b.IngestHasSbom(ctx, hasSBOM.Sub, hasSBOM.HS)
+				if err != nil {
+					t.Fatalf("did not get expected ingest error, %v", err)
+				}
+				if err != nil {
+					return
+				}
+			}
+
+			got, err := b.FindDependentProduct(ctx, tt.query, ptrfrom.Int(0), ptrfrom.Int(10))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindDependentProduct error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if diff := cmp.Diff(tt.want, got, ignoreID); diff != "" {
