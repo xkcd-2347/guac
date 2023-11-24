@@ -75,6 +75,18 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 			return nil, err
 		}
 		purlsMap := make(map[string]struct{})
+		var packageName, packageNamespace *string
+		packageInfo := strings.Split(*pref, "/")
+		if len(packageInfo) == 2 {
+			// pref "io.quarkus/quarkus-spring-security"
+			packageNamespace = &packageInfo[0]
+			packageName = &packageInfo[1]
+		} else if len(packageInfo) == 1 {
+			// pref "vim"
+			packageName = &packageInfo[0]
+		} else {
+			return nil, fmt.Errorf("unable to derive a valid package reference from %v", pref)
+		}
 		for _, pkgWithMetadata := range pkgsWithMetadata.HasMetadata {
 			// check the ones whose value starts with the CPE found in the VEX
 			if strings.HasPrefix(pkgWithMetadata.Value, *cpe) {
@@ -89,7 +101,10 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 						Key:   ptrfrom.String("topLevelPackage"),
 						Value: ptrfrom.String(helpers.PkgInputSpecToPurl(toPkg)),
 						Subject: &generated.PackageSourceOrArtifactSpec{
-							Package: &generated.PkgSpec{Name: pref},
+							Package: &generated.PkgSpec{
+								Namespace: packageNamespace,
+								Name:      packageName,
+							},
 						},
 					}
 					dependenciesHasMetadataResponse, err := generated.HasMetadata(ctx, gqlclient, *filterProductDependenciesHasMetadata)
