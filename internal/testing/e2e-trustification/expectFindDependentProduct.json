@@ -1,0 +1,35 @@
+[
+  {
+    "subject": {
+      "__typename": "Package",
+      "type": "oci",
+      "namespaces": [
+        {
+          "namespace": "registry.redhat.io/ubi8-minimal",
+          "names": [
+            {
+              "name": "ubi8-minimal-container",
+              "versions": [
+                {
+                  "version": "sha256:b93deceb59a58588d5b16429fc47f98920f84740a1f2ed6454e33275f0701b59",
+                  "qualifiers": [
+                    {
+                      "key": "tag",
+                      "value": "8.8-1072.1697626218"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "uri": "https://access.redhat.com/security/data/sbom/beta/spdx/ubi8-minimal-container-5b43ae22-cbf0-4626-8ec5-4ae0765a3d4b",
+    "algorithm": "sha256",
+    "digest": "3d99f13040baaa0e682e6e3e1500907a78babe741ab3d3c2bacc13963e1d3646",
+    "origin": "",
+    "collector": ""
+  }
+]
