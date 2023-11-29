@@ -20,7 +20,7 @@ set -euf -o pipefail
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 GUAC_DIR=$(cd ${SCRIPT_DIR}/../../..; pwd)
 
-guac_data_hash="1bc02a7b9b3eadc4bffead4ab004e78de19d2c33"
+guac_data_hash="f26c3fa0a1c1c46ac4ea21a4b17085db80bbfb46"
 
 echo @@@@ Installing gql Python package
 pip install gql[all]
@@ -77,5 +77,11 @@ diff -u "${SCRIPT_DIR}/expectFindRelatedProducts.json" "${GUAC_DIR}/gotFindRelat
 
 cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct' > "${GUAC_DIR}/gotFindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectFindDependentProduct.json" "${GUAC_DIR}/gotFindDependentProduct.json"
+
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o HasSBOM | jq ' .HasSBOM |= sort ' > "${GUAC_DIR}/gotHasSBOM.json"
+diff -u "${SCRIPT_DIR}/expectHasSBOM.json" "${GUAC_DIR}/gotHasSBOM.json"
+
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o Vulnerabilities | jq ' .vulnerabilities[].vulnerabilityIDs |= sort_by(.vulnerabilityID) ' > "${GUAC_DIR}/gotVulnerabilities.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilities.json" "${GUAC_DIR}/gotVulnerabilities.json"
 
 # Note: graphql_playground is left running, CI will clean it up
