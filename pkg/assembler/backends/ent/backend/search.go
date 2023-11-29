@@ -484,7 +484,8 @@ func (b *EntBackend) FindDependentProduct(ctx context.Context, purl string, offs
 					})
 				})
 			}).
-			Only(ctx)
+			Order(billofmaterials.ByID(), ent.Desc()).
+			First(ctx)
 		if err != nil {
 			return nil, err
 		}
