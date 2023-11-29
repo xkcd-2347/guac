@@ -333,3 +333,18 @@ query FindDependentProduct {
     ...allHasSBOMTree
   }
 }
+
+query HasSBOM {
+  HasSBOM (hasSBOMSpec: {}) {
+    uri
+  }
+}
+
+query Vulnerabilities {
+  vulnerabilities(vulnSpec: {}) {
+    type
+    vulnerabilityIDs {
+      vulnerabilityID
+    }
+  }
+}
