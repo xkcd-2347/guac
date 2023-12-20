@@ -28,6 +28,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/sourcetype"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/sync/errgroup"
 )
 
 func (b *EntBackend) HasSourceAt(ctx context.Context, filter *model.HasSourceAtSpec) ([]*model.HasSourceAt, error) {
@@ -158,23 +159,23 @@ func (b *EntBackend) Sources(ctx context.Context, filter *model.SourceSpec) ([]*
 }
 
 func (b *EntBackend) IngestSources(ctx context.Context, sources []*model.SourceInputSpec) ([]*model.Source, error) {
-	results, err := WithinTX(ctx, b.client, func(ctx context.Context) (*[]*ent.SourceName, error) {
-		results := make([]*ent.SourceName, len(sources))
-		var err error
-		for i, src := range sources {
-			results[i], err = upsertSource(ctx, ent.TxFromContext(ctx), *src)
-			if err != nil {
-				return nil, err
+	ids := make([]*model.Source, len(sources))
+	eg, ctx := errgroup.WithContext(ctx)
+	for i := range sources {
+		index := i
+		src := sources[index]
+		concurrently(eg, func() error {
+			s, err := b.IngestSource(ctx, *src)
+			if err == nil {
+				ids[index] = s
 			}
-		}
-		return &results, nil
-	})
-
-	if err != nil {
+			return err
+		})
+	}
+	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
-
-	return collect(*results, toModelSourceName), nil
+	return ids, nil
 }
 
 func (b *EntBackend) IngestSource(ctx context.Context, src model.SourceInputSpec) (*model.Source, error) {
@@ -230,7 +231,25 @@ func upsertSource(ctx context.Context, client *ent.Tx, src model.SourceInputSpec
 		Ignore().
 		ID(ctx)
 	if err != nil {
+<<<<<<< HEAD
 		return nil, err
+=======
+		if err != stdsql.ErrNoRows {
+			return nil, errors.Wrap(err, "upsert source name")
+		}
+
+		sourceNameID, err = client.SourceName.Query().
+			Where(
+				sourcename.HasNamespaceWith(sourcenamespace.ID(sourceNamespaceID)),
+				optionalPredicate(&src.Name, sourcename.NameEQ),
+				optionalPredicate(src.Tag, sourcename.TagEQ),
+				optionalPredicate(src.Commit, sourcename.CommitEQ),
+			).
+			OnlyID(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "get sourcename ID")
+		}
+>>>>>>> a5998883 (Ent: IngestSources optimized with concurrently (#1595))
 	}
 	log.Println(sourceNameID, src)
 
