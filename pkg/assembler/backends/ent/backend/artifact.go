@@ -17,6 +17,7 @@ package backend
 
 import (
 	"context"
+	stdsql "database/sql"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,7 +25,9 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/artifact"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/predicate"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
+	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/sync/errgroup"
 )
 
 func (b *EntBackend) Artifacts(ctx context.Context, artifactSpec *model.ArtifactSpec) ([]*model.Artifact, error) {
@@ -68,68 +71,56 @@ func (b *EntBackend) IngestMaterials(ctx context.Context, materials []*model.Art
 
 func (b *EntBackend) IngestArtifacts(ctx context.Context, artifacts []*model.ArtifactInputSpec) ([]*model.Artifact, error) {
 	funcName := "IngestArtifacts"
-	records, err := WithinTX(ctx, b.client, func(ctx context.Context) (*ent.Artifacts, error) {
-		client := ent.TxFromContext(ctx)
-		slc, err := ingestArtifacts(ctx, client, artifacts)
-		if err != nil {
-			return nil, err
-		}
-
-		return &slc, nil
-	})
-
-	if err != nil {
+	artsID := make([]*model.Artifact, len(artifacts))
+	eg, ctx := errgroup.WithContext(ctx)
+	for i := range artifacts {
+		index := i
+		art := artifacts[index]
+		concurrently(eg, func() error {
+			a, err := b.IngestArtifact(ctx, art)
+			if err == nil {
+				artsID[index] = a
+			}
+			return err
+		})
+	}
+	if err := eg.Wait(); err != nil {
 		return nil, gqlerror.Errorf("%v :: %s", funcName, err)
 	}
-	return collect(*records, toModelArtifact), nil
+	return artsID, nil
 }
 
 func (b *EntBackend) IngestArtifact(ctx context.Context, art *model.ArtifactInputSpec) (*model.Artifact, error) {
-	records, err := b.IngestArtifacts(ctx, []*model.ArtifactInputSpec{art})
+	id, err := WithinTX(ctx, b.client, func(ctx context.Context) (*int, error) {
+		client := ent.TxFromContext(ctx)
+		return upsertArtifact(ctx, client, art)
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(records) == 0 {
-		return nil, Errorf("no records returned")
-	}
-
-	return records[0], nil
+	return &model.Artifact{ID: nodeID(*id)}, nil
 }
 
-func ingestArtifacts(ctx context.Context, client *ent.Tx, artifacts []*model.ArtifactInputSpec) (ent.Artifacts, error) {
-	batches := chunk(artifacts, 100)
-	results := make(ent.Artifacts, 0)
-
-	for _, artifacts := range batches {
-		creates := make([]*ent.ArtifactCreate, len(artifacts))
-		predicates := make([]predicate.Artifact, len(artifacts))
-		for i, art := range artifacts {
-			creates[i] = client.Artifact.Create().
-				SetAlgorithm(strings.ToLower(art.Algorithm)).
-				SetDigest(strings.ToLower(art.Digest))
+func upsertArtifact(ctx context.Context, client *ent.Tx, art *model.ArtifactInputSpec) (*int, error) {
+	id, err := client.Artifact.Create().
+		SetAlgorithm(strings.ToLower(art.Algorithm)).
+		SetDigest(strings.ToLower(art.Digest)).
+		OnConflict(
+			sql.ConflictColumns(artifact.FieldDigest),
+		).
+		DoNothing().
+		ID(ctx)
+	if err != nil {
+		if err != stdsql.ErrNoRows {
+			return nil, errors.Wrap(err, "upsert artifact")
 		}
-
-		err := client.Artifact.CreateBulk(creates...).
-			OnConflict(
-				sql.ConflictColumns(artifact.FieldDigest),
-			).
-			UpdateNewValues().
-			Exec(ctx)
+		id, err = client.Artifact.Query().
+			Where(artifactQueryInputPredicates(*art)).
+			OnlyID(ctx)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "get artifact")
 		}
-
-		for i, art := range artifacts {
-			predicates[i] = artifactQueryInputPredicates(*art)
-		}
-
-		newRecords, err := client.Artifact.Query().Where(artifact.Or(predicates...)).All(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		results = append(results, newRecords...)
 	}
-	return results, nil
+	return &id, nil
 }
