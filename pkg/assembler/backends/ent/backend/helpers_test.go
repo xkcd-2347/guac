@@ -48,10 +48,13 @@ var IngestPredicatesCmpOpts = []cmp.Option{
 	cmpopts.EquateEmpty(),
 	cmpopts.SortSlices(isDependencyLess),
 	cmpopts.SortSlices(packageLess),
+	cmpopts.SortSlices(sourceLess),
 	cmpopts.SortSlices(certifyVulnLess),
 	cmpopts.SortSlices(certifyVexLess),
 	cmpopts.SortSlices(vulnEqualLess),
 	cmpopts.SortSlices(vulnerabilityLess),
+	cmpopts.SortSlices(hasSbomLess),
+	cmpopts.SortSlices(certifyLegalLess),
 }
 
 func isDependencyLess(e1, e2 *model.IsDependency) bool {
@@ -61,6 +64,12 @@ func isDependencyLess(e1, e2 *model.IsDependency) bool {
 func packageLess(e1, e2 *model.Package) bool {
 	purl1 := helpers.PkgToPurl(e1.Type, e1.Namespaces[0].Namespace, e1.Namespaces[0].Names[0].Name, e1.Namespaces[0].Names[0].Versions[0].Version, e1.Namespaces[0].Names[0].Versions[0].Subpath, nil)
 	purl2 := helpers.PkgToPurl(e2.Type, e2.Namespaces[0].Namespace, e2.Namespaces[0].Names[0].Name, e2.Namespaces[0].Names[0].Versions[0].Version, e2.Namespaces[0].Names[0].Versions[0].Subpath, nil)
+	return purl1 < purl2
+}
+
+func sourceLess(e1, e2 *model.Source) bool {
+	purl1 := helpers.PkgToPurl(e1.Type, e1.Namespaces[0].Namespace, e1.Namespaces[0].Names[0].Name, "", "", nil)
+	purl2 := helpers.PkgToPurl(e2.Type, e2.Namespaces[0].Namespace, e2.Namespaces[0].Names[0].Name, "", "", nil)
 	return purl1 < purl2
 }
 
@@ -77,11 +86,53 @@ func vulnEqualLess(e1, e2 *model.VulnEqual) bool {
 }
 
 func vulnerabilityLess(e1, e2 *model.Vulnerability) bool {
-	if e1.Type != e2.Type {
-		return e1.Type < e2.Type
-	} else if strings.ToLower(e1.Type) == "novuln" || len(e1.Type) == 0 {
-		return false
-	} else {
-		return e1.VulnerabilityIDs[0].VulnerabilityID < e2.VulnerabilityIDs[0].VulnerabilityID
+	e1String := e1.Type
+	if len(e1.VulnerabilityIDs) > 0 {
+		e1String += e1.VulnerabilityIDs[0].VulnerabilityID
 	}
+	e2String := e1.Type
+	if len(e2.VulnerabilityIDs) > 0 {
+		e2String += e2.VulnerabilityIDs[0].VulnerabilityID
+	}
+	return e1String < e2String
+}
+
+func hasSbomLess(e1, e2 *model.HasSbom) bool {
+	switch subject1 := e1.Subject.(type) {
+	case *model.Package:
+		switch subject2 := e2.Subject.(type) {
+		case *model.Package:
+			return packageLess(subject1, subject2)
+		case *model.Artifact:
+			return false
+		}
+	case *model.Artifact:
+		switch subject2 := e2.Subject.(type) {
+		case *model.Package:
+			return true
+		case *model.Artifact:
+			return subject1.Digest < subject2.Digest
+		}
+	}
+	return false
+}
+
+func certifyLegalLess(e1, e2 *model.CertifyLegal) bool {
+	switch subject1 := e1.Subject.(type) {
+	case *model.Package:
+		switch subject2 := e2.Subject.(type) {
+		case *model.Package:
+			return packageLess(subject1, subject2)
+		case *model.Source:
+			return false
+		}
+	case *model.Source:
+		switch subject2 := e2.Subject.(type) {
+		case *model.Package:
+			return true
+		case *model.Source:
+			return sourceLess(subject1, subject2)
+		}
+	}
+	return false
 }
