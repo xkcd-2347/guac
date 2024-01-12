@@ -24,6 +24,10 @@ import (
 
 var flagStore = make(map[string]*pflag.Flag)
 
+const (
+	ConfigLogLevelVar = "log-level"
+)
+
 var NotFound = errors.New("Flag not found")
 
 func init() {
@@ -75,6 +79,13 @@ func init() {
 
 	set.Bool("service-poll", true, "sets the collector or certifier to polling mode")
 	set.BoolP("poll", "p", false, "sets the collector or certifier to polling mode")
+
+	set.Bool("retrieve-dependencies", true, "enable the deps.dev collector to retrieve package dependencies")
+
+	set.Bool("enable-prometheus", true, "enable prometheus metrics")
+
+	set.Int("prometheus-addr", 9091, "port to listen to on prometheus server")
+
 	set.StringP("interval", "i", "5m", "if polling set interval, m, h, s, etc.")
 
 	set.BoolP("cert-good", "g", false, "enable to certifyGood, otherwise defaults to certifyBad")
@@ -101,6 +112,11 @@ func init() {
 	set.String("s3-mp-endpoint", "", "endpoint for the message provider")
 	set.String("s3-queues", "", "comma-separated list of queue/topic names")
 	set.String("s3-region", "us-east-1", "aws region")
+
+	// KeyValue Backend Store options.
+	set.String("kv-store", "memmap", "Which keyvalue store to use: memmap, redis, tikv.")
+	set.String("kv-redis", "redis://user@localhost:6379/0", "Experimental: Redis connection string for keyvalue backend")
+	set.String("kv-tikv", "127.0.0.1:2379", "Experimental: TiKV address and port")
 
 	set.VisitAll(func(f *pflag.Flag) {
 		flagStore[f.Name] = f
