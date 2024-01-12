@@ -31,7 +31,10 @@ import (
 	pb "github.com/guacsec/guac/pkg/handler/collector/deps_dev/internal"
 	"github.com/guacsec/guac/pkg/handler/processor"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/guacsec/guac/pkg/metrics"
 	"github.com/guacsec/guac/pkg/version"
+	jsoniter "github.com/json-iterator/go"
+	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -39,11 +42,14 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
-	DepsCollector = "deps.dev"
-	goUpperCase   = "GO"
-	golang        = "golang"
-	maven         = "maven"
-	sourceRepo    = "SOURCE_REPO"
+	DepsCollector               = "deps.dev"
+	goUpperCase                 = "GO"
+	golang                      = "golang"
+	maven                       = "maven"
+	sourceRepo                  = "SOURCE_REPO"
+	GetProjectDurationHistogram = "http_deps_dev_project_duration"
+	GetVersionErrorsCounter     = "http_deps_dev_version_errors"
+	prometheusPrefix            = "deps_dev"
 )
 
 type IsDepPackage struct {
@@ -62,18 +68,23 @@ type PackageComponent struct {
 }
 
 type depsCollector struct {
-	collectDataSource datasource.CollectSource
-	client            pb.InsightsClient
-	poll              bool
-	interval          time.Duration
-	checkedPurls      map[string]*PackageComponent
-	ingestedSource    map[string]*model.SourceInputSpec
-	projectInfoMap    map[string]*pb.Project
-	versions          map[string]*pb.Version
-	dependencies      map[string]*pb.Dependencies
+	collectDataSource    datasource.CollectSource
+	client               pb.InsightsClient
+	poll                 bool
+	retrieveDependencies bool
+	interval             time.Duration
+	Metrics              metrics.MetricCollector
+	checkedPurls         map[string]*PackageComponent
+	ingestedSource       map[string]*model.SourceInputSpec
+	projectInfoMap       map[string]*pb.Project
+	versions             map[string]*pb.Version
+	dependencies         map[string]*pb.Dependencies
 }
 
-func NewDepsCollector(ctx context.Context, collectDataSource datasource.CollectSource, poll bool, interval time.Duration) (*depsCollector, error) {
+var registerOnce sync.Once
+
+func NewDepsCollector(ctx context.Context, collectDataSource datasource.CollectSource, poll bool, retrieveDependencies bool, interval time.Duration) (*depsCollector, error) {
+	ctx = metrics.WithMetrics(ctx, prometheusPrefix)
 	// Get the system certificates.
 	sysPool, err := x509.SystemCertPool()
 	if err != nil {
@@ -92,16 +103,23 @@ func NewDepsCollector(ctx context.Context, collectDataSource datasource.CollectS
 	// Create a new Insights Client.
 	client := pb.NewInsightsClient(conn)
 
+	// Initialize the Metrics collector
+	metricsCollector := metrics.FromContext(ctx, prometheusPrefix)
+	if err := registerMetricsOnce(ctx, metricsCollector); err != nil {
+		return nil, fmt.Errorf("unable to register Metrics: %w", err)
+	}
 	return &depsCollector{
-		collectDataSource: collectDataSource,
-		client:            client,
-		poll:              poll,
-		interval:          interval,
-		checkedPurls:      map[string]*PackageComponent{},
-		ingestedSource:    map[string]*model.SourceInputSpec{},
-		projectInfoMap:    map[string]*pb.Project{},
-		versions:          map[string]*pb.Version{},
-		dependencies:      map[string]*pb.Dependencies{},
+		collectDataSource:    collectDataSource,
+		client:               client,
+		poll:                 poll,
+		retrieveDependencies: retrieveDependencies,
+		interval:             interval,
+		checkedPurls:         map[string]*PackageComponent{},
+		ingestedSource:       map[string]*model.SourceInputSpec{},
+		projectInfoMap:       map[string]*pb.Project{},
+		versions:             map[string]*pb.Version{},
+		dependencies:         map[string]*pb.Dependencies{},
+		Metrics:              metricsCollector,
 	}, nil
 }
 
@@ -124,7 +142,6 @@ func (d *depsCollector) RetrieveArtifacts(ctx context.Context, docChannel chan<-
 			return fmt.Errorf("unable to retrieve purls from collector subscriber: %w", err)
 		}
 	}
-
 	return nil
 }
 
@@ -133,6 +150,16 @@ func (d *depsCollector) populatePurls(ctx context.Context, docChannel chan<- *pr
 	if err != nil {
 		return fmt.Errorf("unable to retrieve datasource: %w", err)
 	}
+
+	if !d.retrieveDependencies {
+		// do validation of and converting purls here, to remove duplicated work in next two calls
+		versionKeys, pkgInputs := d.validatePurls(ctx, ds.PurlDataSources)
+
+		d.retrieveVersionsAndProjects(ctx, maps.Values(versionKeys))
+		d.collectMetadata(ctx, docChannel, pkgInputs)
+		return nil
+	}
+
 	start := time.Now()
 	err = d.getAllDependencies(ctx, ds.PurlDataSources)
 	if err != nil {
@@ -148,6 +175,125 @@ func (d *depsCollector) populatePurls(ctx context.Context, docChannel chan<- *pr
 		}
 	}
 	return nil
+}
+
+// returns mappings of purls to VersionKeys and PkgInputSpec, not including the purls that:
+// - have already been queried
+// - error when converting to PkgInputSpec
+// - error when converting to VersionKey
+// - don't contain a version
+func (d *depsCollector) validatePurls(ctx context.Context, datasources []datasource.Source) (map[string]*pb.VersionKey, map[string]*model.PkgInputSpec) {
+	logger := logging.FromContext(ctx)
+
+	validVersionKeys := make(map[string]*pb.VersionKey)
+	validPackageInputs := make(map[string]*model.PkgInputSpec)
+
+	for _, ds := range datasources {
+		purl := ds.Value
+
+		if _, ok := d.checkedPurls[purl]; ok {
+			logger.Infof("purl %s already queried", purl)
+			continue
+		}
+
+		packageInput, err := helpers.PurlToPkg(purl)
+		if err != nil {
+			logger.Infof("failed to parse purl to pkg: %s", purl)
+			continue
+		}
+
+		// if version is not specified, cannot obtain accurate information from deps.dev. Log as info and skip the purl.
+		if *packageInput.Version == "" {
+			logger.Infof("purl does not contain version, skipping deps.dev query: %s", purl)
+			continue
+		}
+
+		versionKey, err := getVersionKey(packageInput.Type, packageInput.Namespace, packageInput.Name, packageInput.Version)
+		if err != nil {
+			logger.Debugf("failed to get VersionKey with the following error: %v", err)
+			continue
+		}
+
+		validPackageInputs[purl] = packageInput
+		validVersionKeys[purl] = versionKey
+	}
+
+	return validVersionKeys, validPackageInputs
+}
+
+// retrieves version and project information concurrently for all version keys
+func (d *depsCollector) retrieveVersionsAndProjects(ctx context.Context, versionKeys []*pb.VersionKey) {
+	// channels to signal when the project and version info have been fetched
+	projectDone := make(chan bool)
+	versionDone := make(chan bool)
+
+	// channels to send the inputs to the goroutines
+	projectChan := make(chan *pb.ProjectKey)
+	versionChan := make(chan *pb.VersionKey)
+
+	// the projectChan and versionChan are used to send the project key and version key to the respective channels
+	go func() {
+		// this go routine has to be before the next go routine as it will be pushing into the project channel
+		// for each version that is fetched from the version channel it will check if the project has to be fetched
+		d.versions = d.getVersions(ctx, versionChan, projectChan) // the results are the stored in the versions map
+		versionDone <- true
+	}()
+
+	// the project channel is used to send the project key to the project channel
+	// these goroutines will be used to fetch the projects concurrently
+	go func() {
+		// this sets up the goroutine to fetch the projects concurrently for each input
+		d.projectInfoMap = d.getProjects(ctx, projectChan) // the results are the stored in the projectInfoMap map
+		// posts to the projectDone channel to signal that all projects have been fetched
+		projectDone <- true
+	}()
+
+	for _, versionKey := range versionKeys {
+		versionChan <- versionKey
+	}
+
+	close(versionChan)
+	<-versionDone
+	close(projectChan)
+	<-projectDone
+}
+
+// For each purl, generate a document containing scorecard and source metadata and write to docChannel.
+// For performance, retrieveVersionsAndProjects should be called before to populate d.versions and d.projectInfoMap. Otherwise,
+// blocking calls to deps.dev will be made for each purl
+func (d *depsCollector) collectMetadata(ctx context.Context, docChannel chan<- *processor.Document, purls map[string]*model.PkgInputSpec) {
+	logger := logging.FromContext(ctx)
+
+	for purl, packageInput := range purls {
+		component := &PackageComponent{}
+		component.CurrentPackage = packageInput
+
+		err := d.collectAdditionalMetadata(ctx, packageInput.Type, packageInput.Namespace, packageInput.Name, packageInput.Version, component)
+		if err != nil {
+			logger.Debugf("failed to get additional metadata for package: %s, err: %v", purl, err)
+			continue
+		}
+
+		logger.Infof("obtained additional metadata for package: %s", purl)
+		d.checkedPurls[purl] = component
+
+		blob, err := json.Marshal(component)
+		if err != nil {
+			logger.Errorf("Error marshalling component to json: %s", err)
+			continue
+		}
+
+		doc := &processor.Document{
+			Blob:   blob,
+			Type:   processor.DocumentDepsDev,
+			Format: processor.FormatJSON,
+			SourceInformation: processor.SourceInformation{
+				Collector: DepsCollector,
+				Source:    DepsCollector,
+			},
+		}
+		docChannel <- doc
+	}
 }
 
 // getAllDependencies gets all the dependencies for the purls provided in a concurrent manner.
@@ -212,6 +358,7 @@ func (d *depsCollector) getAllDependencies(ctx context.Context, purls []datasour
 			logger.Debugf("failed to get dependencies %v", err)
 			return nil
 		}
+		logger.Infof("Retrieved dependencies for %s", purl)
 		d.dependencies[versionKey.String()] = deps
 
 		for i, node := range deps.Nodes {
@@ -240,6 +387,7 @@ func (d *depsCollector) getAllDependencies(ctx context.Context, purls []datasour
 			versionChan <- depsVersionKey
 		}
 	}
+
 	close(versionChan)
 	<-versionDone
 	close(projectChan)
@@ -297,6 +445,7 @@ func (d *depsCollector) fetchDependencies(ctx context.Context, purl string, docC
 			logger.Debugf("failed to get dependencies: %v", err)
 			return nil
 		}
+		logger.Infof("Retrieved dependencies for %s", purl)
 		d.dependencies[versionKey.String()] = deps
 	}
 
@@ -400,6 +549,9 @@ func (d *depsCollector) collectAdditionalMetadata(ctx context.Context, pkgType s
 		logger.Debugf("The version key was not found in the map: %v", versionKey)
 		versionResponse, err = d.client.GetVersion(ctx, versionReq)
 		if err != nil {
+			if metricsErr := d.Metrics.AddCounter(ctx, GetVersionErrorsCounter, 1, pkgType, *namespace, name); metricsErr != nil {
+				logger.Errorf("failed to add counter: %v", metricsErr)
+			}
 			return fmt.Errorf("failed to get version information: %w", err)
 		}
 	}
@@ -558,7 +710,6 @@ func (d *depsCollector) getVersions(ctx context.Context, inputs <-chan *pb.Versi
 
 			packageVersion, err := d.getVersion(ctx, input)
 			if err != nil {
-				// TODO - when metrics are added, add a metric for this
 				return
 			}
 			projectKey := d.projectKey(packageVersion)
@@ -584,6 +735,7 @@ func (d *depsCollector) getVersions(ctx context.Context, inputs <-chan *pb.Versi
 
 // getProject fetches project info for a given project URL.
 func (d *depsCollector) getProject(ctx context.Context, v *pb.ProjectKey) (*pb.Project, error) {
+	defer d.Metrics.MeasureFunctionExecutionTime(ctx, GetProjectDurationHistogram) // nolint:errcheck
 	return d.client.GetProject(ctx, &pb.GetProjectRequest{
 		ProjectKey: v,
 	})
@@ -591,6 +743,7 @@ func (d *depsCollector) getProject(ctx context.Context, v *pb.ProjectKey) (*pb.P
 
 // getVersions fetches version info from deps.dev.
 func (d *depsCollector) getVersion(ctx context.Context, v *pb.VersionKey) (*pb.Version, error) {
+	defer d.Metrics.MeasureFunctionExecutionTime(ctx, "getVersion") // nolint:errcheck
 	return d.client.GetVersion(ctx, &pb.GetVersionRequest{
 		VersionKey: v,
 	})
@@ -615,4 +768,29 @@ func (d *depsCollector) projectKey(versionResponse *pb.Version) *pb.ProjectKey {
 		}
 	}
 	return nil
+}
+
+// registerMetrics registers the Metrics for the collector.
+func registerMetrics(ctx context.Context, m metrics.MetricCollector) error {
+	// Registering counter for get version errors
+	if _, err := m.RegisterCounter(ctx, GetVersionErrorsCounter, "pkgtype", "namespace", "name"); err != nil {
+		return fmt.Errorf("failed to register counter for get version errors: %w", err)
+	}
+	return nil
+}
+
+// DeregisterCollector deregisters the collector
+func (d *depsCollector) DeregisterCollector(collectorType string) error {
+	// The DeregisterCollector is a placeholder for removing the metrics from the collector.
+	// This is also placeholder for removing state from the collector reference.
+	return nil
+}
+
+// registerMetricsOnce registers the Metrics for the collector once.
+func registerMetricsOnce(ctx context.Context, metricsCollector metrics.MetricCollector) error {
+	var err error
+	registerOnce.Do(func() {
+		err = registerMetrics(ctx, metricsCollector)
+	})
+	return err
 }
