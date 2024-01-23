@@ -17,6 +17,7 @@ package backend
 
 import (
 	"context"
+	stdsql "database/sql"
 	"log"
 
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +28,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/sourcenamespace"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/sourcetype"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
+	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/sync/errgroup"
 )
@@ -231,9 +233,6 @@ func upsertSource(ctx context.Context, client *ent.Tx, src model.SourceInputSpec
 		Ignore().
 		ID(ctx)
 	if err != nil {
-<<<<<<< HEAD
-		return nil, err
-=======
 		if err != stdsql.ErrNoRows {
 			return nil, errors.Wrap(err, "upsert source name")
 		}
@@ -249,7 +248,6 @@ func upsertSource(ctx context.Context, client *ent.Tx, src model.SourceInputSpec
 		if err != nil {
 			return nil, errors.Wrap(err, "get sourcename ID")
 		}
->>>>>>> a5998883 (Ent: IngestSources optimized with concurrently (#1595))
 	}
 	log.Println(sourceNameID, src)
 
