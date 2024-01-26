@@ -93,6 +93,9 @@ var rootCmd = &cobra.Command{
 		flags.neptuneUser = viper.GetString("neptune-user")
 		flags.neptuneRealm = viper.GetString("neptune-realm")
 
+		flags.kvStore = viper.GetString("kv-store")
+		flags.kvRedis = viper.GetString("kv-redis")
+		flags.kvTiKV = viper.GetString("kv-tikv")
 		startServer(cmd)
 	},
 }
@@ -106,6 +109,7 @@ func init() {
 		"neptune-endpoint", "neptune-port", "neptune-region", "neptune-user", "neptune-realm",
 		"gql-listen-port", "gql-tls-cert-file", "gql-tls-key-file", "gql-debug", "gql-backend", "gql-trace",
 		"db-address", "db-driver", "db-debug", "db-migrate",
+		"kv-store", "kv-redis", "kv-tikv", "enable-prometheus", "prometheus-addr",
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to setup flag: %v", err)
