@@ -35,6 +35,9 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/neptune"
 	"github.com/guacsec/guac/pkg/assembler/graphql/generated"
 	"github.com/guacsec/guac/pkg/assembler/graphql/resolvers"
+	"github.com/guacsec/guac/pkg/assembler/kv"
+	"github.com/guacsec/guac/pkg/assembler/kv/redis"
+	"github.com/guacsec/guac/pkg/cli"
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/maps"
@@ -48,7 +51,7 @@ const (
 	neptunes = "neptune"
 )
 
-type optsFunc func() backends.BackendArgs
+type optsFunc func(context.Context) backends.BackendArgs
 
 var getOpts map[string]optsFunc
 
@@ -94,6 +97,11 @@ func startServer(cmd *cobra.Command) {
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		logger.Infof("connect to %s://localhost:%d/ for GraphQL playground", proto, flags.port)
 	}
+	// Setup Prometheus metrics handler
+	err = cli.SetupPrometheus(ctx, logger, "guacgql")
+	if err != nil {
+		logger.Fatalf("Error setting up Prometheus: %v", err)
+	}
 
 	server := &http.Server{Addr: fmt.Sprintf(":%d", flags.port)}
 	logger.Info("starting server")
@@ -137,13 +145,14 @@ func validateFlags() error {
 func getGraphqlServer(ctx context.Context) (*handler.Server, error) {
 	var topResolver resolvers.Resolver
 
-	backend, err := backends.Get(flags.backend, ctx, getOpts[flags.backend]())
+	backend, err := backends.Get(flags.backend, ctx, getOpts[flags.backend](ctx))
 	if err != nil {
 		return nil, fmt.Errorf("Error creating %v backend: %w", flags.backend, err)
 	}
 	topResolver = resolvers.Resolver{Backend: backend}
 
 	config := generated.Config{Resolvers: &topResolver}
+	config.Directives.Filter = resolvers.Filter
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
 
 	return srv, nil
@@ -154,7 +163,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprint(w, "Server is healthy")
 }
 
-func getArango() backends.BackendArgs {
+func getArango(_ context.Context) backends.BackendArgs {
 	return &arangodb.ArangoConfig{
 		User:   flags.arangoUser,
 		Pass:   flags.arangoPass,
@@ -162,7 +171,7 @@ func getArango() backends.BackendArgs {
 	}
 }
 
-func getNeo4j() backends.BackendArgs {
+func getNeo4j(_ context.Context) backends.BackendArgs {
 	return &neo4j.Neo4jConfig{
 		User:   flags.nUser,
 		Pass:   flags.nPass,
@@ -175,7 +184,7 @@ func getInMem() backends.BackendArgs {
 	return nil
 }
 
-func getNeptune() backends.BackendArgs {
+func getNeptune(_ context.Context) backends.BackendArgs {
 	return &neptune.NeptuneConfig{
 		Endpoint: flags.neptuneEndpoint,
 		Port:     flags.neptunePort,
