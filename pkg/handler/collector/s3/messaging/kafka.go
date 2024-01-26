@@ -20,9 +20,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl"
+	"github.com/segmentio/kafka-go/sasl/scram"
+	"github.com/spf13/viper"
 )
 
 type KafkaProvider struct {
@@ -63,17 +67,51 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 	kafkaTopic := mpConfig.Queue
 
 	kafkaProvider := KafkaProvider{}
+
+	mechanism, err := SASLMechanism()
+	if err != nil {
+		return KafkaProvider{}, err
+	}
+
+	dialer := &kafka.Dialer{
+		Timeout:       10 * time.Second,
+		DualStack:     true,
+		SASLMechanism: mechanism,
+	}
+
 	kafkaProvider.reader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   []string{mpConfig.Endpoint},
 		Topic:     kafkaTopic,
 		Partition: 0,
+		Dialer:    dialer,
 	})
-	err := kafkaProvider.reader.SetOffset(kafka.LastOffset)
+
+	err = kafkaProvider.reader.SetOffset(kafka.LastOffset)
 	if err != nil {
 		return KafkaProvider{}, err
 	}
 
 	return kafkaProvider, nil
+}
+
+func SASLMechanism() (sasl.Mechanism, error) {
+	kafka_viper := &viper.Viper{}
+	kafka_viper.SetEnvPrefix("TCK") // TODO configure prefix
+	kafka_viper.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
+	kafka_viper.AutomaticEnv()
+
+	kafka_mechanism := kafka_viper.GetString("sasl-mechanism")
+	kafka_username := kafka_viper.GetString("sasl-username")
+	kafka_password := kafka_viper.GetString("sasl-password")
+
+	switch kafka_mechanism {
+	case "SCRAM-SHA-256":
+		return scram.Mechanism(scram.SHA256, kafka_username, kafka_password)
+	case "SCRAM-SHA-512":
+		return scram.Mechanism(scram.SHA512, kafka_username, kafka_password)
+	default:
+		return nil, nil
+	}
 }
 
 func (k *KafkaProvider) ReceiveMessage(ctx context.Context) (Message, error) {
