@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -68,7 +69,16 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 
 	kafkaProvider := KafkaProvider{}
 
-	mechanism, err := SASLMechanism()
+	kafkaConfig := &viper.Viper{}
+
+	prefix := os.Getenv("KAFKA_PROPERTIES_ENV_PREFIX")
+	prefix = strings.TrimSuffix(prefix, "_")
+
+	kafkaConfig.SetEnvPrefix(prefix)
+	kafkaConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
+	kafkaConfig.AutomaticEnv()
+
+	mechanism, err := SASLMechanism(*kafkaConfig)
 	if err != nil {
 		return KafkaProvider{}, err
 	}
@@ -94,21 +104,20 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 	return kafkaProvider, nil
 }
 
-func SASLMechanism() (sasl.Mechanism, error) {
-	kafka_viper := &viper.Viper{}
-	kafka_viper.SetEnvPrefix("TCK") // TODO configure prefix
-	kafka_viper.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
-	kafka_viper.AutomaticEnv()
+func SASLMechanism(kafkaConfig viper.Viper) (sasl.Mechanism, error) {
+	protocol := kafkaConfig.GetString("security-protocol")
+	if protocol != "SASL_PLAINTEXT" {
+		return nil, nil
+	}
+	mechanism := kafkaConfig.GetString("sasl-mechanism")
+	username := kafkaConfig.GetString("sasl-username")
+	password := kafkaConfig.GetString("sasl-password")
 
-	kafka_mechanism := kafka_viper.GetString("sasl-mechanism")
-	kafka_username := kafka_viper.GetString("sasl-username")
-	kafka_password := kafka_viper.GetString("sasl-password")
-
-	switch kafka_mechanism {
+	switch mechanism {
 	case "SCRAM-SHA-256":
-		return scram.Mechanism(scram.SHA256, kafka_username, kafka_password)
+		return scram.Mechanism(scram.SHA256, username, password)
 	case "SCRAM-SHA-512":
-		return scram.Mechanism(scram.SHA512, kafka_username, kafka_password)
+		return scram.Mechanism(scram.SHA512, username, password)
 	default:
 		return nil, nil
 	}
