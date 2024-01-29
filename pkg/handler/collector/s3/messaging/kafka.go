@@ -26,6 +26,7 @@ import (
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
+	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	"github.com/spf13/viper"
 )
@@ -118,6 +119,11 @@ func SASLMechanism(kafkaConfig viper.Viper) (sasl.Mechanism, error) {
 		return scram.Mechanism(scram.SHA256, username, password)
 	case "SCRAM-SHA-512":
 		return scram.Mechanism(scram.SHA512, username, password)
+	case "PLAIN":
+		return plain.Mechanism{
+			Username: username,
+			Password: password,
+		}, nil
 	default:
 		return nil, nil
 	}
