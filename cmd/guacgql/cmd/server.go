@@ -64,6 +64,7 @@ func init() {
 }
 
 func startServer(cmd *cobra.Command) {
+	var srvHandler http.Handler
 	ctx := logging.WithLogger(context.Background())
 	logger := logging.FromContext(ctx)
 
@@ -78,6 +79,18 @@ func startServer(cmd *cobra.Command) {
 		logger.Errorf("unable to initialize graphql server: %v", err)
 		os.Exit(1)
 	}
+	// Setup Prometheus metrics handler
+	metric, err := cli.SetupPrometheus(ctx, logger, "guacgql")
+
+	if err != nil {
+		logger.Fatalf("Error setting up Prometheus: %v", err)
+	}
+
+	if metric != nil {
+		srvHandler = metric.MeasureGraphQLResponseDuration(srv)
+	} else {
+		srvHandler = srv
+	}
 
 	if flags.tracegql {
 		tracer := &debug.Tracer{}
@@ -86,7 +99,7 @@ func startServer(cmd *cobra.Command) {
 
 	http.HandleFunc("/healthz", healthHandler)
 
-	http.Handle("/query", srv)
+	http.Handle("/query", srvHandler)
 	proto := "http"
 	if flags.tlsCertFile != "" && flags.tlsKeyFile != "" {
 		proto = "https"
@@ -94,11 +107,6 @@ func startServer(cmd *cobra.Command) {
 	if flags.debug {
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		logger.Infof("connect to %s://localhost:%d/ for GraphQL playground", proto, flags.port)
-	}
-	// Setup Prometheus metrics handler
-	err = cli.SetupPrometheus(ctx, logger, "guacgql")
-	if err != nil {
-		logger.Fatalf("Error setting up Prometheus: %v", err)
 	}
 
 	server := &http.Server{Addr: fmt.Sprintf(":%d", flags.port)}
@@ -150,6 +158,7 @@ func getGraphqlServer(ctx context.Context) (*handler.Server, error) {
 	topResolver = resolvers.Resolver{Backend: backend}
 
 	config := generated.Config{Resolvers: &topResolver}
+	config.Directives.Filter = resolvers.Filter
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
 
 	return srv, nil
