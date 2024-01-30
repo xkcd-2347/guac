@@ -20,11 +20,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/spf13/viper"
 )
 
 type BuildBucket interface {
@@ -91,7 +94,25 @@ func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, token *string, 
 }
 
 func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string) ([]byte, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	s3Config := &viper.Viper{}
+	s3Config.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	s3Config.AutomaticEnv()
+
+	accessKey := s3Config.GetString("storage-access-key")
+	secretKey := s3Config.GetString("storage-secret-key")
+	region := s3Config.GetString("storage-region")
+
+	staticProvider := credentials.NewStaticCredentialsProvider(
+		accessKey,
+		secretKey,
+		"",
+	)
+
+	cfg, err := config.LoadDefaultConfig(
+		ctx,
+		config.WithCredentialsProvider(staticProvider),
+		config.WithRegion(region),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
 	}
@@ -100,10 +121,6 @@ func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string)
 		o.UsePathStyle = true
 		if d.url != "" {
 			o.BaseEndpoint = aws.String(d.url)
-		}
-
-		if d.region != "" {
-			o.Region = d.region
 		}
 	})
 

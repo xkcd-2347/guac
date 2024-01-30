@@ -19,10 +19,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/spf13/viper"
 )
 
 type SqsProvider struct {
@@ -82,7 +85,27 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	sqsQueue := mpConfig.Queue
 	sqsProvider := SqsProvider{}
 
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	sqsConfig := &viper.Viper{}
+	sqsConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	sqsConfig.AutomaticEnv()
+
+	accessKey := sqsConfig.GetString("sqs-access-key")
+	secretKey := sqsConfig.GetString("sqs-secret-key")
+	region := sqsConfig.GetString("sqs-region")
+
+	fmt.Printf("SQS CREDS %s %s %s\n", accessKey, secretKey, region)
+
+	staticProvider := credentials.NewStaticCredentialsProvider(
+		accessKey,
+		secretKey,
+		"",
+	)
+
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithCredentialsProvider(staticProvider),
+		config.WithRegion(region),
+	)
 	if err != nil {
 		return SqsProvider{}, fmt.Errorf("error loading AWS SDK config: %w", err)
 	}
@@ -90,9 +113,6 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	client := sqs.NewFromConfig(cfg, func(o *sqs.Options) {
 		if mpConfig.Endpoint != "" {
 			o.EndpointResolver = sqs.EndpointResolverFromURL(mpConfig.Endpoint)
-		}
-		if mpConfig.Region != "" {
-			o.Region = mpConfig.Region
 		}
 	})
 
