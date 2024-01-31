@@ -17,8 +17,11 @@ package ingestor
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
@@ -31,6 +34,7 @@ import (
 	"github.com/guacsec/guac/pkg/ingestor/parser"
 	parser_common "github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/spf13/viper"
 )
 
 // Synchronously ingest document using GraphQL endpoint
@@ -40,7 +44,10 @@ func Ingest(ctx context.Context, d *processor.Document, graphqlEndpoint string, 
 	processorFunc := GetProcessor(ctx)
 	ingestorFunc := GetIngestor(context.WithValue(ctx, parser_common.KeyGraphqlEndpoint, graphqlEndpoint))
 	collectSubEmitFunc := GetCollectSubEmit(ctx, csubClient)
-	assemblerFunc := GetAssembler(ctx, graphqlEndpoint)
+	assemblerFunc, err := GetAssembler(ctx, graphqlEndpoint)
+	if err != nil {
+		return fmt.Errorf("unable to create assembler: %v", err)
+	}
 
 	start := time.Now()
 
@@ -75,7 +82,10 @@ func MergedIngest(ctx context.Context, docs []*processor.Document, graphqlEndpoi
 	processorFunc := GetProcessor(ctx)
 	ingestorFunc := GetIngestor(ctx)
 	collectSubEmitFunc := GetCollectSubEmit(ctx, csubClient)
-	assemblerFunc := GetAssembler(ctx, graphqlEndpoint)
+	assemblerFunc, err := GetAssembler(ctx, graphqlEndpoint)
+	if err != nil {
+		return fmt.Errorf("unable to create assembler: %v", err)
+	}
 
 	start := time.Now()
 
@@ -125,7 +135,7 @@ func MergedIngest(ctx context.Context, docs []*processor.Document, graphqlEndpoi
 		idstrings = append(idstrings, idstrs...)
 	}
 
-	err := collectSubEmitFunc(idstrings)
+	err = collectSubEmitFunc(idstrings)
 	if err != nil {
 		logger.Infof("unable to create entries in collectsub server, but continuing: %v", err)
 	}
@@ -152,11 +162,31 @@ func GetIngestor(ctx context.Context) func(processor.DocumentTree) ([]assembler.
 	}
 }
 
-func GetAssembler(ctx context.Context, graphqlEndpoint string) func([]assembler.IngestPredicates) error {
+func GetAssembler(ctx context.Context, graphqlEndpoint string) (func([]assembler.IngestPredicates) error, error) {
 	httpClient := http.Client{}
+	certFile := viper.GetString("gql-tls-root-ca")
+	insecure := viper.GetBool("gql-tls-insecure")
+	if certFile != "" {
+		caCert, err := os.ReadFile(certFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read root certificate: %v", err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		httpClient = http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs:            caCertPool,
+					InsecureSkipVerify: insecure,
+				},
+			},
+		}
+	}
+
 	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
 	f := helpers.GetBulkAssembler(ctx, gqlclient)
-	return f
+	return f, nil
 }
 
 func GetCollectSubEmit(ctx context.Context, csubClient csub_client.Client) func([]*parser_common.IdentifierStrings) error {
