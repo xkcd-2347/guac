@@ -93,19 +93,7 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	secretKey := sqsConfig.GetString("sqs-secret-key")
 	region := sqsConfig.GetString("sqs-region")
 
-	fmt.Printf("SQS CREDS %s %s %s\n", accessKey, secretKey, region)
-
-	staticProvider := credentials.NewStaticCredentialsProvider(
-		accessKey,
-		secretKey,
-		"",
-	)
-
-	cfg, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithCredentialsProvider(staticProvider),
-		config.WithRegion(region),
-	)
+	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return SqsProvider{}, fmt.Errorf("error loading AWS SDK config: %w", err)
 	}
@@ -113,6 +101,19 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	client := sqs.NewFromConfig(cfg, func(o *sqs.Options) {
 		if mpConfig.Endpoint != "" {
 			o.EndpointResolver = sqs.EndpointResolverFromURL(mpConfig.Endpoint)
+		}
+
+		if region != "" {
+			o.Region = region
+		}
+
+		if accessKey != "" && secretKey != "" {
+			staticProvider := credentials.NewStaticCredentialsProvider(
+				accessKey,
+				secretKey,
+				"",
+			)
+			o.Credentials = staticProvider
 		}
 	})
 

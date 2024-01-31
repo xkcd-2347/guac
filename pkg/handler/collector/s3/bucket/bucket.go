@@ -59,22 +59,52 @@ func GetDefaultBucket(url string, region string) Bucket {
 	return &s3Bucket{url, region}
 }
 
-func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, token *string, max int32) ([]string, *string, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+func (d *s3Bucket) getS3Client(ctx context.Context) (*s3.Client, error) {
+	s3Config := &viper.Viper{}
+	s3Config.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	s3Config.AutomaticEnv()
+
+	accessKey := s3Config.GetString("storage-access-key")
+	secretKey := s3Config.GetString("storage-secret-key")
+	region := s3Config.GetString("storage-region")
+	if region == "" {
+		region = d.region
 	}
 
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+	cfg, err := config.LoadDefaultConfig(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+	}
+
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.UsePathStyle = true
 		if d.url != "" {
 			o.BaseEndpoint = aws.String(d.url)
 		}
 
-		if d.region != "" {
-			o.Region = d.region
+		if region != "" {
+			o.Region = region
 		}
-	})
+
+		if accessKey != "" && secretKey != "" {
+			staticProvider := credentials.NewStaticCredentialsProvider(
+				accessKey,
+				secretKey,
+				"",
+			)
+			o.Credentials = staticProvider
+		}
+
+	}), nil
+
+}
+
+func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, token *string, max int32) ([]string, *string, error) {
+	client, err := d.getS3Client(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error creating S3 client: %w", err)
+	}
 
 	input := &s3.ListObjectsV2Input{
 		Bucket:            &bucket,
@@ -94,35 +124,10 @@ func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, token *string, 
 }
 
 func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string) ([]byte, error) {
-	s3Config := &viper.Viper{}
-	s3Config.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	s3Config.AutomaticEnv()
-
-	accessKey := s3Config.GetString("storage-access-key")
-	secretKey := s3Config.GetString("storage-secret-key")
-	region := s3Config.GetString("storage-region")
-
-	staticProvider := credentials.NewStaticCredentialsProvider(
-		accessKey,
-		secretKey,
-		"",
-	)
-
-	cfg, err := config.LoadDefaultConfig(
-		ctx,
-		config.WithCredentialsProvider(staticProvider),
-		config.WithRegion(region),
-	)
+	client, err := d.getS3Client(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+		return nil, fmt.Errorf("error creating S3 client: %w", err)
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		if d.url != "" {
-			o.BaseEndpoint = aws.String(d.url)
-		}
-	})
 
 	// Create a GetObjectInput with the bucket name and object key.
 	input := &s3.GetObjectInput{
@@ -147,20 +152,10 @@ func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string)
 
 func (d *s3Bucket) GetEncoding(ctx context.Context, bucket string, item string) (string, error) {
 	logger := logging.FromContext(ctx)
-	cfg, err := config.LoadDefaultConfig(ctx)
+	client, err := d.getS3Client(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error loading AWS SDK config: %w", err)
+		return "", fmt.Errorf("error creating S3 client: %w", err)
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		if d.url != "" {
-			o.BaseEndpoint = aws.String(d.url)
-		}
-		if d.region != "" {
-			o.Region = d.region
-		}
-	})
 
 	logger.Infof("Downloading document %v from bucket %v", item, bucket)
 
