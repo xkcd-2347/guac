@@ -124,10 +124,11 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 					continue
 				}
 
-				if len(blob) > 6291456 {
-					logger.Infof("Skipping %s due to its size %d", item, len(blob))
-					continue
-				}
+				// TODO make this configurable
+				// if len(blob) > 6291456 {
+				// 	logger.Infof("Skipping %s due to its size %d", item, len(blob))
+				// 	continue
+				// }
 
 				enc, err := downloader.GetEncoding(ctx, s.config.S3Bucket, item)
 				if err != nil {
