@@ -92,7 +92,11 @@ var s3Cmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		csubClient, err := csub_client.NewClient(viper.GetString("csub-addr"))
+		csubOpts, err := csub_client.ValidateCsubClientFlags(viper.GetString("csub-addr"), viper.GetBool("csub-tls-insecure"), viper.GetBool("csub-tls"))
+		if err != nil {
+			logger.Fatalf("unable to validate csub client flags: %w", err)
+		}
+		csubClient, err := csub_client.NewClient(csubOpts)
 		if err != nil {
 			logger.Infof("collectsub client initialization failed, this ingestion will not pull in any additional data through the collectsub service: %v", err)
 			csubClient = nil

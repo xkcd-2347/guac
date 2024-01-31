@@ -20,8 +20,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"os"
 
 	pb "github.com/guacsec/guac/pkg/collectsub/collectsub"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -55,17 +57,31 @@ func ValidateCsubClientFlags(addr string, tls bool, tlsSkipVerify bool) (CsubCli
 func NewClient(opts CsubClientOptions) (Client, error) {
 
 	var creds credentials.TransportCredentials
-	if !opts.Tls {
-		// Set up a connection to the server.
-		creds = insecure.NewCredentials()
-	} else {
-		// Get the system certificates.
-		sysPool, err := x509.SystemCertPool()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get system cert: %w", err)
+	certFile := viper.GetString("csub-tls-root-ca")
+	tlsSkipVerify := opts.TlsSkipVerify
+	systemTls := opts.Tls
+
+	if certFile != "" || systemTls == true {
+		var caCertPool *x509.CertPool
+		if certFile != "" {
+			caCert, err := os.ReadFile(certFile)
+			if err != nil {
+				return nil, fmt.Errorf("unable to read root certificate: %v", err)
+			}
+			caCertPool = x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+		} else {
+			sysPool, err := x509.SystemCertPool()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get system cert: %w", err)
+			}
+			caCertPool = sysPool
 		}
+
 		// Connect to the service using TLS.
-		creds = credentials.NewTLS(&tls.Config{RootCAs: sysPool, InsecureSkipVerify: opts.TlsSkipVerify})
+		creds = credentials.NewTLS(&tls.Config{RootCAs: caCertPool, InsecureSkipVerify: tlsSkipVerify})
+	} else {
+		creds = insecure.NewCredentials()
 	}
 
 	conn, err := grpc.Dial(opts.Addr, grpc.WithTransportCredentials(creds))
