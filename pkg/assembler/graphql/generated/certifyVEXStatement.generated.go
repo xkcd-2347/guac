@@ -467,8 +467,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -476,8 +474,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOPackageOrArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPackageOrArtifactSpec(ctx, v)
 			if err != nil {
@@ -485,8 +481,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.Subject = data
 		case "vulnerability":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vulnerability"))
 			data, err := ec.unmarshalOVulnerabilitySpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVulnerabilitySpec(ctx, v)
 			if err != nil {
@@ -494,8 +488,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.Vulnerability = data
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOVexStatus2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVexStatus(ctx, v)
 			if err != nil {
@@ -503,8 +495,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.Status = data
 		case "vexJustification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vexJustification"))
 			data, err := ec.unmarshalOVexJustification2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVexJustification(ctx, v)
 			if err != nil {
@@ -512,8 +502,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.VexJustification = data
 		case "statement":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statement"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -521,8 +509,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.Statement = data
 		case "statusNotes":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotes"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -530,8 +516,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.StatusNotes = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -539,8 +523,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.KnownSince = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -548,8 +530,6 @@ func (ec *executionContext) unmarshalInputCertifyVEXStatementSpec(ctx context.Co
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -577,8 +557,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactInput(ctx context.Con
 		}
 		switch k {
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgInputSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgInputSpec(ctx, v)
 			if err != nil {
@@ -586,8 +564,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactInput(ctx context.Con
 			}
 			it.Package = data
 		case "artifact":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("artifact"))
 			data, err := ec.unmarshalOArtifactInputSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactInputSpec(ctx, v)
 			if err != nil {
@@ -615,8 +591,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactInputs(ctx context.Co
 		}
 		switch k {
 		case "packages":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("packages"))
 			data, err := ec.unmarshalOPkgInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -624,8 +598,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactInputs(ctx context.Co
 			}
 			it.Packages = data
 		case "artifacts":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("artifacts"))
 			data, err := ec.unmarshalOArtifactInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -653,8 +625,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactSpec(ctx context.Cont
 		}
 		switch k {
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgSpec(ctx, v)
 			if err != nil {
@@ -662,8 +632,6 @@ func (ec *executionContext) unmarshalInputPackageOrArtifactSpec(ctx context.Cont
 			}
 			it.Package = data
 		case "artifact":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("artifact"))
 			data, err := ec.unmarshalOArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactSpec(ctx, v)
 			if err != nil {
@@ -691,8 +659,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 		}
 		switch k {
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalNVexStatus2githubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVexStatus(ctx, v)
 			if err != nil {
@@ -700,8 +666,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.Status = data
 		case "vexJustification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vexJustification"))
 			data, err := ec.unmarshalNVexJustification2githubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVexJustification(ctx, v)
 			if err != nil {
@@ -709,8 +673,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.VexJustification = data
 		case "statement":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statement"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -718,8 +680,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.Statement = data
 		case "statusNotes":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotes"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -727,8 +687,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.StatusNotes = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -736,8 +694,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.KnownSince = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -745,8 +701,6 @@ func (ec *executionContext) unmarshalInputVexStatementInputSpec(ctx context.Cont
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {

@@ -40,6 +40,14 @@ func (pvu *PackageVersionUpdate) SetNameID(i int) *PackageVersionUpdate {
 	return pvu
 }
 
+// SetNillableNameID sets the "name_id" field if the given value is not nil.
+func (pvu *PackageVersionUpdate) SetNillableNameID(i *int) *PackageVersionUpdate {
+	if i != nil {
+		pvu.SetNameID(*i)
+	}
+	return pvu
+}
+
 // SetVersion sets the "version" field.
 func (pvu *PackageVersionUpdate) SetVersion(s string) *PackageVersionUpdate {
 	pvu.mutation.SetVersion(s)
@@ -89,6 +97,14 @@ func (pvu *PackageVersionUpdate) ClearQualifiers() *PackageVersionUpdate {
 // SetHash sets the "hash" field.
 func (pvu *PackageVersionUpdate) SetHash(s string) *PackageVersionUpdate {
 	pvu.mutation.SetHash(s)
+	return pvu
+}
+
+// SetNillableHash sets the "hash" field if the given value is not nil.
+func (pvu *PackageVersionUpdate) SetNillableHash(s *string) *PackageVersionUpdate {
+	if s != nil {
+		pvu.SetHash(*s)
+	}
 	return pvu
 }
 
@@ -554,6 +570,14 @@ func (pvuo *PackageVersionUpdateOne) SetNameID(i int) *PackageVersionUpdateOne {
 	return pvuo
 }
 
+// SetNillableNameID sets the "name_id" field if the given value is not nil.
+func (pvuo *PackageVersionUpdateOne) SetNillableNameID(i *int) *PackageVersionUpdateOne {
+	if i != nil {
+		pvuo.SetNameID(*i)
+	}
+	return pvuo
+}
+
 // SetVersion sets the "version" field.
 func (pvuo *PackageVersionUpdateOne) SetVersion(s string) *PackageVersionUpdateOne {
 	pvuo.mutation.SetVersion(s)
@@ -603,6 +627,14 @@ func (pvuo *PackageVersionUpdateOne) ClearQualifiers() *PackageVersionUpdateOne 
 // SetHash sets the "hash" field.
 func (pvuo *PackageVersionUpdateOne) SetHash(s string) *PackageVersionUpdateOne {
 	pvuo.mutation.SetHash(s)
+	return pvuo
+}
+
+// SetNillableHash sets the "hash" field if the given value is not nil.
+func (pvuo *PackageVersionUpdateOne) SetNillableHash(s *string) *PackageVersionUpdateOne {
+	if s != nil {
+		pvuo.SetHash(*s)
+	}
 	return pvuo
 }
 

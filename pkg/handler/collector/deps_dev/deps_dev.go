@@ -23,8 +23,6 @@ import (
 	"sync"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
-
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/collectsub/datasource"

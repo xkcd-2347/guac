@@ -669,8 +669,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -678,8 +676,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactSpec(ctx, v)
 			if err != nil {
@@ -687,8 +683,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.Subject = data
 		case "builtFrom":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("builtFrom"))
 			data, err := ec.unmarshalOArtifactSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactSpecᚄ(ctx, v)
 			if err != nil {
@@ -696,8 +690,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.BuiltFrom = data
 		case "builtBy":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("builtBy"))
 			data, err := ec.unmarshalOBuilderSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐBuilderSpec(ctx, v)
 			if err != nil {
@@ -705,8 +697,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.BuiltBy = data
 		case "buildType":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildType"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -714,8 +704,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.BuildType = data
 		case "predicate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("predicate"))
 			data, err := ec.unmarshalOSLSAPredicateSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSLSAPredicateSpecᚄ(ctx, v)
 			if err != nil {
@@ -723,8 +711,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.Predicate = data
 		case "slsaVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slsaVersion"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -732,8 +718,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.SlsaVersion = data
 		case "startedOn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startedOn"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -741,8 +725,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.StartedOn = data
 		case "finishedOn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("finishedOn"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -750,8 +732,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.FinishedOn = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -759,8 +739,6 @@ func (ec *executionContext) unmarshalInputHasSLSASpec(ctx context.Context, obj i
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -788,8 +766,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 		}
 		switch k {
 		case "buildType":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildType"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -797,8 +773,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.BuildType = data
 		case "slsaPredicate":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slsaPredicate"))
 			data, err := ec.unmarshalNSLSAPredicateInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSLSAPredicateInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -806,8 +780,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.SlsaPredicate = data
 		case "slsaVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slsaVersion"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -815,8 +787,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.SlsaVersion = data
 		case "startedOn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startedOn"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -824,8 +794,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.StartedOn = data
 		case "finishedOn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("finishedOn"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -833,8 +801,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.FinishedOn = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -842,8 +808,6 @@ func (ec *executionContext) unmarshalInputSLSAInputSpec(ctx context.Context, obj
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -871,8 +835,6 @@ func (ec *executionContext) unmarshalInputSLSAPredicateInputSpec(ctx context.Con
 		}
 		switch k {
 		case "key":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -880,8 +842,6 @@ func (ec *executionContext) unmarshalInputSLSAPredicateInputSpec(ctx context.Con
 			}
 			it.Key = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -909,8 +869,6 @@ func (ec *executionContext) unmarshalInputSLSAPredicateSpec(ctx context.Context,
 		}
 		switch k {
 		case "key":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -918,8 +876,6 @@ func (ec *executionContext) unmarshalInputSLSAPredicateSpec(ctx context.Context,
 			}
 			it.Key = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {

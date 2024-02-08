@@ -352,8 +352,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtInputSpec(ctx context.Conte
 		}
 		switch k {
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -361,8 +359,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtInputSpec(ctx context.Conte
 			}
 			it.KnownSince = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -370,8 +366,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtInputSpec(ctx context.Conte
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -379,8 +373,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtInputSpec(ctx context.Conte
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -408,8 +400,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -417,8 +407,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.ID = data
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgSpec(ctx, v)
 			if err != nil {
@@ -426,8 +414,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.Package = data
 		case "source":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
 			data, err := ec.unmarshalOSourceSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSourceSpec(ctx, v)
 			if err != nil {
@@ -435,8 +421,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.Source = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -444,8 +428,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.KnownSince = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -453,8 +435,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -462,8 +442,6 @@ func (ec *executionContext) unmarshalInputHasSourceAtSpec(ctx context.Context, o
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {

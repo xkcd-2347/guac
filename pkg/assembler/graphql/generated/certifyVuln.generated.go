@@ -532,8 +532,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -541,8 +539,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.ID = data
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgSpec(ctx, v)
 			if err != nil {
@@ -550,8 +546,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.Package = data
 		case "vulnerability":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vulnerability"))
 			data, err := ec.unmarshalOVulnerabilitySpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVulnerabilitySpec(ctx, v)
 			if err != nil {
@@ -559,8 +553,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.Vulnerability = data
 		case "timeScanned":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeScanned"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -568,8 +560,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.TimeScanned = data
 		case "dbUri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dbUri"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -577,8 +567,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.DbURI = data
 		case "dbVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dbVersion"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -586,8 +574,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.DbVersion = data
 		case "scannerUri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scannerUri"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -595,8 +581,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.ScannerURI = data
 		case "scannerVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scannerVersion"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -604,8 +588,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.ScannerVersion = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -613,8 +595,6 @@ func (ec *executionContext) unmarshalInputCertifyVulnSpec(ctx context.Context, o
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -642,8 +622,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 		}
 		switch k {
 		case "timeScanned":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeScanned"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -651,8 +629,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.TimeScanned = data
 		case "dbUri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dbUri"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -660,8 +636,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.DbURI = data
 		case "dbVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dbVersion"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -669,8 +643,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.DbVersion = data
 		case "scannerUri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scannerUri"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -678,8 +650,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.ScannerURI = data
 		case "scannerVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scannerVersion"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -687,8 +657,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.ScannerVersion = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -696,8 +664,6 @@ func (ec *executionContext) unmarshalInputScanMetadataInput(ctx context.Context,
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {

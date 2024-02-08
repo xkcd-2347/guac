@@ -261,8 +261,6 @@ func (ec *executionContext) unmarshalInputVulnEqualInputSpec(ctx context.Context
 		}
 		switch k {
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -270,8 +268,6 @@ func (ec *executionContext) unmarshalInputVulnEqualInputSpec(ctx context.Context
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -279,8 +275,6 @@ func (ec *executionContext) unmarshalInputVulnEqualInputSpec(ctx context.Context
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -308,8 +302,6 @@ func (ec *executionContext) unmarshalInputVulnEqualSpec(ctx context.Context, obj
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -317,8 +309,6 @@ func (ec *executionContext) unmarshalInputVulnEqualSpec(ctx context.Context, obj
 			}
 			it.ID = data
 		case "vulnerabilities":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vulnerabilities"))
 			data, err := ec.unmarshalOVulnerabilitySpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐVulnerabilitySpec(ctx, v)
 			if err != nil {
@@ -326,8 +316,6 @@ func (ec *executionContext) unmarshalInputVulnEqualSpec(ctx context.Context, obj
 			}
 			it.Vulnerabilities = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -335,8 +323,6 @@ func (ec *executionContext) unmarshalInputVulnEqualSpec(ctx context.Context, obj
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -344,8 +330,6 @@ func (ec *executionContext) unmarshalInputVulnEqualSpec(ctx context.Context, obj
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {

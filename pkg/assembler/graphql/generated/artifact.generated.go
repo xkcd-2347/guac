@@ -6069,14 +6069,11 @@ func (ec *executionContext) _Query_findTopLevelPackagesRelatedToVulnerability(ct
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindTopLevelPackagesRelatedToVulnerability(rctx, fc.Args["vulnerabilityID"].(string))
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -6124,14 +6121,11 @@ func (ec *executionContext) _Query_findVulnerability(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindVulnerability(rctx, fc.Args["purl"].(string), fc.Args["offset"].(*int), fc.Args["limit"].(*int))
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -6179,14 +6173,11 @@ func (ec *executionContext) _Query_findVulnerabilityByCPE(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindVulnerabilityByCpe(rctx, fc.Args["cpe"].(string))
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -6234,14 +6225,11 @@ func (ec *executionContext) _Query_findVulnerabilityBySbomURI(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindVulnerabilityBySbomURI(rctx, fc.Args["sbomURI"].(string), fc.Args["offset"].(*int), fc.Args["limit"].(*int))
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -6289,14 +6277,11 @@ func (ec *executionContext) _Query_findDependentProduct(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindDependentProduct(rctx, fc.Args["purl"].(string), fc.Args["offset"].(*int), fc.Args["limit"].(*int))
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -6746,8 +6731,6 @@ func (ec *executionContext) unmarshalInputArtifactInputSpec(ctx context.Context,
 		}
 		switch k {
 		case "algorithm":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("algorithm"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -6755,8 +6738,6 @@ func (ec *executionContext) unmarshalInputArtifactInputSpec(ctx context.Context,
 			}
 			it.Algorithm = data
 		case "digest":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("digest"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -6784,8 +6765,6 @@ func (ec *executionContext) unmarshalInputArtifactSpec(ctx context.Context, obj 
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -6793,8 +6772,6 @@ func (ec *executionContext) unmarshalInputArtifactSpec(ctx context.Context, obj 
 			}
 			it.ID = data
 		case "algorithm":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("algorithm"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -6802,8 +6779,6 @@ func (ec *executionContext) unmarshalInputArtifactSpec(ctx context.Context, obj 
 			}
 			it.Algorithm = data
 		case "digest":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("digest"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {

@@ -302,8 +302,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceInputSpec(ctx context.Cont
 		}
 		switch k {
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -311,8 +309,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceInputSpec(ctx context.Cont
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -320,8 +316,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceInputSpec(ctx context.Cont
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -349,8 +343,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -358,8 +350,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOPackageOrSourceSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPackageOrSourceSpec(ctx, v)
 			if err != nil {
@@ -367,8 +357,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 			}
 			it.Subject = data
 		case "artifact":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("artifact"))
 			data, err := ec.unmarshalOArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐArtifactSpec(ctx, v)
 			if err != nil {
@@ -376,8 +364,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 			}
 			it.Artifact = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -385,8 +371,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -394,8 +378,6 @@ func (ec *executionContext) unmarshalInputIsOccurrenceSpec(ctx context.Context, 
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -423,8 +405,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceInput(ctx context.Conte
 		}
 		switch k {
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgInputSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgInputSpec(ctx, v)
 			if err != nil {
@@ -432,8 +412,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceInput(ctx context.Conte
 			}
 			it.Package = data
 		case "source":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
 			data, err := ec.unmarshalOSourceInputSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSourceInputSpec(ctx, v)
 			if err != nil {
@@ -461,8 +439,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceInputs(ctx context.Cont
 		}
 		switch k {
 		case "packages":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("packages"))
 			data, err := ec.unmarshalOPkgInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -470,8 +446,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceInputs(ctx context.Cont
 			}
 			it.Packages = data
 		case "sources":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sources"))
 			data, err := ec.unmarshalOSourceInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSourceInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -499,8 +473,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceSpec(ctx context.Contex
 		}
 		switch k {
 		case "package":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("package"))
 			data, err := ec.unmarshalOPkgSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPkgSpec(ctx, v)
 			if err != nil {
@@ -508,8 +480,6 @@ func (ec *executionContext) unmarshalInputPackageOrSourceSpec(ctx context.Contex
 			}
 			it.Package = data
 		case "source":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
 			data, err := ec.unmarshalOSourceSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSourceSpec(ctx, v)
 			if err != nil {

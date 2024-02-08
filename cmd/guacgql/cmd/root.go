@@ -93,9 +93,9 @@ var rootCmd = &cobra.Command{
 		flags.neptuneUser = viper.GetString("neptune-user")
 		flags.neptuneRealm = viper.GetString("neptune-realm")
 
-		flags.kvStore = viper.GetString("kv-store")
-		flags.kvRedis = viper.GetString("kv-redis")
-		flags.kvTiKV = viper.GetString("kv-tikv")
+		//flags.kvStore = viper.GetString("kv-store")
+		//flags.kvRedis = viper.GetString("kv-redis")
+		//flags.kvTiKV = viper.GetString("kv-tikv")
 		startServer(cmd)
 	},
 }

@@ -575,8 +575,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -584,8 +582,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.ID = data
 		case "source":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
 			data, err := ec.unmarshalOSourceSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐSourceSpec(ctx, v)
 			if err != nil {
@@ -593,8 +589,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.Source = data
 		case "timeScanned":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeScanned"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -602,8 +596,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.TimeScanned = data
 		case "aggregateScore":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateScore"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
@@ -611,8 +603,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.AggregateScore = data
 		case "checks":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("checks"))
 			data, err := ec.unmarshalOScorecardCheckSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐScorecardCheckSpecᚄ(ctx, v)
 			if err != nil {
@@ -620,8 +610,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.Checks = data
 		case "scorecardVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scorecardVersion"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -629,8 +617,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.ScorecardVersion = data
 		case "scorecardCommit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scorecardCommit"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -638,8 +624,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.ScorecardCommit = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -647,8 +631,6 @@ func (ec *executionContext) unmarshalInputCertifyScorecardSpec(ctx context.Conte
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -676,8 +658,6 @@ func (ec *executionContext) unmarshalInputScorecardCheckInputSpec(ctx context.Co
 		}
 		switch k {
 		case "check":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("check"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -685,8 +665,6 @@ func (ec *executionContext) unmarshalInputScorecardCheckInputSpec(ctx context.Co
 			}
 			it.Check = data
 		case "score":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -714,8 +692,6 @@ func (ec *executionContext) unmarshalInputScorecardCheckSpec(ctx context.Context
 		}
 		switch k {
 		case "check":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("check"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -723,8 +699,6 @@ func (ec *executionContext) unmarshalInputScorecardCheckSpec(ctx context.Context
 			}
 			it.Check = data
 		case "score":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
 			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
@@ -752,8 +726,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 		}
 		switch k {
 		case "checks":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("checks"))
 			data, err := ec.unmarshalNScorecardCheckInputSpec2ᚕᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐScorecardCheckInputSpecᚄ(ctx, v)
 			if err != nil {
@@ -761,8 +733,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.Checks = data
 		case "aggregateScore":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregateScore"))
 			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
@@ -770,8 +740,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.AggregateScore = data
 		case "timeScanned":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeScanned"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -779,8 +747,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.TimeScanned = data
 		case "scorecardVersion":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scorecardVersion"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -788,8 +754,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.ScorecardVersion = data
 		case "scorecardCommit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scorecardCommit"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -797,8 +761,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.ScorecardCommit = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -806,8 +768,6 @@ func (ec *executionContext) unmarshalInputScorecardInputSpec(ctx context.Context
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {

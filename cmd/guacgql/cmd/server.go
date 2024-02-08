@@ -35,8 +35,6 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/neptune"
 	"github.com/guacsec/guac/pkg/assembler/graphql/generated"
 	"github.com/guacsec/guac/pkg/assembler/graphql/resolvers"
-	"github.com/guacsec/guac/pkg/assembler/kv"
-	"github.com/guacsec/guac/pkg/assembler/kv/redis"
 	"github.com/guacsec/guac/pkg/cli"
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/spf13/cobra"
@@ -188,7 +186,7 @@ func getNeo4j(_ context.Context) backends.BackendArgs {
 	}
 }
 
-func getInMem() backends.BackendArgs {
+func getInMem(_ context.Context) backends.BackendArgs {
 	return nil
 }
 

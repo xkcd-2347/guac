@@ -294,8 +294,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodInputSpec(ctx context.Conte
 		}
 		switch k {
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -303,8 +301,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodInputSpec(ctx context.Conte
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -312,8 +308,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodInputSpec(ctx context.Conte
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -321,8 +315,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodInputSpec(ctx context.Conte
 			}
 			it.Collector = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -350,8 +342,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -359,8 +349,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOPackageSourceOrArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPackageSourceOrArtifactSpec(ctx, v)
 			if err != nil {
@@ -368,8 +356,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 			}
 			it.Subject = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -377,8 +363,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -386,8 +370,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -395,8 +377,6 @@ func (ec *executionContext) unmarshalInputCertifyGoodSpec(ctx context.Context, o
 			}
 			it.Collector = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {

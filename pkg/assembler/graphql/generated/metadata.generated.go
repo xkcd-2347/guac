@@ -376,8 +376,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 		}
 		switch k {
 		case "key":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -385,8 +383,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 			}
 			it.Key = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -394,8 +390,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 			}
 			it.Value = data
 		case "timestamp":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -403,8 +397,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 			}
 			it.Timestamp = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -412,8 +404,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -421,8 +411,6 @@ func (ec *executionContext) unmarshalInputHasMetadataInputSpec(ctx context.Conte
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -450,8 +438,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -459,8 +445,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOPackageSourceOrArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPackageSourceOrArtifactSpec(ctx, v)
 			if err != nil {
@@ -468,8 +452,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Subject = data
 		case "since":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("since"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -477,8 +459,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Since = data
 		case "key":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -486,8 +466,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Key = data
 		case "value":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -495,8 +473,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Value = data
 		case "justification":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("justification"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -504,8 +480,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Justification = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -513,8 +487,6 @@ func (ec *executionContext) unmarshalInputHasMetadataSpec(ctx context.Context, o
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {

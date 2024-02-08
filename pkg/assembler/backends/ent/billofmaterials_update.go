@@ -75,9 +75,25 @@ func (bomu *BillOfMaterialsUpdate) SetURI(s string) *BillOfMaterialsUpdate {
 	return bomu
 }
 
+// SetNillableURI sets the "uri" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableURI(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetURI(*s)
+	}
+	return bomu
+}
+
 // SetAlgorithm sets the "algorithm" field.
 func (bomu *BillOfMaterialsUpdate) SetAlgorithm(s string) *BillOfMaterialsUpdate {
 	bomu.mutation.SetAlgorithm(s)
+	return bomu
+}
+
+// SetNillableAlgorithm sets the "algorithm" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableAlgorithm(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetAlgorithm(*s)
+	}
 	return bomu
 }
 
@@ -87,9 +103,25 @@ func (bomu *BillOfMaterialsUpdate) SetDigest(s string) *BillOfMaterialsUpdate {
 	return bomu
 }
 
+// SetNillableDigest sets the "digest" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableDigest(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetDigest(*s)
+	}
+	return bomu
+}
+
 // SetDownloadLocation sets the "download_location" field.
 func (bomu *BillOfMaterialsUpdate) SetDownloadLocation(s string) *BillOfMaterialsUpdate {
 	bomu.mutation.SetDownloadLocation(s)
+	return bomu
+}
+
+// SetNillableDownloadLocation sets the "download_location" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableDownloadLocation(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetDownloadLocation(*s)
+	}
 	return bomu
 }
 
@@ -99,9 +131,25 @@ func (bomu *BillOfMaterialsUpdate) SetOrigin(s string) *BillOfMaterialsUpdate {
 	return bomu
 }
 
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableOrigin(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetOrigin(*s)
+	}
+	return bomu
+}
+
 // SetCollector sets the "collector" field.
 func (bomu *BillOfMaterialsUpdate) SetCollector(s string) *BillOfMaterialsUpdate {
 	bomu.mutation.SetCollector(s)
+	return bomu
+}
+
+// SetNillableCollector sets the "collector" field if the given value is not nil.
+func (bomu *BillOfMaterialsUpdate) SetNillableCollector(s *string) *BillOfMaterialsUpdate {
+	if s != nil {
+		bomu.SetCollector(*s)
+	}
 	return bomu
 }
 
@@ -310,9 +358,25 @@ func (bomuo *BillOfMaterialsUpdateOne) SetURI(s string) *BillOfMaterialsUpdateOn
 	return bomuo
 }
 
+// SetNillableURI sets the "uri" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableURI(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetURI(*s)
+	}
+	return bomuo
+}
+
 // SetAlgorithm sets the "algorithm" field.
 func (bomuo *BillOfMaterialsUpdateOne) SetAlgorithm(s string) *BillOfMaterialsUpdateOne {
 	bomuo.mutation.SetAlgorithm(s)
+	return bomuo
+}
+
+// SetNillableAlgorithm sets the "algorithm" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableAlgorithm(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetAlgorithm(*s)
+	}
 	return bomuo
 }
 
@@ -322,9 +386,25 @@ func (bomuo *BillOfMaterialsUpdateOne) SetDigest(s string) *BillOfMaterialsUpdat
 	return bomuo
 }
 
+// SetNillableDigest sets the "digest" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableDigest(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetDigest(*s)
+	}
+	return bomuo
+}
+
 // SetDownloadLocation sets the "download_location" field.
 func (bomuo *BillOfMaterialsUpdateOne) SetDownloadLocation(s string) *BillOfMaterialsUpdateOne {
 	bomuo.mutation.SetDownloadLocation(s)
+	return bomuo
+}
+
+// SetNillableDownloadLocation sets the "download_location" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableDownloadLocation(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetDownloadLocation(*s)
+	}
 	return bomuo
 }
 
@@ -334,9 +414,25 @@ func (bomuo *BillOfMaterialsUpdateOne) SetOrigin(s string) *BillOfMaterialsUpdat
 	return bomuo
 }
 
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableOrigin(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetOrigin(*s)
+	}
+	return bomuo
+}
+
 // SetCollector sets the "collector" field.
 func (bomuo *BillOfMaterialsUpdateOne) SetCollector(s string) *BillOfMaterialsUpdateOne {
 	bomuo.mutation.SetCollector(s)
+	return bomuo
+}
+
+// SetNillableCollector sets the "collector" field if the given value is not nil.
+func (bomuo *BillOfMaterialsUpdateOne) SetNillableCollector(s *string) *BillOfMaterialsUpdateOne {
+	if s != nil {
+		bomuo.SetCollector(*s)
+	}
 	return bomuo
 }
 

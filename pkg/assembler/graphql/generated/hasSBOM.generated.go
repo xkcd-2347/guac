@@ -41,14 +41,11 @@ func (ec *executionContext) _HasSBOM_id(ctx context.Context, field graphql.Colle
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ID, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -85,14 +82,11 @@ func (ec *executionContext) _HasSBOM_subject(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Subject, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -129,14 +123,11 @@ func (ec *executionContext) _HasSBOM_uri(ctx context.Context, field graphql.Coll
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.URI, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -173,14 +164,11 @@ func (ec *executionContext) _HasSBOM_algorithm(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Algorithm, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -217,14 +205,11 @@ func (ec *executionContext) _HasSBOM_digest(ctx context.Context, field graphql.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Digest, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -261,14 +246,11 @@ func (ec *executionContext) _HasSBOM_downloadLocation(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DownloadLocation, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -305,14 +287,11 @@ func (ec *executionContext) _HasSBOM_origin(ctx context.Context, field graphql.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Origin, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -349,14 +328,11 @@ func (ec *executionContext) _HasSBOM_collector(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Collector, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -393,14 +369,11 @@ func (ec *executionContext) _HasSBOM_knownSince(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec._fieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.KnownSince, nil
 	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
+
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
@@ -444,8 +417,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 		}
 		switch k {
 		case "uri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uri"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -453,8 +424,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.URI = data
 		case "algorithm":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("algorithm"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -462,8 +431,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.Algorithm = data
 		case "digest":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("digest"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -471,8 +438,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.Digest = data
 		case "downloadLocation":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("downloadLocation"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -480,8 +445,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.DownloadLocation = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -489,8 +452,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -498,8 +459,6 @@ func (ec *executionContext) unmarshalInputHasSBOMInputSpec(ctx context.Context, 
 			}
 			it.Collector = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
@@ -527,8 +486,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 		}
 		switch k {
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
@@ -536,8 +493,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.ID = data
 		case "subject":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			data, err := ec.unmarshalOPackageOrArtifactSpec2ᚖgithubᚗcomᚋguacsecᚋguacᚋpkgᚋassemblerᚋgraphqlᚋmodelᚐPackageOrArtifactSpec(ctx, v)
 			if err != nil {
@@ -545,8 +500,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.Subject = data
 		case "uri":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uri"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -554,8 +507,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.URI = data
 		case "algorithm":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("algorithm"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -563,8 +514,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.Algorithm = data
 		case "digest":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("digest"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -572,8 +521,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.Digest = data
 		case "downloadLocation":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("downloadLocation"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -581,8 +528,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.DownloadLocation = data
 		case "origin":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -590,8 +535,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.Origin = data
 		case "collector":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("collector"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -599,8 +542,6 @@ func (ec *executionContext) unmarshalInputHasSBOMSpec(ctx context.Context, obj i
 			}
 			it.Collector = data
 		case "knownSince":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knownSince"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {

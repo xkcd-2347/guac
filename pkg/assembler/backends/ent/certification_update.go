@@ -131,15 +131,39 @@ func (cu *CertificationUpdate) SetJustification(s string) *CertificationUpdate {
 	return cu
 }
 
+// SetNillableJustification sets the "justification" field if the given value is not nil.
+func (cu *CertificationUpdate) SetNillableJustification(s *string) *CertificationUpdate {
+	if s != nil {
+		cu.SetJustification(*s)
+	}
+	return cu
+}
+
 // SetOrigin sets the "origin" field.
 func (cu *CertificationUpdate) SetOrigin(s string) *CertificationUpdate {
 	cu.mutation.SetOrigin(s)
 	return cu
 }
 
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (cu *CertificationUpdate) SetNillableOrigin(s *string) *CertificationUpdate {
+	if s != nil {
+		cu.SetOrigin(*s)
+	}
+	return cu
+}
+
 // SetCollector sets the "collector" field.
 func (cu *CertificationUpdate) SetCollector(s string) *CertificationUpdate {
 	cu.mutation.SetCollector(s)
+	return cu
+}
+
+// SetNillableCollector sets the "collector" field if the given value is not nil.
+func (cu *CertificationUpdate) SetNillableCollector(s *string) *CertificationUpdate {
+	if s != nil {
+		cu.SetCollector(*s)
+	}
 	return cu
 }
 
@@ -503,15 +527,39 @@ func (cuo *CertificationUpdateOne) SetJustification(s string) *CertificationUpda
 	return cuo
 }
 
+// SetNillableJustification sets the "justification" field if the given value is not nil.
+func (cuo *CertificationUpdateOne) SetNillableJustification(s *string) *CertificationUpdateOne {
+	if s != nil {
+		cuo.SetJustification(*s)
+	}
+	return cuo
+}
+
 // SetOrigin sets the "origin" field.
 func (cuo *CertificationUpdateOne) SetOrigin(s string) *CertificationUpdateOne {
 	cuo.mutation.SetOrigin(s)
 	return cuo
 }
 
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (cuo *CertificationUpdateOne) SetNillableOrigin(s *string) *CertificationUpdateOne {
+	if s != nil {
+		cuo.SetOrigin(*s)
+	}
+	return cuo
+}
+
 // SetCollector sets the "collector" field.
 func (cuo *CertificationUpdateOne) SetCollector(s string) *CertificationUpdateOne {
 	cuo.mutation.SetCollector(s)
+	return cuo
+}
+
+// SetNillableCollector sets the "collector" field if the given value is not nil.
+func (cuo *CertificationUpdateOne) SetNillableCollector(s *string) *CertificationUpdateOne {
+	if s != nil {
+		cuo.SetCollector(*s)
+	}
 	return cuo
 }
 
