@@ -18,7 +18,12 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"io"
+	"bytes"
+	"encoding/json"
+	"strconv"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,6 +34,7 @@ const (
 	functionDuration = "function_duration_seconds"
 	collectorKey     = "metrics"
 )
+var registerOnce sync.Once
 
 type metrics string
 
