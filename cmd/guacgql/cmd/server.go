@@ -35,8 +35,6 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/neptune"
 	"github.com/guacsec/guac/pkg/assembler/graphql/generated"
 	"github.com/guacsec/guac/pkg/assembler/graphql/resolvers"
-	"github.com/guacsec/guac/pkg/assembler/kv"
-	"github.com/guacsec/guac/pkg/assembler/kv/redis"
 	"github.com/guacsec/guac/pkg/cli"
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/spf13/cobra"
@@ -152,7 +150,6 @@ func getGraphqlServer(ctx context.Context) (*handler.Server, error) {
 	topResolver = resolvers.Resolver{Backend: backend}
 
 	config := generated.Config{Resolvers: &topResolver}
-	config.Directives.Filter = resolvers.Filter
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
 
 	return srv, nil
@@ -180,7 +177,7 @@ func getNeo4j(_ context.Context) backends.BackendArgs {
 	}
 }
 
-func getInMem() backends.BackendArgs {
+func getInMem(_ context.Context) backends.BackendArgs {
 	return nil
 }
 

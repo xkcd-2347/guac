@@ -32,8 +32,6 @@ import (
 )
 
 func InitConfig() {
-	ctx := logging.WithLogger(context.Background())
-	logger := logging.FromContext(ctx)
 
 	home, err := homedir.Dir()
 	if err != nil {
@@ -53,23 +51,10 @@ func InitConfig() {
 	// The POSIX standard does not allow - in env variables
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	err = viper.ReadInConfig()
-
-	viper.SetDefault("log-level", string(logging.Info))
-
-	// initialize logging after reading in the config
-	level, logErr := logging.ParseLevel(viper.GetString(ConfigLogLevelVar))
-	if logErr != nil {
-		level = logging.Info
-	}
-	logging.InitLogger(level)
-
 	ctx := logging.WithLogger(context.Background())
 	logger := logging.FromContext(ctx)
-	if logErr != nil {
-		logger.Infof("Error setting up logging: %v", logErr)
-	}
-	if err == nil {
+
+	if err := viper.ReadInConfig(); err == nil {
 		logger.Infof("Using config file: %s", viper.ConfigFileUsed())
 	}
 }
