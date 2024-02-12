@@ -71,6 +71,14 @@ func SetupPrometheus(ctx context.Context, logger *zap.SugaredLogger, name string
 		return nil, nil
 	}
 
+	tlsCertFile := viper.GetString("prometheus-tls-cert-file")
+	tlsKeyFile := viper.GetString("prometheus-tls-key-file")
+
+	proto := "http"
+	if tlsCertFile != "" && tlsKeyFile != "" {
+		proto = "https"
+	}
+
 	go func() {
 		http.Handle("/metrics", m.MetricsHandler())
 		logger.Infof("Prometheus server is listening on: %d", prometheusPort)
@@ -78,8 +86,14 @@ func SetupPrometheus(ctx context.Context, logger *zap.SugaredLogger, name string
 
 		// Start server in a goroutine so that it doesn't block
 		go func() {
-			if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logger.Fatalf("Error starting HTTP server: %v", err)
+			if proto == "https" {
+				if err := server.ListenAndServeTLS(tlsCertFile, tlsKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					logger.Fatalf("Error starting HTTP server: %v", err)
+				}
+			} else {
+				if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					logger.Fatalf("Error starting HTTP server: %v", err)
+				}
 			}
 		}()
 

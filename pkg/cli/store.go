@@ -86,6 +86,10 @@ func init() {
 
 	set.Int("prometheus-addr", 9091, "port to listen to on prometheus server")
 
+
+	set.String("prometheus-tls-cert-file", "", "path to the TLS certificate in PEM format for graphql api server")
+	set.String("prometheus-tls-key-file", "", "path to the TLS key in PEM format for graphql api server")
+
 	set.StringP("interval", "i", "5m", "if polling set interval, m, h, s, etc.")
 
 	set.BoolP("cert-good", "g", false, "enable to certifyGood, otherwise defaults to certifyBad")
