@@ -27,6 +27,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/guacsec/guac/pkg/assembler"
+	"github.com/guacsec/guac/pkg/assembler/clients/generated"
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
 	asmhelpers "github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/handler/processor"
@@ -303,6 +304,24 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 						}
 						if p != nil {
 							preds.IsDependency = append(preds.IsDependency, *p)
+						}
+						// add top level package reference to each package with a HasMetadata node
+						if toplevel != nil {
+							for _, topLevelPkg := range toplevel {
+								hasMetadata := assembler.HasMetadataIngest{
+									Pkg:          packNode,
+									PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+									HasMetadata: &model.HasMetadataInputSpec{
+										Key:           "topLevelPackage",
+										Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
+										Timestamp:     time.Now().UTC(),
+										Justification: "CyclonDX top level package reference",
+										Origin:        "GUAC CyclonDX",
+										Collector:     "GUAC",
+									},
+								}
+								preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+							}
 						}
 					}
 				}
