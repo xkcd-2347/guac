@@ -262,6 +262,20 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 
 		preds.IsDependency = append(preds.IsDependency, common.CreateTopLevelIsDeps(toplevel[0], c.packagePackages, nil, "top-level package GUAC heuristic connecting to each file/package")...)
 		preds.HasSBOM = append(preds.HasSBOM, common.CreateTopLevelHasSBOM(toplevel[0], c.doc, c.cdxBom.SerialNumber, timestamp))
+		// add HasMetadata to toplevel packages
+		hasMetadata := assembler.HasMetadataIngest{
+			Pkg:          toplevel[0],
+			PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+			HasMetadata: &model.HasMetadataInputSpec{
+				Key:           "topLevelPackage",
+				Value:         asmhelpers.PkgInputSpecToPurl(toplevel[0]),
+				Timestamp:     time.Now().UTC(),
+				Justification: "CyclonDX top level package reference",
+				Origin:        "GUAC CyclonDX",
+				Collector:     "GUAC",
+			},
+		}
+		preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
 	}
 
 	for id := range c.packagePackages {
@@ -306,22 +320,20 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 							preds.IsDependency = append(preds.IsDependency, *p)
 						}
 						// add top level package reference to each package with a HasMetadata node
-						if toplevel != nil {
-							for _, topLevelPkg := range toplevel {
-								hasMetadata := assembler.HasMetadataIngest{
-									Pkg:          packNode,
-									PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
-									HasMetadata: &model.HasMetadataInputSpec{
-										Key:           "topLevelPackage",
-										Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
-										Timestamp:     time.Now().UTC(),
-										Justification: "CyclonDX top level package reference",
-										Origin:        "GUAC CyclonDX",
-										Collector:     "GUAC",
-									},
-								}
-								preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+						for _, topLevelPkg := range toplevel {
+							hasMetadata := assembler.HasMetadataIngest{
+								Pkg:          packNode,
+								PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+								HasMetadata: &model.HasMetadataInputSpec{
+									Key:           "topLevelPackage",
+									Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
+									Timestamp:     time.Now().UTC(),
+									Justification: "CyclonDX top level package reference",
+									Origin:        "GUAC CyclonDX",
+									Collector:     "GUAC",
+								},
 							}
+							preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
 						}
 					}
 				}
