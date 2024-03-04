@@ -18,14 +18,13 @@ package csaf
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 
-	"github.com/Khan/genqlient/graphql"
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
+	assembler_helpers "github.com/guacsec/guac/pkg/assembler/clients/helpers"
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
@@ -59,12 +58,14 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 		return nil, fmt.Errorf("unable to locate product url for reference %s", *pref)
 	} else if *purl == "" {
 		// if no purl is available in the product reference entry, then let's try to search for it into guac
-		httpClient := http.Client{}
 		endpoint, ok := ctx.Value(common.KeyGraphqlEndpoint).(string)
 		if !ok {
 			return nil, fmt.Errorf("unable to locate product url for reference %s due to missing graphqlEndpoint value", *pref)
 		}
-		gqlclient := graphql.NewClient(endpoint, &httpClient)
+		gqlclient, err := assembler_helpers.GetGqlClient(endpoint)
+		if err != nil {
+			return nil, err
+		}
 		// get all packages with metadata with key == "cpe"
 		filterHasMetadata := &generated.HasMetadataSpec{
 			Key: ptrfrom.String("cpe"),

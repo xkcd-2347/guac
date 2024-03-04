@@ -274,7 +274,7 @@ func generateVexIngest(ctx context.Context, c *csafParser, parser findPkgSpec, v
 
 	pkg, err := parser.findPkgSpec(ctx, product_id)
 	if err != nil {
-		logger.Warnf("[csaf] unable to locate package for not-affected product %s", product_id)
+		logger.Warnf("[csaf] unable to locate package for not-affected product %s: %v", product_id, err)
 		return nil
 	}
 	vi.Pkg = pkg
