@@ -17,14 +17,9 @@ package ingestor
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
-	"net/http"
-	"os"
 	"time"
 
-	"github.com/Khan/genqlient/graphql"
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/helpers"
 	csub_client "github.com/guacsec/guac/pkg/collectsub/client"
@@ -34,7 +29,6 @@ import (
 	"github.com/guacsec/guac/pkg/ingestor/parser"
 	parser_common "github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
-	"github.com/spf13/viper"
 )
 
 // Synchronously ingest document using GraphQL endpoint
@@ -163,29 +157,11 @@ func GetIngestor(ctx context.Context) func(processor.DocumentTree) ([]assembler.
 }
 
 func GetAssembler(ctx context.Context, graphqlEndpoint string) (func([]assembler.IngestPredicates) error, error) {
-	httpClient := http.Client{}
-	certFile := viper.GetString("gql-tls-root-ca")
-	insecure := viper.GetBool("gql-tls-insecure")
-	if certFile != "" {
-		caCert, err := os.ReadFile(certFile)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read root certificate: %v", err)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-
-		httpClient = http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					RootCAs:            caCertPool,
-					InsecureSkipVerify: insecure,
-				},
-			},
-		}
+	gqlClient, err := helpers.GetGqlClient(graphqlEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create GraphQL client: %v", err)
 	}
-
-	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
-	f := helpers.GetBulkAssembler(ctx, gqlclient)
+	f := helpers.GetBulkAssembler(ctx, gqlClient)
 	return f, nil
 }
 
