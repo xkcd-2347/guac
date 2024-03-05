@@ -80,10 +80,7 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 	kafkaConfig.SetEnvPrefix(prefix)
 	kafkaConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
 	kafkaConfig.AutomaticEnv()
-
-	protocol := kafkaConfig.GetString("security-protocol")
-
-
+	
 	mechanism, err := SASLMechanism(*kafkaConfig)
 	if err != nil {
 		return KafkaProvider{}, err
