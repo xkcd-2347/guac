@@ -17,6 +17,8 @@ package messaging
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -79,7 +81,15 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 	kafkaConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
 	kafkaConfig.AutomaticEnv()
 
+	protocol := kafkaConfig.GetString("security-protocol")
+
+
 	mechanism, err := SASLMechanism(*kafkaConfig)
+	if err != nil {
+		return KafkaProvider{}, err
+	}
+
+	tlsConfig, err := TLSConfig(*kafkaConfig)
 	if err != nil {
 		return KafkaProvider{}, err
 	}
@@ -88,6 +98,7 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 		Timeout:       10 * time.Second,
 		DualStack:     true,
 		SASLMechanism: mechanism,
+		TLS: tlsConfig,
 	}
 
 	kafkaProvider.reader = kafka.NewReader(kafka.ReaderConfig{
@@ -107,7 +118,12 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 
 func SASLMechanism(kafkaConfig viper.Viper) (sasl.Mechanism, error) {
 	protocol := kafkaConfig.GetString("security-protocol")
-	if protocol != "SASL_PLAINTEXT" {
+	saslProtocols := make(map[string]struct{})
+	saslProtocols["SASL_PLAINTEXT"] = struct{}{}
+	saslProtocols["SASL_SSL"] = struct{}{}
+
+	_, isSasl := saslProtocols[protocol]
+	if !isSasl{
 		return nil, nil
 	}
 	mechanism := kafkaConfig.GetString("sasl-mechanism")
@@ -127,6 +143,36 @@ func SASLMechanism(kafkaConfig viper.Viper) (sasl.Mechanism, error) {
 	default:
 		return nil, nil
 	}
+}
+
+func TLSConfig(kafkaConfig viper.Viper) (*tls.Config, error) {
+	protocol := kafkaConfig.GetString("security-protocol")
+	tlsProtocols := make(map[string]struct{})
+	tlsProtocols["SSL"] = struct{}{}
+	tlsProtocols["SASL_SSL"] = struct{}{}
+
+	_, isTls := tlsProtocols[protocol]
+	if !isTls{
+		return nil, nil
+	}
+	sslCaLocation := kafkaConfig.GetString("ssl.ca.location")
+	verifyClientCert := kafkaConfig.GetBool("enable.ssl.certificate.verification")
+
+	caFile, err := os.ReadFile(sslCaLocation)
+	if err != nil {
+		return nil, nil
+	}
+	rootCAs, _ := x509.SystemCertPool()
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+	rootCAs.AppendCertsFromPEM(caFile)
+
+	return &tls.Config{
+		InsecureSkipVerify: !verifyClientCert,
+		RootCAs:       rootCAs,
+	}, nil
+
 }
 
 func (k *KafkaProvider) ReceiveMessage(ctx context.Context) (Message, error) {
