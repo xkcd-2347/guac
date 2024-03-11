@@ -238,23 +238,31 @@ spec:
       - name: source
         workspace: workspace
     - name: build-source-image
-      when:
-        - input: $(tasks.init.results.build)
-          operator: in
-          values: [ "true" ]
-        - input: $(params.build-source-image)
-          operator: in
-          values: [ "true" ]
+      params:
+        - name: BINARY_IMAGE
+          value: $(params.output-image)
+        - name: BASE_IMAGES
+          value: $(tasks.build-container.results.BASE_IMAGES_DIGESTS)
       runAfter:
         - build-container
       taskRef:
-        name: source-build
-        version: "0.1"
-      params:
-        - name: BINARY_IMAGE
-          value: "$(params.output-image)"
-        - name: BASE_IMAGES
-          value: "$(tasks.build-container.results.BASE_IMAGES_DIGESTS)"
+        params:
+          - name: name
+            value: source-build
+          - name: bundle
+            value: quay.io/redhat-appstudio-tekton-catalog/task-source-build:0.1@sha256:e831f3e10362ecb21910f45ff48c3af1c0c8bea4858ca25f4f436153499f9802
+          - name: kind
+            value: task
+        resolver: bundles
+      when:
+        - input: $(tasks.init.results.build)
+          operator: in
+          values:
+            - "true"
+        - input: $(params.build-source-image)
+          operator: in
+          values:
+            - "true"
       workspaces:
         - name: workspace
           workspace: workspace
