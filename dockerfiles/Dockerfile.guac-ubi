@@ -9,6 +9,8 @@ ENV GOPATH=/usr/local/go
 ENV PATH="/usr/local/go/bin:$PATH"
 RUN rm -rf bin/ && make build
 
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
 LABEL description="Trustification-Guac"
 LABEL io.k8s.description ="Trustification-Guac"
 LABEL io.k8s.display-name ="Trustification-Guac"
@@ -16,7 +18,6 @@ LABEL summary ="Trustification-Guac"
 LABEL io.openshift.tags ="Trustification-Guac"
 LABEL name ="Trustification-Guac"
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 RUN microdnf install -y tar gzip
 WORKDIR /root
 COPY --from=builder /go/src/github.com/guacsec/guac/bin/ /opt/guac/
