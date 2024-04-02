@@ -152,8 +152,8 @@ func TLSConfig(kafkaConfig viper.Viper) (*tls.Config, error) {
 	if !isTls{
 		return nil, nil
 	}
-	sslCaLocation := kafkaConfig.GetString("ssl.ca.location")
-	verifyClientCert := kafkaConfig.GetBool("enable.ssl.certificate.verification")
+	sslCaLocation := kafkaConfig.GetString("ssl-ca-location")
+	verifyClientCert := kafkaConfig.GetBool("enable-ssl-certificate-verification")
 
 	caFile, err := os.ReadFile(sslCaLocation)
 	if err != nil {
