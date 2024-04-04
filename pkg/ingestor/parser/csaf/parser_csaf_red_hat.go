@@ -151,8 +151,9 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 // It returns a pointer to an assembler.IngestPredicates struct containing the
 // generated VEX and CertifyVuln predicates.
 func (c *csafParserRedHat) GetPredicates(ctx context.Context) *assembler.IngestPredicates {
+	logger := logging.FromContext(ctx)
 	rv := &assembler.IngestPredicates{}
-	var vis []assembler.VexIngest
+	var vis = make(map[string]assembler.VexIngest)
 
 	for _, v := range c.csaf.Vulnerabilities {
 		vuln, err := helpers.CreateVulnInput(v.CVE)
@@ -168,10 +169,15 @@ func (c *csafParserRedHat) GetPredicates(ctx context.Context) *assembler.IngestP
 				if vi == nil {
 					continue
 				}
-				vis = append(vis, *vi)
+				var purl = helpers.PkgInputSpecToPurl(vi.Pkg)
+				if _, ok := vis[purl]; ok {
+					logger.Debugf("Duplicate ingest entry %v\n", vis)
+				} else {
+					vis[purl] = *vi
+				}
 			}
 		}
 	}
-	rv.Vex = vis
+	rv.Vex = maps.Values(vis)
 	return rv
 }
