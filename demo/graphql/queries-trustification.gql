@@ -348,3 +348,21 @@ query Vulnerabilities {
     }
   }
 }
+
+query TC_1593_FindDependentProduct {
+  findDependentProduct (
+    purl: "pkg:maven/log4j/log4j@1.2.17?type=jar"
+  ) {
+    ...allHasSBOMTree
+  }
+}
+
+query TC_1593_HasMetadata {
+  HasMetadata (hasMetadataSpec: {key: "topLevelPackage", value: "pkg:maven/pom-with-deps-no-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1?type=jar"}) {
+    subject {
+      ... on Package {
+        ...allPkgTree
+      }
+    }
+  }
+}
