@@ -89,7 +89,7 @@ time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/ex
 
 echo @@@@ Running TC_1593 queries and validating output
 
-cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_HasMetadata | jq 'del(.. | .id?) | .HasMetadata' > "${GUAC_DIR}/gotTC_1593_HasMetadata.json"
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_HasMetadata | jq 'del(.. | .id?) | .HasMetadata | sort ' > "${GUAC_DIR}/gotTC_1593_HasMetadata.json"
 diff -u "${SCRIPT_DIR}/expectTC_1593_HasMetadata.json" "${GUAC_DIR}/gotTC_1593_HasMetadata.json"
 
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct' > "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
