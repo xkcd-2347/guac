@@ -270,8 +270,8 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 				Key:           "topLevelPackage",
 				Value:         asmhelpers.PkgInputSpecToPurl(toplevel[0]),
 				Timestamp:     time.Now().UTC(),
-				Justification: "CyclonDX top level package reference",
-				Origin:        "GUAC CyclonDX",
+				Justification: "CycloneDX top level package self reference",
+				Origin:        "GUAC CycloneDX",
 				Collector:     "GUAC",
 			},
 		}
@@ -299,41 +299,45 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 		return preds
 	}
 
+	// let's go through all the dependencies defined
 	for _, deps := range *c.cdxBom.Dependencies {
 		currPkg, found := c.packagePackages[deps.Ref]
 		if !found {
-			continue
-		}
-		if reflect.DeepEqual(currPkg, toplevel) {
 			continue
 		}
 		if deps.Dependencies != nil {
 			for _, depPkg := range *deps.Dependencies {
 				if depPkg, exist := c.packagePackages[depPkg]; exist {
 					for _, packNode := range currPkg {
-						p, err := common.GetIsDep(packNode, depPkg, []*model.PkgInputSpec{}, "CDX BOM Dependency")
-						if err != nil {
-							logger.Errorf("error generating CycloneDX edge %v", err)
-							continue
-						}
-						if p != nil {
-							preds.IsDependency = append(preds.IsDependency, *p)
-						}
-						// add top level package reference to each package with a HasMetadata node
-						for _, topLevelPkg := range toplevel {
-							hasMetadata := assembler.HasMetadataIngest{
-								Pkg:          packNode,
-								PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
-								HasMetadata: &model.HasMetadataInputSpec{
-									Key:           "topLevelPackage",
-									Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
-									Timestamp:     time.Now().UTC(),
-									Justification: "CyclonDX top level package reference",
-									Origin:        "GUAC CyclonDX",
-									Collector:     "GUAC",
-								},
+						// if the "ref" package, i.e. currPkg, is not the top level package
+						// then we're adding a dependency between artifacts
+						if !reflect.DeepEqual(currPkg, toplevel) {
+							p, err := common.GetIsDep(packNode, depPkg, []*model.PkgInputSpec{}, "CDX BOM Dependency")
+							if err != nil {
+								logger.Errorf("error generating CycloneDX edge %v", err)
+								continue
 							}
-							preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+							if p != nil {
+								preds.IsDependency = append(preds.IsDependency, *p)
+							}
+						}
+						// in any case add top level package reference to each package with an HasMetadata node
+						for _, topLevelPkg := range toplevel {
+							for _, pkg := range depPkg {
+								hasMetadata := assembler.HasMetadataIngest{
+									Pkg:          pkg,
+									PkgMatchFlag: model.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
+									HasMetadata: &model.HasMetadataInputSpec{
+										Key:           "topLevelPackage",
+										Value:         asmhelpers.PkgInputSpecToPurl(topLevelPkg),
+										Timestamp:     time.Now().UTC(),
+										Justification: "CycloneDX top level package reference",
+										Origin:        "GUAC CycloneDX",
+										Collector:     "GUAC",
+									},
+								}
+								preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+							}
 						}
 					}
 				}
