@@ -366,3 +366,17 @@ query TC_1593_HasMetadata {
     }
   }
 }
+
+query TC_1609_HasMetadata {
+  HasMetadata (hasMetadataSpec: {
+    key: "topLevelPackage",
+    value: "pkg:maven/com.example/demo@0.0.1-SNAPSHOT?type=jar",
+    subject: {package: {name:"org-crac"}}
+  }) {
+    subject {
+      ... on Package {
+        ...allPkgTree
+      }
+    }
+  }
+}

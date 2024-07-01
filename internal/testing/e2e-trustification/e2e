@@ -95,5 +95,13 @@ diff -u "${SCRIPT_DIR}/expectTC_1593_HasMetadata.json" "${GUAC_DIR}/gotTC_1593_H
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct' > "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectTC_1593_FindDependentProduct.json" "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
 
+# IMPORTANT: this must happen after the above 'ds1/sbom' has been executed to reproduce the issue
+echo @@@@ Ingesting TC_1609_sbom.json into server
+time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/TC_1609_sbom.json;
+
+echo @@@@ Running TC_1609 queries and validating output
+
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1609_HasMetadata | jq 'del(.. | .id?) | .HasMetadata | sort ' > "${GUAC_DIR}/gotTC_1609_HasMetadata.json"
+diff -u "${SCRIPT_DIR}/expectTC_1609_HasMetadata.json" "${GUAC_DIR}/gotTC_1609_HasMetadata.json"
 
 # Note: graphql_playground is left running, CI will clean it up
