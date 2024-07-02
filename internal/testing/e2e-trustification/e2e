@@ -75,7 +75,7 @@ diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_ubi8.json" "${GUAC_DIR}/go
 cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindRelatedProducts | jq 'del(.. | .id?) | del(.. | .origin?) | .findTopLevelPackagesRelatedToVulnerability[] | length' > "${GUAC_DIR}/gotFindRelatedProducts.json"
 diff -u "${SCRIPT_DIR}/expectFindRelatedProducts.json" "${GUAC_DIR}/gotFindRelatedProducts.json"
 
-cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct' > "${GUAC_DIR}/gotFindDependentProduct.json"
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct | sort_by(.digest)' > "${GUAC_DIR}/gotFindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectFindDependentProduct.json" "${GUAC_DIR}/gotFindDependentProduct.json"
 
 cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o HasSBOM | jq ' .HasSBOM |= sort ' > "${GUAC_DIR}/gotHasSBOM.json"
