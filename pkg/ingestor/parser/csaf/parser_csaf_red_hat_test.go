@@ -17,21 +17,17 @@ package csaf
 
 import (
 	"context"
-	"reflect"
 	"testing"
-
-	"github.com/guacsec/guac/pkg/ingestor/parser/common"
-
-	"github.com/openvex/go-vex/pkg/csaf"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/guacsec/guac/internal/testing/testdata"
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/handler/processor"
+	"github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
 )
 
-func Test_csafParser(t *testing.T) {
+func Test_csafRedHatParser(t *testing.T) {
 	ctx := logging.WithLogger(context.Background())
 	tests := []struct {
 		name           string
@@ -56,7 +52,7 @@ func Test_csafParser(t *testing.T) {
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewCsafParser()
+			s := NewCsafRedHatParser()
 			err := s.Parse(ctx, tt.doc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("csafParse.Parse() error = %v, wantErr %v", err, tt.wantErr)
@@ -74,160 +70,7 @@ func Test_csafParser(t *testing.T) {
 	}
 }
 
-func Test_findProductRef(t *testing.T) {
-	defaultTestTree := csaf.ProductBranch{
-		Name: "node1",
-		Branches: []csaf.ProductBranch{
-			{
-				Name: "node2",
-				Relationships: []csaf.Relationship{
-					{
-						FullProductName: csaf.Product{
-							ID: "relationshipProductID2",
-						},
-						ProductRef: "relationshipProductRef2",
-					},
-				},
-			},
-		},
-	}
-	defaultReturnProductRef := &defaultTestTree.Branches[0].Relationships[0].ProductRef
-
-	// creating the tree outside the test loop and then making the child point back to the parent because
-	// the child can only point back to the parent if the tree is already created
-	// The child is pointing back to the parent outside the loop so that this test doesn't need a stackoverflow flag
-	stackoverflowTestTree := csaf.ProductBranch{
-		Name: "node1",
-		Product: csaf.Product{
-			Name: "productName1",
-			ID:   "productID1",
-		},
-		Category: "category1",
-
-		Branches: []csaf.ProductBranch{
-			{ // create a child branch which will then point back to the parent branch
-				Name: "node2",
-				Product: csaf.Product{
-					Name: "productName2",
-					ID:   "productID2",
-				},
-				Category: "category2",
-			},
-		},
-	}
-
-	// The child branch is pointing back to the parent branch to create a loop
-	stackoverflowTestTree.Branches[0].Branches = append(stackoverflowTestTree.Branches[0].Branches, stackoverflowTestTree)
-
-	type args struct {
-		ctx        context.Context
-		tree       csaf.ProductBranch
-		product_id string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *string
-	}{
-		{
-			name: "default",
-			args: args{
-				ctx:        context.Background(),
-				tree:       defaultTestTree,
-				product_id: defaultTestTree.Branches[0].Relationships[0].FullProductName.ID,
-			},
-			want: defaultReturnProductRef,
-		},
-		{
-			name: "can stack overflow",
-			args: args{
-				ctx:        context.Background(),
-				tree:       stackoverflowTestTree,
-				product_id: "not equal to any tree nodes",
-			},
-			want: nil,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got, _ := findProductsRef(test.args.ctx, test.args.tree, test.args.product_id)
-			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("findProductsRef() = %v, want %v", got, test.want)
-			}
-		})
-	}
-}
-
-func Test_findPurl(t *testing.T) {
-	// The tree for the default test case
-	defaultTestTree := csaf.ProductBranch{
-		Name: "node1",
-		Branches: []csaf.ProductBranch{
-			{
-				Name: "node2",
-				Product: csaf.Product{
-					IdentificationHelper: map[string]string{
-						"purl": "test 2",
-					},
-				},
-			},
-		},
-	}
-
-	defaultReturnedPurl := defaultTestTree.Branches[0].Product.IdentificationHelper["purl"]
-
-	// The tree for the stack overflow test case
-
-	stackOverflowTree := csaf.ProductBranch{
-		Name: "node1",
-		Branches: []csaf.ProductBranch{
-			{
-				Name: "node2",
-			},
-		},
-	}
-
-	stackOverflowTree.Branches[0].Branches = append(stackOverflowTree.Branches[0].Branches, stackOverflowTree)
-
-	type args struct {
-		ctx         context.Context
-		tree        csaf.ProductBranch
-		product_ref string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *string
-	}{
-		{
-			name: "default",
-			args: args{
-				ctx:         context.Background(),
-				tree:        defaultTestTree,
-				product_ref: "node2",
-			},
-			want: &defaultReturnedPurl,
-		},
-		{
-			name: "can stack overflow",
-			args: args{
-				ctx:         context.Background(),
-				tree:        stackOverflowTree,
-				product_ref: "not equal to any tree nodes",
-			},
-			want: nil,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if got := findPurl(test.args.ctx, test.args.tree, test.args.product_ref); !reflect.DeepEqual(got, test.want) {
-				t.Errorf("findPurl() = %v, want %v", got, test.want)
-			}
-		})
-	}
-}
-
-func Test_csafParser_GetIdentifiers(t *testing.T) {
+func Test_csafRedHatParser_GetIdentifiers(t *testing.T) {
 	type fields struct {
 		doc               *processor.Document
 		identifierStrings *common.IdentifierStrings
@@ -295,7 +138,7 @@ func Test_csafParser_GetIdentifiers(t *testing.T) {
 		},
 	}
 
-	c := NewCsafParser()
+	c := NewCsafRedHatParser()
 
 	err := c.Parse(test.ctx, test.fields.doc)
 	if err != nil {
