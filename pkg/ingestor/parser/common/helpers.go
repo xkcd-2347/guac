@@ -26,6 +26,11 @@ import (
 	"github.com/guacsec/guac/pkg/handler/processor"
 )
 
+type key string
+const (
+	KeyGraphqlEndpoint key = "graphqlEndpoint"
+)
+
 // TODO: change the DependencyType based on the relationship, currently set to unknown
 func GetIsDep(foundNode *model.PkgInputSpec, relatedPackNodes []*model.PkgInputSpec, relatedFileNodes []*model.PkgInputSpec, justification string, dependency model.DependencyType) (*assembler.IsDependencyIngest, error) {
 	if len(relatedFileNodes) > 0 {
