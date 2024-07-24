@@ -380,3 +380,20 @@ query TC_1609_HasMetadata {
     }
   }
 }
+
+query CVE_2023_1664 {
+  CertifyVEXStatement (
+    certifyVEXStatementSpec: {
+      vulnerability: {
+        vulnerabilityID: "cve-2023-1664"
+      }
+      subject: {
+        package: {
+          name: "keycloak-core"
+        }
+      }
+    }
+  ) {
+    documentRef
+  }
+}
