@@ -29,3 +29,15 @@ func (c *neo4jClient) FindSoftware(ctx context.Context, searchText string) ([]mo
 func (c *neo4jClient) FindSoftwareList(ctx context.Context, searchText string, after *string, first *int) (*model.FindSoftwareConnection, error) {
 	return nil, fmt.Errorf("not implemented: FindSoftwareList")
 }
+
+func (c *neo4jClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerability")
+}
+
+func (c *neo4jClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
+}
+
+func (c *neo4jClient) FindVulnerabilitySbomURI(ctx context.Context, cpe string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}

@@ -205,3 +205,15 @@ RETURN {
 	}
 	return results, nil
 }
+
+func (c *arangoClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerability")
+}
+
+func (c *arangoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
+}
+
+func (c *arangoClient) FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}
