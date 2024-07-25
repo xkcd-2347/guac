@@ -28,17 +28,17 @@ func (r *queryResolver) FindTopLevelPackagesRelatedToVulnerability(ctx context.C
 
 // FindVulnerability is the resolver for the findVulnerability field.
 func (r *queryResolver) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
-	panic(fmt.Errorf("not implemented: FindVulnerability - findVulnerability"))
+	return r.Backend.FindVulnerability(ctx, purl, offset, limit)
 }
 
 // FindVulnerabilityByCpe is the resolver for the findVulnerabilityByCPE field.
 func (r *queryResolver) FindVulnerabilityByCpe(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
-	panic(fmt.Errorf("not implemented: FindVulnerabilityByCpe - findVulnerabilityByCPE"))
+	return r.Backend.FindVulnerabilityCPE(ctx, cpe)
 }
 
 // FindVulnerabilityBySbomURI is the resolver for the findVulnerabilityBySbomURI field.
 func (r *queryResolver) FindVulnerabilityBySbomURI(ctx context.Context, sbomURI string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
-	panic(fmt.Errorf("not implemented: FindVulnerabilityBySbomURI - findVulnerabilityBySbomURI"))
+	return r.Backend.FindVulnerabilitySbomURI(ctx, sbomURI, offset, limit)
 }
 
 // FindDependentProduct is the resolver for the findDependentProduct field.

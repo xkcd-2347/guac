@@ -138,6 +138,15 @@ type Backend interface {
 	// Search queries: queries to help find data in GUAC based on text search
 	FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error)
 	FindSoftwareList(ctx context.Context, searchText string, after *string, first *int) (*model.FindSoftwareConnection, error)
+
+	// FindVulnerability returns all vulnerabilities related to a package
+	FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
+	FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindVulnerabilitySbomURI returns all vulnerabilities related to the package identified by the SBOM ID
+	FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
 }
 
 // BackendArgs interface allows each backend to specify the arguments needed to

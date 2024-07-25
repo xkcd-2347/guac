@@ -79,6 +79,18 @@ func (c *demoClient) FindSoftware(ctx context.Context, searchText string) ([]mod
 	return res, nil
 }
 
+func (c *demoClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerability")
+}
+
+func (c *demoClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
+}
+
+func (c *demoClient) FindVulnerabilitySbomURI(ctx context.Context, cpe string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}
+
 func (c *demoClient) searchSources(ctx context.Context, searchText string) ([]*model.Source, error) {
 	c.m.RLock()
 	defer c.m.RUnlock()

@@ -72,8 +72,14 @@ diff -u "${SCRIPT_DIR}/expectVulnerabilities.json" "${GUAC_DIR}/gotVulnerabiliti
 cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o CVE_2023_1664 | jq . > "${GUAC_DIR}/gotCVE_2023_1664.json"
 diff -u "${SCRIPT_DIR}/expectCVE_2023_1664.json" "${GUAC_DIR}/gotCVE_2023_1664.json"
 
-cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
-diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_quarkus.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerabilityBySbomURI ' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilityCPE_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityByCPE |= sort | .findVulnerabilityByCPE[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerabilityByCPE ' > "${GUAC_DIR}/gotFindVulnerabilityCPE_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerabilityCPE_quarkus.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerability_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerability |= sort | .findVulnerability[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerability ' > "${GUAC_DIR}/gotFindVulnerability_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerability_quarkus.json"
 
 cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_ubi9 | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi9.json"
 diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_ubi9.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi9.json"
