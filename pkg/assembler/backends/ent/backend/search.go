@@ -23,6 +23,7 @@ import (
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/artifact"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvex"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvuln"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
@@ -268,4 +269,34 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 	}
 
 	return &result, nil
+}
+
+func (b *EntBackend) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	pkgFilter, err := PurlToPkgSpec(purl)
+	if err != nil {
+		return nil, gqlerror.Errorf("failed to parse PURL: %v", err)
+	}
+	sbomQuery := b.client.BillOfMaterials.Query().
+		Where(
+			hasSBOMQuery(*&model.HasSBOMSpec{
+				IncludedDependencies: []*model.IsDependencySpec{
+					{
+						DependencyPackage: pkgFilter,
+					},
+				},
+			}),
+		).
+		WithPackage(withPackageVersionTree()).
+		Order(billofmaterials.ByID(), ent.Desc())
+	if offset != nil {
+		sbomQuery.Offset(*offset)
+	}
+	if limit != nil {
+		sbomQuery.Limit(*limit)
+	}
+	sboms, err := sbomQuery.All(ctx)
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for products dependant on purl %v due to : %v", purl, err)
+	}
+	return collect(sboms, toModelHasSBOM), nil
 }

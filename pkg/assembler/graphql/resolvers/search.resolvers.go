@@ -43,5 +43,5 @@ func (r *queryResolver) FindVulnerabilityBySbomURI(ctx context.Context, sbomURI 
 
 // FindDependentProduct is the resolver for the findDependentProduct field.
 func (r *queryResolver) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
-	panic(fmt.Errorf("not implemented: FindDependentProduct - findDependentProduct"))
+	return r.Backend.FindDependentProduct(ctx, purl, offset, limit)
 }

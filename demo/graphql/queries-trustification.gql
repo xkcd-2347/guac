@@ -379,27 +379,11 @@ query TC_1593_FindDependentProduct {
   }
 }
 
-query TC_1593_HasMetadata {
-  HasMetadata (hasMetadataSpec: {key: "topLevelPackage", value: "pkg:maven/pom-with-deps-no-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1?type=jar"}) {
-    subject {
-      ... on Package {
-        ...allPkgTree
-      }
-    }
-  }
-}
-
-query TC_1609_HasMetadata {
-  HasMetadata (hasMetadataSpec: {
-    key: "topLevelPackage",
-    value: "pkg:maven/com.example/demo@0.0.1-SNAPSHOT?type=jar",
-    subject: {package: {name:"org-crac"}}
-  }) {
-    subject {
-      ... on Package {
-        ...allPkgTree
-      }
-    }
+query TC_1609_FindDependentProduct {
+  findDependentProduct (
+    purl: "pkg:maven/io.github.crac/org-crac@0.1.1.redhat-00002?type=jar"
+  ) {
+    ...allHasSBOMTree
   }
 }
 

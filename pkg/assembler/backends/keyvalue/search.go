@@ -91,6 +91,10 @@ func (c *demoClient) FindVulnerabilitySbomURI(ctx context.Context, cpe string, o
 	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
 }
 
+func (c *demoClient) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	return []*model.HasSbom{}, fmt.Errorf("not implemented: FindDependentProduct")
+}
+
 func (c *demoClient) searchSources(ctx context.Context, searchText string) ([]*model.Source, error) {
 	c.m.RLock()
 	defer c.m.RUnlock()
