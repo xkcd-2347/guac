@@ -141,6 +141,18 @@ type Backend interface {
 
 	// FindTopLevelPackagesRelatedToVulnerability searches for top level packages (i.e. packages with an SBOM) related to the vulnerability ID provided
 	FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error)
+
+	// FindVulnerability returns all vulnerabilities related to a package
+	FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindVulnerabilityCPE returns all vulnerabilities related to the package identified by the CPE
+	FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindVulnerabilitySbomURI returns all vulnerabilities related to the package identified by the SBOM ID
+	FindVulnerabilitySbomURI(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
+
+	// FindDependentProduct returns all top level packages (i.e. products) dependent on the input PURL package
+	FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error)
 }
 
 // BackendArgs interface allows each backend to specify the arguments needed to

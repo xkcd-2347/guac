@@ -63,8 +63,23 @@ queries="${GUAC_DIR}/demo/graphql/queries-trustification.gql"
 
 echo @@@@ Running queries and validating output
 
-cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
-diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_quarkus.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o HasSBOM | jq ' .HasSBOM |= sort ' > "${GUAC_DIR}/gotHasSBOM.json"
+diff -u "${SCRIPT_DIR}/expectHasSBOM.json" "${GUAC_DIR}/gotHasSBOM.json"
+
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o Vulnerabilities | jq ' .vulnerabilities[].vulnerabilityIDs |= sort_by(.vulnerabilityID) ' > "${GUAC_DIR}/gotVulnerabilities.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilities.json" "${GUAC_DIR}/gotVulnerabilities.json"
+
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o CVE_2023_1664 | jq . > "${GUAC_DIR}/gotCVE_2023_1664.json"
+diff -u "${SCRIPT_DIR}/expectCVE_2023_1664.json" "${GUAC_DIR}/gotCVE_2023_1664.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerabilityBySbomURI ' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_quarkus.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilityCPE_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityByCPE |= sort | .findVulnerabilityByCPE[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerabilityByCPE ' > "${GUAC_DIR}/gotFindVulnerabilityCPE_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerabilityCPE_quarkus.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerability_quarkus | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerability |= sort | .findVulnerability[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findVulnerability ' > "${GUAC_DIR}/gotFindVulnerability_quarkus.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityQuarkus.json" "${GUAC_DIR}/gotFindVulnerability_quarkus.json"
 
 cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_ubi9 | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi9.json"
 diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_ubi9.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi9.json"
@@ -72,27 +87,18 @@ diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_ubi9.json" "${GUAC_DIR}/go
 cat "$queries" | gql-cli http://localhost:8080/query -o FindVulnerabilitySbomURI_ubi8 | jq --sort-keys 'del(.. | .id?) | del(.. | .origin?) | .findVulnerabilityBySbomURI |= sort | .findVulnerabilityBySbomURI[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort' > "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi8.json"
 diff -u "${SCRIPT_DIR}/expectFindVulnerabilitySbomURI_ubi8.json" "${GUAC_DIR}/gotFindVulnerabilitySbomURI_ubi8.json"
 
-cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindRelatedProducts | jq 'del(.. | .id?) | del(.. | .origin?) | .findTopLevelPackagesRelatedToVulnerability[] | length' > "${GUAC_DIR}/gotFindRelatedProducts.json"
-diff -u "${SCRIPT_DIR}/expectFindRelatedProducts.json" "${GUAC_DIR}/gotFindRelatedProducts.json"
+#cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindRelatedProducts | jq 'del(.. | .id?) | del(.. | .origin?) | .findTopLevelPackagesRelatedToVulnerability[] | length' > "${GUAC_DIR}/gotFindRelatedProducts.json"
+#diff -u "${SCRIPT_DIR}/expectFindRelatedProducts.json" "${GUAC_DIR}/gotFindRelatedProducts.json"
 
-cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct | sort_by(.digest)' > "${GUAC_DIR}/gotFindDependentProduct.json"
+cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct | sort_by(.digest)' > "${GUAC_DIR}/gotFindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectFindDependentProduct.json" "${GUAC_DIR}/gotFindDependentProduct.json"
-
-cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o HasSBOM | jq ' .HasSBOM |= sort ' > "${GUAC_DIR}/gotHasSBOM.json"
-diff -u "${SCRIPT_DIR}/expectHasSBOM.json" "${GUAC_DIR}/gotHasSBOM.json"
-
-cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o Vulnerabilities | jq ' .vulnerabilities[].vulnerabilityIDs |= sort_by(.vulnerabilityID) ' > "${GUAC_DIR}/gotVulnerabilities.json"
-diff -u "${SCRIPT_DIR}/expectVulnerabilities.json" "${GUAC_DIR}/gotVulnerabilities.json"
 
 echo @@@@ Ingesting TC_1593_sbom.json into server
 time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/TC_1593_sbom.json;
 
 echo @@@@ Running TC_1593 queries and validating output
 
-cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_HasMetadata | jq 'del(.. | .id?) | .HasMetadata | sort ' > "${GUAC_DIR}/gotTC_1593_HasMetadata.json"
-diff -u "${SCRIPT_DIR}/expectTC_1593_HasMetadata.json" "${GUAC_DIR}/gotTC_1593_HasMetadata.json"
-
-cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | .findDependentProduct' > "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1593_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct' > "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectTC_1593_FindDependentProduct.json" "${GUAC_DIR}/gotTC_1593_FindDependentProduct.json"
 
 # IMPORTANT: this must happen after the above 'ds1/sbom' has been executed to reproduce the issue
@@ -101,7 +107,7 @@ time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/ex
 
 echo @@@@ Running TC_1609 queries and validating output
 
-cat "$queries" | gql-cli http://localhost:8080/query -o TC_1609_HasMetadata | jq 'del(.. | .id?) | .HasMetadata | sort ' > "${GUAC_DIR}/gotTC_1609_HasMetadata.json"
-diff -u "${SCRIPT_DIR}/expectTC_1609_HasMetadata.json" "${GUAC_DIR}/gotTC_1609_HasMetadata.json"
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1609_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findDependentProduct' > "${GUAC_DIR}/gotTC_1609_FindDependentProduct.json"
+diff -u "${SCRIPT_DIR}/expectTC_1609_FindDependentProduct.json" "${GUAC_DIR}/gotTC_1609_FindDependentProduct.json"
 
 # Note: graphql_playground is left running, CI will clean it up

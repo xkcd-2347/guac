@@ -17,10 +17,9 @@ package csaf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
-
-	jsoniter "github.com/json-iterator/go"
 
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/generated"
@@ -33,7 +32,6 @@ import (
 )
 
 var (
-	json              = jsoniter.ConfigCompatibleWithStandardLibrary
 	justificationsMap = map[string]generated.VexJustification{
 		"component_not_present":                             generated.VexJustificationComponentNotPresent,
 		"vulnerable_code_not_present":                       generated.VexJustificationVulnerableCodeNotPresent,
@@ -53,6 +51,10 @@ var (
 		"recommended":         generated.VexStatusAffected,
 	}
 )
+
+type findPkgSpec interface {
+	findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error)
+}
 
 type csafParser struct {
 	doc               *processor.Document
@@ -100,12 +102,21 @@ func (c *csafParser) GetIdentifiers(ctx context.Context) (*common.IdentifierStri
 // It recursively calls itself on each child branch of the tree in a
 // depth first search manner if the nodes name isn't equal to product_ref.
 func findPurl(ctx context.Context, tree csaf.ProductBranch, product_ref string) *string {
-	return findPurlSearch(ctx, tree, product_ref, make(map[string]bool))
+	return findIdentificationHelperSearch(ctx, "purl", tree, product_ref, make(map[string]bool))
 }
 
-func findPurlSearch(ctx context.Context, tree csaf.ProductBranch, product_ref string, visited map[string]bool) *string {
-	if tree.Name == product_ref {
-		purl := tree.Product.IdentificationHelper["purl"]
+// findCPE searches the given CSAF product tree recursively to find the
+// cpe for the specified product reference.
+//
+// It recursively calls itself on each child branch of the tree in a
+// depth first search manner if the nodes name isn't equal to product_ref.
+func findCPE(ctx context.Context, tree csaf.ProductBranch, product_ref string) *string {
+	return findIdentificationHelperSearch(ctx, "cpe", tree, product_ref, make(map[string]bool))
+}
+
+func findIdentificationHelperSearch(ctx context.Context, identificationHelperKey string, tree csaf.ProductBranch, product_ref string, visited map[string]bool) *string {
+	if tree.Name == product_ref || tree.Product.ID == product_ref {
+		purl := tree.Product.IdentificationHelper[identificationHelperKey]
 		return &purl
 	}
 
@@ -115,7 +126,7 @@ func findPurlSearch(ctx context.Context, tree csaf.ProductBranch, product_ref st
 			continue
 		}
 		visited[key] = true
-		purl := findPurlSearch(ctx, b, product_ref, visited)
+		purl := findIdentificationHelperSearch(ctx, identificationHelperKey, b, product_ref, visited)
 		if purl != nil {
 			return purl
 		}
@@ -124,43 +135,43 @@ func findPurlSearch(ctx context.Context, tree csaf.ProductBranch, product_ref st
 	return nil
 }
 
-// findProductRef searches for a product reference string for the given product ID
-// by recursively traversing the CSAF product tree.
+// findProductsRef searches for a product_reference and relates_to_product_reference strings pair
+// for the given product ID by recursively traversing the CSAF product tree.
 //
-// findProductRefSearch was seperated from findProductRef so that the code can use
+// findProductRefAndRelatesToProductRefSearch was seperated from findProductsRef so that the code can use
 // a visited map and avoid infinite recursion.
 //
 // It returns a pointer to the product reference string if found,
 // otherwise nil.
-func findProductRef(ctx context.Context, tree csaf.ProductBranch, product_id string) *string {
-	return findProductRefSearch(ctx, tree, product_id, make(map[visitedProductRef]bool))
+func findProductsRef(ctx context.Context, tree csaf.ProductBranch, product_id string) (*string, *string) {
+	return findProductRefAndRelatesToProductRefSearch(ctx, tree, product_id, make(map[visitedProductRef]bool))
 }
 
-// findProductRefSearch recursively searches the product tree for a product
+// findProductRefAndRelatesToProductRefSearch recursively searches the product tree for a product
 // reference matching the given product ID. It does this with a visited map to
 // avoid infinite recursion.
 //
 // It returns a pointer to the product reference string if found,
 // otherwise nil.
-func findProductRefSearch(ctx context.Context, tree csaf.ProductBranch, product_id string, visited map[visitedProductRef]bool) *string {
+func findProductRefAndRelatesToProductRefSearch(ctx context.Context, tree csaf.ProductBranch, product_id string, visited map[visitedProductRef]bool) (*string, *string) {
 	if visited[visitedProductRef{tree.Product.Name, tree.Product.ID, tree.Name, tree.Category}] {
-		return nil
+		return nil, nil
 	}
 	visited[visitedProductRef{tree.Product.Name, tree.Product.ID, tree.Name, tree.Category}] = true
 
 	for _, r := range tree.Relationships {
 		if r.FullProductName.ID == product_id {
-			return &r.ProductRef
+			return &r.ProductRef, &r.RelatesToProductRef
 		}
 	}
 
 	for _, b := range tree.Branches {
-		pref := findProductRefSearch(ctx, b, product_id, visited)
-		if pref != nil {
-			return pref
+		prodRef, relToProdRef := findProductRefAndRelatesToProductRefSearch(ctx, b, product_id, visited)
+		if prodRef != nil {
+			return prodRef, relToProdRef
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // findActionStatement searches the given Vulnerability tree to find the action statement
@@ -199,7 +210,7 @@ func findImpactStatement(tree *csaf.Vulnerability, product_id string) *string {
 // given ID in the CSAF document. It returns a pointer to the package
 // specification if found, otherwise an error.
 func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*generated.PkgInputSpec, error) {
-	pref := findProductRef(ctx, c.csaf.ProductTree, product_id)
+	pref, _ := findProductsRef(ctx, c.csaf.ProductTree, product_id)
 	if pref == nil {
 		return nil, fmt.Errorf("unable to locate product reference for id %s", product_id)
 	}
@@ -217,7 +228,7 @@ func (c *csafParser) findPkgSpec(ctx context.Context, product_id string) (*gener
 // The function maps CSAF data into a VEX ingest object for adding to the vulnerability graph.
 // It then tries to find the package for the product ID to add to ingest.
 // If it can't be found, it then returns nil, otherwise it returns a pointer to the VEX ingest object.
-func (c *csafParser) generateVexIngest(ctx context.Context, vulnInput *generated.VulnerabilityInputSpec, csafVuln *csaf.Vulnerability, status string, product_id string) *assembler.VexIngest {
+func generateVexIngest(ctx context.Context, c *csafParser, parser findPkgSpec, vulnInput *generated.VulnerabilityInputSpec, csafVuln *csaf.Vulnerability, status string, product_id string) *assembler.VexIngest {
 	logger := logging.FromContext(ctx)
 	vi := &assembler.VexIngest{}
 
@@ -259,9 +270,9 @@ func (c *csafParser) generateVexIngest(ctx context.Context, vulnInput *generated
 	vi.Vulnerability = vulnInput
 	c.identifierStrings.PurlStrings = append(c.identifierStrings.PurlStrings, product_id)
 
-	pkg, err := c.findPkgSpec(ctx, product_id)
+	pkg, err := parser.findPkgSpec(ctx, product_id)
 	if err != nil {
-		logger.Warnf("[csaf] unable to locate package for not-affected product %s", product_id)
+		logger.Warnf("[csaf] unable to locate package for not-affected product %s: %v", product_id, err)
 		return nil
 	}
 	vi.Pkg = pkg
@@ -276,7 +287,6 @@ func (c *csafParser) generateVexIngest(ctx context.Context, vulnInput *generated
 func (c *csafParser) GetPredicates(ctx context.Context) *assembler.IngestPredicates {
 	rv := &assembler.IngestPredicates{}
 	var vis []assembler.VexIngest
-	var cvs []assembler.CertifyVulnIngest
 
 	for _, v := range c.csaf.Vulnerabilities {
 		vuln, err := helpers.CreateVulnInput(v.CVE)
@@ -288,40 +298,14 @@ func (c *csafParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 		for _, status := range statuses {
 			products := v.ProductStatus[status]
 			for _, product := range products {
-				vi := c.generateVexIngest(ctx, vuln, &v, status, product)
+				vi := generateVexIngest(ctx, c, c, vuln, &v, status, product)
 				if vi == nil {
 					continue
-				}
-
-				if status == "known_affected" || status == "under_investigation" {
-					vulnData := generated.ScanMetadataInput{
-						TimeScanned: c.csaf.Document.Tracking.CurrentReleaseDate,
-					}
-					cv := assembler.CertifyVulnIngest{
-						Pkg:           vi.Pkg,
-						Vulnerability: vuln,
-						VulnData:      &vulnData,
-					}
-					cvs = append(cvs, cv)
-				} else if status == "known_not_affected" || status == "fixed" {
-					vulnData := generated.ScanMetadataInput{
-						TimeScanned: c.csaf.Document.Tracking.CurrentReleaseDate,
-					}
-					noVuln := generated.VulnerabilityInputSpec{
-						Type: "NoVuln",
-					}
-					cv := assembler.CertifyVulnIngest{
-						Pkg:           vi.Pkg,
-						Vulnerability: &noVuln,
-						VulnData:      &vulnData,
-					}
-					cvs = append(cvs, cv)
 				}
 				vis = append(vis, *vi)
 			}
 		}
 	}
 	rv.Vex = vis
-	rv.CertifyVuln = cvs
 	return rv
 }

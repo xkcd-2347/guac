@@ -250,6 +250,21 @@ func (mr *MockBackendMockRecorder) CertifyVulnList(ctx, certifyVulnSpec, after, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CertifyVulnList", reflect.TypeOf((*MockBackend)(nil).CertifyVulnList), ctx, certifyVulnSpec, after, first)
 }
 
+// FindDependentProduct mocks base method.
+func (m *MockBackend) FindDependentProduct(ctx context.Context, purl string, offset, limit *int) ([]*model.HasSbom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindDependentProduct", ctx, purl, offset, limit)
+	ret0, _ := ret[0].([]*model.HasSbom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDependentProduct indicates an expected call of FindDependentProduct.
+func (mr *MockBackendMockRecorder) FindDependentProduct(ctx, purl, offset, limit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDependentProduct", reflect.TypeOf((*MockBackend)(nil).FindDependentProduct), ctx, purl, offset, limit)
+}
+
 // FindSoftware mocks base method.
 func (m *MockBackend) FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error) {
 	m.ctrl.T.Helper()
@@ -280,12 +295,13 @@ func (mr *MockBackendMockRecorder) FindSoftwareList(ctx, searchText, after, firs
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindSoftwareList", reflect.TypeOf((*MockBackend)(nil).FindSoftwareList), ctx, searchText, after, first)
 }
 
+
 // FindTopLevelPackagesRelatedToVulnerability mocks base method.
 func (m *MockBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindTopLevelPackagesRelatedToVulnerability", ctx, vulnerabilityID)
 	ret0, _ := ret[0].([][]model.Node)
-	ret1, _ := ret[1].(error)
+  ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -293,6 +309,52 @@ func (m *MockBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Con
 func (mr *MockBackendMockRecorder) FindTopLevelPackagesRelatedToVulnerability(ctx, vulnerabilityID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindTopLevelPackagesRelatedToVulnerability", reflect.TypeOf((*MockBackend)(nil).FindTopLevelPackagesRelatedToVulnerability), ctx, vulnerabilityID)
+}
+
+// FindVulnerability mocks base method.
+func (m *MockBackend) FindVulnerability(ctx context.Context, purl string, offset, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindVulnerability", ctx, purl, offset, limit)
+	ret0, _ := ret[0].([]model.CertifyVulnOrCertifyVEXStatement)
+
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindVulnerability indicates an expected call of FindVulnerability.
+func (mr *MockBackendMockRecorder) FindVulnerability(ctx, purl, offset, limit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindVulnerability", reflect.TypeOf((*MockBackend)(nil).FindVulnerability), ctx, purl, offset, limit)
+}
+
+// FindVulnerabilityCPE mocks base method.
+func (m *MockBackend) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindVulnerabilityCPE", ctx, cpe)
+	ret0, _ := ret[0].([]model.CertifyVulnOrCertifyVEXStatement)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindVulnerabilityCPE indicates an expected call of FindVulnerabilityCPE.
+func (mr *MockBackendMockRecorder) FindVulnerabilityCPE(ctx, cpe any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindVulnerabilityCPE", reflect.TypeOf((*MockBackend)(nil).FindVulnerabilityCPE), ctx, cpe)
+}
+
+// FindVulnerabilitySbomURI mocks base method.
+func (m *MockBackend) FindVulnerabilitySbomURI(ctx context.Context, purl string, offset, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindVulnerabilitySbomURI", ctx, purl, offset, limit)
+	ret0, _ := ret[0].([]model.CertifyVulnOrCertifyVEXStatement)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindVulnerabilitySbomURI indicates an expected call of FindVulnerabilitySbomURI.
+func (mr *MockBackendMockRecorder) FindVulnerabilitySbomURI(ctx, purl, offset, limit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindVulnerabilitySbomURI", reflect.TypeOf((*MockBackend)(nil).FindVulnerabilitySbomURI), ctx, purl, offset, limit)
 }
 
 // HasMetadata mocks base method.

@@ -33,3 +33,19 @@ func (c *neo4jClient) FindSoftwareList(ctx context.Context, searchText string, a
 func (c *neo4jClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
 	return nil, fmt.Errorf("not implemented: FindTopLevelPackagesRelatedToVulnerability")
 }
+
+func (c *neo4jClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerability")
+}
+
+func (c *neo4jClient) FindVulnerabilityCPE(ctx context.Context, cpe string) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilityCPE")
+}
+
+func (c *neo4jClient) FindVulnerabilitySbomURI(ctx context.Context, cpe string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
+	return nil, fmt.Errorf("not implemented: FindVulnerabilitySbomURI")
+}
+
+func (c *neo4jClient) FindDependentProduct(ctx context.Context, purl string, offset *int, limit *int) ([]*model.HasSbom, error) {
+	return nil, fmt.Errorf("not implemented: FindDependentProduct")
+}
