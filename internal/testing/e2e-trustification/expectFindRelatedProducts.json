@@ -1,8 +1,808 @@
-4
-4
-4
-4
-4
-4
-4
-4
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.43.0-5.el9_3.1",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "x86_64"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.43.0-5.el9_3.1",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "x86_64"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi9-minimal",
+        "names": [
+          {
+            "name": "ubi9-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b330d9e6aa681d5fe2b11fcfe0ca51e1801d837dd26804b0ead9a09ca8246c40",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "9.3-1361"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.33.0-5.el8_8",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "s390x"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.33.0-5.el8_8",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "s390x"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi8-minimal",
+        "names": [
+          {
+            "name": "ubi8-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b93deceb59a58588d5b16429fc47f98920f84740a1f2ed6454e33275f0701b59",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "8.8-1072.1697626218"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.43.0-5.el9_3.1",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "s390x"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.43.0-5.el9_3.1",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "s390x"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi9-minimal",
+        "names": [
+          {
+            "name": "ubi9-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b330d9e6aa681d5fe2b11fcfe0ca51e1801d837dd26804b0ead9a09ca8246c40",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "9.3-1361"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.33.0-5.el8_8",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "aarch64"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.33.0-5.el8_8",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "aarch64"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi8-minimal",
+        "names": [
+          {
+            "name": "ubi8-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b93deceb59a58588d5b16429fc47f98920f84740a1f2ed6454e33275f0701b59",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "8.8-1072.1697626218"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.43.0-5.el9_3.1",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "ppc64le"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.43.0-5.el9_3.1",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "ppc64le"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi9-minimal",
+        "names": [
+          {
+            "name": "ubi9-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b330d9e6aa681d5fe2b11fcfe0ca51e1801d837dd26804b0ead9a09ca8246c40",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "9.3-1361"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.33.0-5.el8_8",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "ppc64le"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.33.0-5.el8_8",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "ppc64le"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi8-minimal",
+        "names": [
+          {
+            "name": "ubi8-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b93deceb59a58588d5b16429fc47f98920f84740a1f2ed6454e33275f0701b59",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "8.8-1072.1697626218"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.33.0-5.el8_8",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "x86_64"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.33.0-5.el8_8",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "x86_64"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi8-minimal",
+        "names": [
+          {
+            "name": "ubi8-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b93deceb59a58588d5b16429fc47f98920f84740a1f2ed6454e33275f0701b59",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "8.8-1072.1697626218"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+[
+  {
+    "__typename": "CertifyVEXStatement",
+    "subject": {
+      "__typename": "Package",
+      "type": "rpm",
+      "namespaces": [
+        {
+          "namespace": "redhat",
+          "names": [
+            {
+              "name": "libnghttp2",
+              "versions": [
+                {
+                  "version": "1.43.0-5.el9_3.1",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "aarch64"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vulnerability": {
+      "type": "cve",
+      "vulnerabilityIDs": [
+        {
+          "vulnerabilityID": "cve-2023-44487"
+        }
+      ]
+    },
+    "status": "FIXED",
+    "vexJustification": "NOT_PROVIDED",
+    "statement": "For details on how to apply this update, which includes the changes described in this advisory, refer to:\n\nhttps://access.redhat.com/articles/11258",
+    "statusNotes": "",
+    "knownSince": "2023-11-21T11:59:10Z",
+    "collector": "FileCollector"
+  },
+  {
+    "__typename": "Package",
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "libnghttp2",
+            "versions": [
+              {
+                "version": "1.43.0-5.el9_3.1",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "aarch64"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "IsDependency",
+    "dependencyType": "UNKNOWN"
+  },
+  {
+    "__typename": "Package",
+    "type": "oci",
+    "namespaces": [
+      {
+        "namespace": "registry.redhat.io/ubi9-minimal",
+        "names": [
+          {
+            "name": "ubi9-minimal-container",
+            "versions": [
+              {
+                "version": "sha256:b330d9e6aa681d5fe2b11fcfe0ca51e1801d837dd26804b0ead9a09ca8246c40",
+                "qualifiers": [
+                  {
+                    "key": "tag",
+                    "value": "9.3-1361"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
