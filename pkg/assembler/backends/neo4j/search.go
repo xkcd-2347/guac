@@ -30,6 +30,10 @@ func (c *neo4jClient) FindSoftwareList(ctx context.Context, searchText string, a
 	return nil, fmt.Errorf("not implemented: FindSoftwareList")
 }
 
+func (c *neo4jClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
+	return nil, fmt.Errorf("not implemented: FindTopLevelPackagesRelatedToVulnerability")
+}
+
 func (c *neo4jClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerability")
 }
