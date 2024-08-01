@@ -18,7 +18,9 @@ package backend
 import (
 	"context"
 	"fmt"
+	"sort"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
@@ -26,6 +28,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/billofmaterials"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvex"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/certifyvuln"
+	"github.com/guacsec/guac/pkg/assembler/backends/ent/dependency"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packagename"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/packageversion"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent/sourcename"
@@ -108,6 +111,202 @@ func (b *EntBackend) FindSoftware(ctx context.Context, searchText string) ([]mod
 
 func (b *EntBackend) FindSoftwareList(ctx context.Context, searchText string, after *string, first *int) (*model.FindSoftwareConnection, error) {
 	return nil, fmt.Errorf("not implemented: FindSoftwareList")
+}
+
+func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
+	// retrieve (if any) the vulnerability by vulnerabilityID with its CertifyVEX and CertifyVuln related entities
+	vulnerability, err := b.client.VulnerabilityID.Query().
+		Where(
+			vulnerabilityid.VulnerabilityIDEqualFold(vulnerabilityID),
+			vulnerabilityid.Or(
+				vulnerabilityid.HasVexWith(
+					certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
+					certifyvex.PackageIDNotNil(),
+					certifyvex.HasPackageWith(
+						packageversion.HasIncludedInSboms(),
+					),
+				),
+				vulnerabilityid.HasCertifyVuln(),
+			),
+		).
+		WithVex(func(q *ent.CertifyVexQuery) {
+			q.Where(
+				certifyvex.HasVulnerabilityWith(
+					vulnerabilityid.TypeNEQ(NoVuln)),
+				certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
+				certifyvex.PackageIDNotNil(),
+				certifyvex.HasPackageWith(
+					packageversion.HasIncludedInSboms(),
+				),
+			).
+				WithPackage(func(q *ent.PackageVersionQuery) {
+					q.WithName()
+				})
+		}).
+		WithCertifyVuln(func(q *ent.CertifyVulnQuery) {
+			q.Where(
+				certifyvuln.HasVulnerabilityWith(
+					vulnerabilityid.TypeNEQ(NoVuln)),
+				certifyvuln.HasPackageWith(
+					packageversion.HasIncludedInSboms(),
+				),
+			).
+				WithPackage(func(q *ent.PackageVersionQuery) {
+					q.WithName()
+				})
+		}).
+		Only(ctx)
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for SBOMs related to %v due to : %v", vulnerabilityID, err)
+	}
+	// build the output result backward compatible with the previous version
+	var result [][]model.Node
+	// Vex has priority over Vuln just for consistency with previous implementation, but it could be changed
+	if len(vulnerability.Edges.Vex) > 0 {
+		for _, vex := range vulnerability.Edges.Vex {
+			dependencyPathFromVulnerablePkgToProduct, err := b.recursivelyFindPathFromPackageToProduct(ctx, vex.PackageID)
+			if err != nil {
+				return nil, gqlerror.Errorf("error searching for paths from vulnerable package to SBOMs related to %v due to : %v", vulnerabilityID, err)
+			}
+			// inject the vulnerability in order for the toModelCertifyVEXStatement method to work
+			vex.Edges.Vulnerability = vulnerability
+			result = append(result, getResponse(*toModelCertifyVEXStatement(vex), dependencyPathFromVulnerablePkgToProduct)...)
+		}
+	} else {
+		for _, vuln := range vulnerability.Edges.CertifyVuln {
+			dependencyPathFromVulnerablePkgToProduct, err := b.recursivelyFindPathFromPackageToProduct(ctx, &vuln.PackageID)
+			if err != nil {
+				return nil, gqlerror.Errorf("error searching for paths from vulnerable package to SBOMs related to %v due to : %v", vulnerabilityID, err)
+			}
+			// inject the vulnerability in order for the toModelCertifyVEXStatement method to work
+			vuln.Edges.Vulnerability = vulnerability
+			result = append(result, getResponse(*toModelCertifyVulnerability(vuln), dependencyPathFromVulnerablePkgToProduct)...)
+		}
+	}
+	return result, nil
+}
+
+func (b *EntBackend) recursivelyFindPathFromPackageToProduct(ctx context.Context, vulnerablePackage *uuid.UUID) ([][]*ent.Dependency, error) {
+	// SQL WITH RECURSIVE statement for traversing the dependencies table from the vulnerable package to the products it belongs to
+	dependenciesFromVulnerablePackageToProduct, err := b.client.Dependency.Query().
+		Where(func(s *sql.Selector) {
+			t1, t2 := sql.Table(dependency.Table), sql.Table(dependency.Table)
+			with := sql.WithRecursive("package")
+			with.As(
+				// The initial `SELECT` statement executed once at the start,
+				// and produces the initial row or rows for the recursion.
+				sql.Select(t1.Columns(dependency.Columns...)...).
+					From(t1).
+					Where(
+						sql.EQ(t1.C(dependency.FieldDependentPackageVersionID), vulnerablePackage),
+					).
+					// Merge the `SELECT` statement above with the following:
+					UnionAll(
+						// A `SELECT` statement that produces additional rows and recurses by referring
+						// to the CTE name (e.g. "package"), and ends when there are no more new rows.
+						sql.Select(t2.Columns(dependency.Columns...)...).
+							From(t2).
+							Join(with).
+							On(t2.C(dependency.FieldDependentPackageVersionID), with.C(dependency.FieldPackageID)),
+					),
+			)
+			// Join the root `SELECT` query with the CTE result (`WITH` clause).
+			s.Prefix(with).Join(with).
+				On(s.C(dependency.FieldID), with.C(dependency.FieldID))
+		}).
+		Select(dependency.Columns...).
+		WithDependentPackageVersion(func(q *ent.PackageVersionQuery) {
+			q.WithName()
+		}).
+		WithPackage(func(q *ent.PackageVersionQuery) {
+			q.WithName()
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, gqlerror.Errorf("error querying for SBOMs related to package %v due to : %v", vulnerablePackage.String(), err)
+	}
+	// create a map to quickly pick a dependency by dependant package ID
+	pkgWithDependantPkgs := make(map[uuid.UUID][]*ent.Dependency)
+	for _, dep := range dependenciesFromVulnerablePackageToProduct {
+		pkgWithDependantPkgs[dep.DependentPackageVersionID] = append(pkgWithDependantPkgs[dep.DependentPackageVersionID], dep)
+	}
+	// in this call allowIndirect is true because, if available, an indirect (i.e. transitive) dependency from
+	// the found vulnerable package and the products it belongs to is something expected to be retrieved
+	dependencyPaths := buildDependencyPath(pkgWithDependantPkgs, vulnerablePackage, true)
+	// sort them in ascending paths length to ensure the first is (one of) the shortest path
+	sort.Slice(dependencyPaths, func(i, j int) bool {
+		return len(dependencyPaths[i]) < len(dependencyPaths[j])
+	})
+	// the vulnerable package could belong to multiple products so the approach is to go through the sorted dependencyPaths
+	// and leveraging a map to store the shortest path for each product found (product is always the package referenced
+	// in the last element of a path)
+	var result = make(map[uuid.UUID][]*ent.Dependency)
+	for _, path := range dependencyPaths {
+		productID := path[len(path)-1].PackageID
+		// if nothing has been added for the current productID, then it means we can add it because it's the shortest path
+		// (based on the fact that dependencyPaths has been previously sorted by paths' length)
+		if _, found := result[productID]; !found {
+			result[productID] = path
+		}
+	}
+	// we return all the shortest paths from the vulnerable package to all the products it belongs to
+	return maps.Values(result), nil
+}
+
+func buildDependencyPath(resultSet map[uuid.UUID][]*ent.Dependency, current *uuid.UUID, allowIndirect bool) [][]*ent.Dependency {
+	var result [][]*ent.Dependency
+	// keep track of the dependencies already evaluated to avoid having duplicated paths
+	// it happens when the SQL recursive query finds multiple paths through the same package, i.e.
+	// pkg A -> pkg B -> pkg C -> product
+	// pkg A -> pkg B -> pkg D -> pkg C -> product
+	// in this situation, the dependency "pkg C -> product" appears twice in the DB result set,
+	// but it must be evaluated only once
+	var analyzedDependencies = make(map[uuid.UUID]struct{})
+	for _, dependant := range resultSet[*current] {
+		if _, ok := analyzedDependencies[dependant.ID]; !ok {
+			analyzedDependencies[dependant.ID] = struct{}{}
+			if allowIndirect || dependant.DependencyType != dependency.DependencyTypeINDIRECT {
+				// now allowIndirect is false because in an inner recursive step we're not interested in getting
+				// transitive (i.e. INDIRECT) dependencies but just the direct one to properly create the full path
+				// from the vulnerable package to each product it belongs to
+				dependencyPath := buildDependencyPath(resultSet, &dependant.PackageID, false)
+				// no further dependencies found, i.e. a product has been found, so it's the base case for the recursion
+				if len(dependencyPath) == 0 {
+					result = append(result, []*ent.Dependency{dependant})
+				} else {
+					for _, deeperPath := range dependencyPath {
+						result = append(result, append([]*ent.Dependency{dependant}, deeperPath...))
+					}
+				}
+			}
+		}
+	}
+	return result
+}
+
+func getResponse(certifyVexOrVuln model.Node, dependencyPaths [][]*ent.Dependency) [][]model.Node {
+	var result [][]model.Node
+	// each array of dependencies connects a vulnerable package with a product (i.e. package with an SBOM) the package belongs to
+	// so looping through the dependencies will ensure all the products are listed in the response
+	for _, dependencyPath := range dependencyPaths {
+		for _, dep := range dependencyPath {
+			var response []model.Node
+			// the 1st expected element of each inner array is a CertifyVEXStatement or a CertifyVuln re to the vulnerabilityID
+			response = append(response, certifyVexOrVuln)
+			// inject the PackageVersion in order for the toModelPackage method to work
+			dep.Edges.DependentPackageVersion.Edges.Name.Edges.Versions = []*ent.PackageVersion{dep.Edges.DependentPackageVersion}
+			// the 2nd expected element of each inner array is the vulnerable Package
+			response = append(response, toModelPackage(dep.Edges.DependentPackageVersion.Edges.Name))
+			// the 3rd expected element of each inner array is the IsDependency between the vulnerable package and its SBOM
+			response = append(response, toModelIsDependencyWithBackrefs(dep))
+			// inject the PackageVersion in order for the toModelPackage method to work
+			dep.Edges.Package.Edges.Name.Edges.Versions = []*ent.PackageVersion{dep.Edges.Package}
+			// the 4th expected element of each inner array is the SBOM Package
+			response = append(response, toModelPackage(dep.Edges.Package.Edges.Name))
+			result = append(result, response)
+		}
+	}
+	return result
 }
 
 // FindVulnerability returns all vulnerabilities related to a package

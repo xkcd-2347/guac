@@ -79,6 +79,10 @@ func (c *demoClient) FindSoftware(ctx context.Context, searchText string) ([]mod
 	return res, nil
 }
 
+func (c *demoClient) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
+	return nil, fmt.Errorf("not implemented: FindTopLevelPackagesRelatedToVulnerability")
+}
+
 func (c *demoClient) FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error) {
 	return nil, fmt.Errorf("not implemented: FindVulnerability")
 }

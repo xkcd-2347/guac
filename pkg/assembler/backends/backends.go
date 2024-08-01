@@ -139,6 +139,9 @@ type Backend interface {
 	FindSoftware(ctx context.Context, searchText string) ([]model.PackageSourceOrArtifact, error)
 	FindSoftwareList(ctx context.Context, searchText string, after *string, first *int) (*model.FindSoftwareConnection, error)
 
+	// FindTopLevelPackagesRelatedToVulnerability searches for top level packages (i.e. packages with an SBOM) related to the vulnerability ID provided
+	FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error)
+
 	// FindVulnerability returns all vulnerabilities related to a package
 	FindVulnerability(ctx context.Context, purl string, offset *int, limit *int) ([]model.CertifyVulnOrCertifyVEXStatement, error)
 
