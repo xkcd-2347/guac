@@ -6,7 +6,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 )
@@ -23,7 +22,7 @@ func (r *queryResolver) FindSoftwareList(ctx context.Context, searchText string,
 
 // FindTopLevelPackagesRelatedToVulnerability is the resolver for the findTopLevelPackagesRelatedToVulnerability field.
 func (r *queryResolver) FindTopLevelPackagesRelatedToVulnerability(ctx context.Context, vulnerabilityID string) ([][]model.Node, error) {
-	panic(fmt.Errorf("not implemented: FindTopLevelPackagesRelatedToVulnerability - findTopLevelPackagesRelatedToVulnerability"))
+	return r.Backend.FindTopLevelPackagesRelatedToVulnerability(ctx, vulnerabilityID)
 }
 
 // FindVulnerability is the resolver for the findVulnerability field.
