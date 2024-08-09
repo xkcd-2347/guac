@@ -133,7 +133,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    name: CI for build
+    name: GO generate/build
     steps:
       - name: Checkout code
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # tag=v3
@@ -147,8 +147,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       - name: Setup the project
         run: go mod download
-      - name: Run tests
-        run: make build
+      - name: Run generate
+        run: go generate ./...
+      - name: Run build
+        run: go build ./...
 
   end-to-end:
     name: E2E Trustification
