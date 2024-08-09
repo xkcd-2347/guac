@@ -131,6 +131,27 @@ jobs:
 #      - name: Check that all linted text is up to date
 #        run: make generated_up_to_date
 
+  build:
+    runs-on: ubuntu-latest
+    name: GO generate/build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # tag=v3
+      - name: setup-go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # tag=v3.2.1
+        with:
+          go-version: '1.21'
+      - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      - name: Setup the project
+        run: go mod download
+      - name: Run generate
+        run: go generate ./...
+      - name: Run build
+        run: go build ./...
+
   end-to-end:
     name: E2E Trustification
     runs-on: ubuntu-latest
