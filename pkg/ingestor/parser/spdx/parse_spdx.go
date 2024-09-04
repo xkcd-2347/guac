@@ -117,27 +117,29 @@ func (s *spdxParser) getPackages() error {
 
 	for _, pac := range s.spdxDoc.Packages {
 		// for each package create a package for each of them
-		purl := ""
+		purls := make([]string, 0)
 		for _, ext := range pac.PackageExternalReferences {
 			if ext.RefType == spdx_common.TypePackageManagerPURL {
-				purl = ext.Locator
+				purls = append(purls, ext.Locator)
 			}
 		}
-		if purl == "" {
-			purl = asmhelpers.GuacPkgPurl(pac.PackageName, &pac.PackageVersion)
+		if len(purls) == 0 {
+			purls = append(purls, asmhelpers.GuacPkgPurl(pac.PackageName, &pac.PackageVersion))
 		}
 
-		s.identifierStrings.PurlStrings = append(s.identifierStrings.PurlStrings, purl)
+		s.identifierStrings.PurlStrings = append(s.identifierStrings.PurlStrings, purls...)
 
-		pkg, err := asmhelpers.PurlToPkg(purl)
-		if err != nil {
-			return err
-		}
+		for _, purl := range purls {
+			pkg, err := asmhelpers.PurlToPkg(purl)
+			if err != nil {
+				return err
+			}
 
-		if slices.Contains(topLevelSpdxIds, string(pac.PackageSPDXIdentifier)) {
-			s.topLevelPackages[string(s.spdxDoc.SPDXIdentifier)] = append(s.topLevelPackages[string(s.spdxDoc.SPDXIdentifier)], pkg)
+			if slices.Contains(topLevelSpdxIds, string(pac.PackageSPDXIdentifier)) {
+				s.topLevelPackages[string(s.spdxDoc.SPDXIdentifier)] = append(s.topLevelPackages[string(s.spdxDoc.SPDXIdentifier)], pkg)
+			}
+			s.packagePackages[string(pac.PackageSPDXIdentifier)] = append(s.packagePackages[string(pac.PackageSPDXIdentifier)], pkg)
 		}
-		s.packagePackages[string(pac.PackageSPDXIdentifier)] = append(s.packagePackages[string(pac.PackageSPDXIdentifier)], pkg)
 
 		// if checksums exists create an artifact for each of them
 		for _, checksum := range pac.PackageChecksums {

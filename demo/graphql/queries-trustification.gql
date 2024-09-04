@@ -380,3 +380,27 @@ query TC_1609_HasMetadata {
     }
   }
 }
+
+query TC_1757_Package_x86_64 {
+  packages (pkgSpec:{
+    name:"openssl",
+    qualifiers: [
+      {key:"arch", value:"src"},
+      {key:"repository_id", value:"rhel-9-for-x86_64-baseos-eus-source-rpms"}
+    ]
+  }) {
+    ...allPkgTree
+  }
+}
+
+query TC_1757_Package_aarch64 {
+  packages (pkgSpec:{
+    name:"openssl",
+    qualifiers: [
+      {key:"arch", value:"src"},
+      {key:"repository_id", value:"rhel-9-for-aarch64-baseos-eus-source-rpms"}
+    ]
+  }) {
+    ...allPkgTree
+  }
+}

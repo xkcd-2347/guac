@@ -1,0 +1,31 @@
+[
+  {
+    "type": "rpm",
+    "namespaces": [
+      {
+        "namespace": "redhat",
+        "names": [
+          {
+            "name": "openssl",
+            "versions": [
+              {
+                "version": "3.0.7-18.el9_2",
+                "qualifiers": [
+                  {
+                    "key": "arch",
+                    "value": "src"
+                  },
+                  {
+                    "key": "repository_id",
+                    "value": "rhel-9-for-aarch64-baseos-eus-source-rpms"
+                  }
+                ],
+                "subpath": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
