@@ -23,7 +23,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/Khan/genqlient/graphql"
 	"github.com/guacsec/guac/pkg/assembler"
 	"github.com/guacsec/guac/pkg/assembler/clients/helpers"
 	csub_client "github.com/guacsec/guac/pkg/collectsub/client"
@@ -172,8 +171,11 @@ func GetAssembler(
 	transport http.RoundTripper,
 ) func([]assembler.IngestPredicates) error {
 	httpClient := http.Client{Transport: transport}
-	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
-	f := helpers.GetBulkAssembler(ctx, childLogger, gqlclient)
+	gqlClient, err := helpers.GetGqlClient(graphqlEndpoint, httpClient)
+	if err != nil {
+		fmt.Printf("unable to create GraphQL client: %v", err)
+	}
+	f := helpers.GetBulkAssembler(ctx, childLogger, gqlClient)
 	return f
 }
 

@@ -11,8 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func GetGqlClient(graphqlEndpoint string) (graphql.Client, error) {
-	httpClient := http.Client{}
+func GetGqlClient(graphqlEndpoint string, httpClient http.Client) (graphql.Client, error) {
 	certFile := viper.GetString("gql-tls-root-ca")
 	insecure := viper.GetBool("gql-tls-insecure")
 	if certFile != "" {
