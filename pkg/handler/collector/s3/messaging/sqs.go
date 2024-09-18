@@ -19,11 +19,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/spf13/viper"
 )
 
 type SqsProvider struct {
@@ -83,6 +86,14 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 	sqsQueue := mpConfig.Queue
 	sqsProvider := SqsProvider{}
 
+	sqsConfig := &viper.Viper{}
+	sqsConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	sqsConfig.AutomaticEnv()
+
+	accessKey := sqsConfig.GetString("sqs-access-key")
+	secretKey := sqsConfig.GetString("sqs-secret-key")
+	region := sqsConfig.GetString("sqs-region")
+
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return SqsProvider{}, fmt.Errorf("error loading AWS SDK config: %w", err)
@@ -92,8 +103,17 @@ func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
 		if mpConfig.Endpoint != "" {
 			o.BaseEndpoint = aws.String(mpConfig.Endpoint)
 		}
-		if mpConfig.Region != "" {
-			o.Region = mpConfig.Region
+		if region != "" {
+			o.Region = region
+		}
+
+		if accessKey != "" && secretKey != "" {
+			staticProvider := credentials.NewStaticCredentialsProvider(
+				accessKey,
+				secretKey,
+				"",
+			)
+			o.Credentials = staticProvider
 		}
 	})
 
@@ -113,7 +133,9 @@ func (s *SqsProvider) ReceiveMessage(ctx context.Context) (Message, error) {
 	// Get URL of queue
 	urlResult, err := s.client.GetQueueUrl(ctx, gQInput)
 	if err != nil {
-		return nil, fmt.Errorf("Got an error getting the queue URL : %w", err)
+		fmt.Println("Got an error getting the queue URL:")
+		fmt.Println(err)
+		return nil, err
 	}
 
 	addr := urlResult.QueueUrl
@@ -131,7 +153,8 @@ func (s *SqsProvider) ReceiveMessage(ctx context.Context) (Message, error) {
 	default:
 		receiveOutput, err := s.client.ReceiveMessage(ctx, receiveInput)
 		if err != nil {
-			return &SqsMessage{}, fmt.Errorf("error receiving message, skipping: %w", err)
+			fmt.Printf("error receiving message, skipping: %v\n", err)
+			//continue
 		}
 
 		messages := receiveOutput.Messages
@@ -153,7 +176,7 @@ func (s *SqsProvider) ReceiveMessage(ctx context.Context) (Message, error) {
 			}
 			_, err = s.client.DeleteMessage(context.TODO(), deleteInput)
 			if err != nil {
-				return nil, fmt.Errorf("error deleting message: %w", err)
+				logger.Errorf("error deleting message: %v\n", err)
 			}
 			logger.Debugf("Message deleted from the queue")
 

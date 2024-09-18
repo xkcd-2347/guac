@@ -24,8 +24,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/guacsec/guac/pkg/logging"
+	"github.com/spf13/viper"
 )
 
 type BuildBucket interface {
@@ -58,21 +60,10 @@ func GetDefaultBucket(url string, region string) Bucket {
 }
 
 func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, prefix string, token *string, max int32) ([]string, *string, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	client, err := d.getS3Client(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+		return nil, nil, fmt.Errorf("error creating S3 client: %w", err)
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		if d.url != "" {
-			o.BaseEndpoint = aws.String(d.url)
-		}
-
-		if d.region != "" {
-			o.Region = d.region
-		}
-	})
 
 	input := &s3.ListObjectsV2Input{
 		Bucket:            &bucket,
@@ -97,21 +88,10 @@ func (d *s3Bucket) ListFiles(ctx context.Context, bucket string, prefix string, 
 }
 
 func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string) ([]byte, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	client, err := d.getS3Client(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+		return nil, fmt.Errorf("error creating S3 client: %w", err)
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		if d.url != "" {
-			o.BaseEndpoint = aws.String(d.url)
-		}
-
-		if d.region != "" {
-			o.Region = d.region
-		}
-	})
 
 	// Create a GetObjectInput with the bucket name and object key.
 	input := &s3.GetObjectInput{
@@ -121,7 +101,7 @@ func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string)
 
 	resp, err := client.GetObject(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to download file: %s %w", item, err)
+		return nil, fmt.Errorf("unable to download file: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -136,20 +116,10 @@ func (d *s3Bucket) DownloadFile(ctx context.Context, bucket string, item string)
 
 func (d *s3Bucket) GetEncoding(ctx context.Context, bucket string, item string) (string, error) {
 	logger := logging.FromContext(ctx)
-	cfg, err := config.LoadDefaultConfig(ctx)
+	client, err := d.getS3Client(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error loading AWS SDK config: %w", err)
+		return "", fmt.Errorf("error creating S3 client: %w", err)
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		if d.url != "" {
-			o.BaseEndpoint = aws.String(d.url)
-		}
-		if d.region != "" {
-			o.Region = d.region
-		}
-	})
 
 	logger.Infof("Downloading document %v from bucket %v", item, bucket)
 
@@ -163,4 +133,45 @@ func (d *s3Bucket) GetEncoding(ctx context.Context, bucket string, item string) 
 	}
 
 	return *headObject.ContentEncoding, nil
+}
+
+func (d *s3Bucket) getS3Client(ctx context.Context) (*s3.Client, error) {
+	s3Config := &viper.Viper{}
+	s3Config.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	s3Config.AutomaticEnv()
+
+	accessKey := s3Config.GetString("storage-access-key")
+	secretKey := s3Config.GetString("storage-secret-key")
+	region := s3Config.GetString("storage-region")
+	if region == "" {
+		region = d.region
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("error loading AWS SDK config: %w", err)
+	}
+
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+		if d.url != "" {
+			o.BaseEndpoint = aws.String(d.url)
+		}
+
+		if region != "" {
+			o.Region = region
+		}
+
+		if accessKey != "" && secretKey != "" {
+			staticProvider := credentials.NewStaticCredentialsProvider(
+				accessKey,
+				secretKey,
+				"",
+			)
+			o.Credentials = staticProvider
+		}
+
+	}), nil
+
 }
