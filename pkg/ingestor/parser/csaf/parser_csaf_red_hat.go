@@ -18,6 +18,7 @@ package csaf
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -62,7 +63,7 @@ func (c *csafParserRedHat) findPkgSpec(ctx context.Context, product_id string) (
 		if !ok {
 			return nil, fmt.Errorf("unable to locate product url for reference %s due to missing graphqlEndpoint value", *pref)
 		}
-		gqlclient, err := assembler_helpers.GetGqlClient(endpoint)
+		gqlclient, err := assembler_helpers.GetGqlClient(endpoint, http.Client{})
 		if err != nil {
 			return nil, err
 		}
