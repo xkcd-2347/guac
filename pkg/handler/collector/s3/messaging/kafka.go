@@ -17,12 +17,20 @@ package messaging
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/guacsec/guac/pkg/logging"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl"
+	"github.com/segmentio/kafka-go/sasl/plain"
+	"github.com/segmentio/kafka-go/sasl/scram"
+	"github.com/spf13/viper"
 )
 
 type KafkaProvider struct {
@@ -63,17 +71,104 @@ func NewKafkaProvider(mpConfig MessageProviderConfig) (KafkaProvider, error) {
 	kafkaTopic := mpConfig.Queue
 
 	kafkaProvider := KafkaProvider{}
+
+	kafkaConfig := &viper.Viper{}
+
+	prefix := os.Getenv("KAFKA_PROPERTIES_ENV_PREFIX")
+	prefix = strings.TrimSuffix(prefix, "_")
+
+	kafkaConfig.SetEnvPrefix(prefix)
+	kafkaConfig.SetEnvKeyReplacer(strings.NewReplacer("-", "__"))
+	kafkaConfig.AutomaticEnv()
+
+	mechanism, err := SASLMechanism(*kafkaConfig)
+	if err != nil {
+		return KafkaProvider{}, err
+	}
+
+	tlsConfig, err := TLSConfig(*kafkaConfig)
+	if err != nil {
+		return KafkaProvider{}, err
+	}
+
+	dialer := &kafka.Dialer{
+		Timeout:       10 * time.Second,
+		DualStack:     true,
+		SASLMechanism: mechanism,
+		TLS:           tlsConfig,
+	}
+
 	kafkaProvider.reader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   []string{mpConfig.Endpoint},
 		Topic:     kafkaTopic,
 		Partition: 0,
+		Dialer:    dialer,
 	})
-	err := kafkaProvider.reader.SetOffset(kafka.LastOffset)
+	err = kafkaProvider.reader.SetOffset(kafka.LastOffset)
 	if err != nil {
 		return KafkaProvider{}, err
 	}
 
 	return kafkaProvider, nil
+}
+
+func SASLMechanism(kafkaConfig viper.Viper) (sasl.Mechanism, error) {
+	protocol := kafkaConfig.GetString("security-protocol")
+	saslProtocols := make(map[string]struct{})
+	saslProtocols["SASL_PLAINTEXT"] = struct{}{}
+	saslProtocols["SASL_SSL"] = struct{}{}
+
+	_, isSasl := saslProtocols[protocol]
+	if !isSasl {
+		return nil, nil
+	}
+	mechanism := kafkaConfig.GetString("sasl-mechanism")
+	username := kafkaConfig.GetString("sasl-username")
+	password := kafkaConfig.GetString("sasl-password")
+
+	switch mechanism {
+	case "SCRAM-SHA-256":
+		return scram.Mechanism(scram.SHA256, username, password)
+	case "SCRAM-SHA-512":
+		return scram.Mechanism(scram.SHA512, username, password)
+	case "PLAIN":
+		return plain.Mechanism{
+			Username: username,
+			Password: password,
+		}, nil
+	default:
+		return nil, nil
+	}
+}
+
+func TLSConfig(kafkaConfig viper.Viper) (*tls.Config, error) {
+	protocol := kafkaConfig.GetString("security-protocol")
+	tlsProtocols := make(map[string]struct{})
+	tlsProtocols["SSL"] = struct{}{}
+	tlsProtocols["SASL_SSL"] = struct{}{}
+
+	_, isTls := tlsProtocols[protocol]
+	if !isTls {
+		return nil, nil
+	}
+	sslCaLocation := kafkaConfig.GetString("ssl-ca-location")
+	verifyClientCert := kafkaConfig.GetBool("enable-ssl-certificate-verification")
+
+	caFile, err := os.ReadFile(sslCaLocation)
+	if err != nil {
+		return nil, nil
+	}
+	rootCAs, _ := x509.SystemCertPool()
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+	rootCAs.AppendCertsFromPEM(caFile)
+
+	return &tls.Config{
+		InsecureSkipVerify: !verifyClientCert,
+		RootCAs:            rootCAs,
+	}, nil
+
 }
 
 func (k *KafkaProvider) ReceiveMessage(ctx context.Context) (Message, error) {

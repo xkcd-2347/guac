@@ -18,6 +18,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -42,11 +43,13 @@ type S3CollectorConfig struct {
 	S3Url                   string                           // optional (uses aws sdk defaults)
 	S3Bucket                string                           // bucket name to collect from
 	S3Path                  string                           // optional (only for non-polling) s3 folder path to collect from
+	Limit                   int                              // optional max number of files to download from the bucket
 	S3Item                  string                           // optional (only for non-polling behaviour)
 	S3Region                string                           // optional (defaults to us-east-1, assumes same region for s3 and sqs)
 	Queues                  string                           // optional (comma-separated list of queues/topics)
 	MpBuilder               messaging.MessageProviderBuilder // optional
 	BucketBuilder           bucket.BuildBucket               // optional
+	SigChan                 chan os.Signal                   // optional
 	Poll                    bool
 }
 
@@ -58,6 +61,7 @@ func NewS3Collector(cfg S3CollectorConfig) *S3Collector {
 }
 
 func (s *S3Collector) RetrieveArtifacts(ctx context.Context, docChannel chan<- *processor.Document) error {
+
 	if s.config.Poll {
 		retrieveWithPoll(*s, ctx, docChannel)
 	} else {
@@ -100,6 +104,7 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 	} else {
 		var token *string
 		const MaxKeys = 100
+		var total = 0
 		for {
 			files, t, err := downloader.ListFiles(ctx, s.config.S3Bucket, s.config.S3Path, token, MaxKeys)
 			if err != nil {
@@ -109,11 +114,24 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 			token = t
 
 			for _, item := range files {
+				logger.Infof("Processing %v", item)
+
+				if !strings.HasPrefix(item, "data/") {
+					logger.Infof("Skipping non-data file")
+					continue
+				}
+
 				blob, err := downloader.DownloadFile(ctx, s.config.S3Bucket, item)
 				if err != nil {
 					logger.Errorf("could not download item %v, skipping: %v", item, err)
 					continue
 				}
+
+				// TODO make this configurable
+				// if len(blob) > 6291456 {
+				// 	logger.Infof("Skipping %s due to its size %d", item, len(blob))
+				// 	continue
+				// }
 
 				enc, err := downloader.GetEncoding(ctx, s.config.S3Bucket, item)
 				if err != nil {
@@ -132,7 +150,16 @@ func retrieve(s S3Collector, ctx context.Context, docChannel chan<- *processor.D
 						DocumentRef: events.GetDocRef(blob),
 					},
 				}
+
+				logger.Infof("Ingesting item %s of size %d", item, len(blob))
+
 				docChannel <- doc
+
+				total += 1
+				if s.config.Limit > 0 && total >= s.config.Limit {
+					logger.Infof("Configured limit of %d reached. Exiting.", s.config.Limit)
+					break
+				}
 			}
 
 			if len(files) < MaxKeys {
@@ -245,6 +272,9 @@ func getMessageProvider(s S3Collector, queue string) (messaging.MessageProvider,
 		mpBuilder = s.config.MpBuilder
 	} else {
 		mpBuilder = messaging.GetDefaultMessageProviderBuilder()
+		if err != nil {
+			return nil, fmt.Errorf("error getting message provider: %w", err)
+		}
 	}
 
 	mp, err := mpBuilder.GetMessageProvider(messaging.MessageProviderConfig{
