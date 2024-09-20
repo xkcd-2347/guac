@@ -93,6 +93,9 @@ diff -u "${SCRIPT_DIR}/expectFindRelatedProductsCount.json" "${GUAC_DIR}/gotFind
 cat "$queries" | gql-cli http://localhost:8080/query -o FindRelatedProducts | jq 'del(.. | .id?) | del(.. | .origin?) | .findTopLevelPackagesRelatedToVulnerability[] ' > "${GUAC_DIR}/gotFindRelatedProducts.json"
 diff -u <(sort "${SCRIPT_DIR}/expectFindRelatedProducts.json") <(sort "${GUAC_DIR}/gotFindRelatedProducts.json")
 
+cat "$queries" | gql-cli http://localhost:8080/query -o VulnerabilityIDNotFound | jq 'del(.. | .id?) | del(.. | .origin?) | .findTopLevelPackagesRelatedToVulnerability ' > "${GUAC_DIR}/gotVulnerabilityIDNotFound.json"
+diff -u "${SCRIPT_DIR}/expectVulnerabilityIDNotFound.json" "${GUAC_DIR}/gotVulnerabilityIDNotFound.json"
+
 cat ./demo/graphql/queries-trustification.gql | gql-cli http://localhost:8080/query -o FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct | sort_by(.digest)' > "${GUAC_DIR}/gotFindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectFindDependentProduct.json" "${GUAC_DIR}/gotFindDependentProduct.json"
 

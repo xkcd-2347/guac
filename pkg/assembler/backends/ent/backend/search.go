@@ -156,11 +156,15 @@ func (b *EntBackend) FindTopLevelPackagesRelatedToVulnerability(ctx context.Cont
 				})
 		}).
 		Only(ctx)
-	if err != nil {
-		return nil, gqlerror.Errorf("error querying for SBOMs related to %v due to : %v", vulnerabilityID, err)
-	}
 	// build the output result backward compatible with the previous version
 	var result [][]model.Node
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return result, nil
+		} else {
+			return nil, gqlerror.Errorf("error querying for SBOMs related to %v due to : %v", vulnerabilityID, err)
+		}
+	}
 	// Vex has priority over Vuln just for consistency with previous implementation, but it could be changed
 	if len(vulnerability.Edges.Vex) > 0 {
 		for _, vex := range vulnerability.Edges.Vex {
