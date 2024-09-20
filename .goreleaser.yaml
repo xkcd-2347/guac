@@ -169,14 +169,13 @@ builds:
       - -X {{.Env.PKG}}.Commit={{.FullCommit}}
       - -X {{.Env.PKG}}.Date={{.Date}}
       - -X {{.Env.PKG}}.Version={{.Summary}}
+    goos: [ 'darwin', 'linux', 'windows' ]
     goarch:
       - amd64
       - arm64
     ignore:
       - goos: windows
         goarch: arm64
-      - goos: windows
-        goarch: arm
 
 universal_binaries:
   - replace: true
