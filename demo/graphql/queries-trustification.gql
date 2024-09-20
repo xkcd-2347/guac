@@ -403,3 +403,9 @@ query CVE_2023_1664 {
     documentRef
   }
 }
+
+query VulnerabilityIDNotFound {
+  findTopLevelPackagesRelatedToVulnerability (vulnerabilityID:"CVE") {
+    __typename
+  }
+}
