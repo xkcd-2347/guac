@@ -409,3 +409,9 @@ query VulnerabilityIDNotFound {
     __typename
   }
 }
+
+query TC_1609_HasSBOM {
+  HasSBOM (hasSBOMSpec: {uri: "https://access.redhat.com/security/data/sbom/spdx/sample-rpmmod"}) {
+    ...allHasSBOMTree
+  }
+}

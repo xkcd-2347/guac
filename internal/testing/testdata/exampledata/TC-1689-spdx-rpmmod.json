@@ -1,0 +1,34 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2024-09-23T17:24:42Z"
+  },
+  "name": "sample-rpmmod",
+  "dataLicense": "CC0-1.0",
+  "documentDescribes": [
+    "SPDXRef-sample-rpmmod"
+  ],
+  "documentNamespace": "https://access.redhat.com/security/data/sbom/spdx/sample-rpmmod",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-97f5899f-fb76-4ea9-819e-244f68b35bd9",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE_MANAGER",
+          "referenceLocator": "pkg:rpmmod/redhat/inkscape@flatpak:9000020220406181214:4a735dea",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "inkscape",
+      "originator": "NOASSERTION",
+      "supplier": "Organization: Red Hat",
+      "versionInfo": "flatpak-9000020220406181214.4a735dea"
+    }
+  ]
+}
