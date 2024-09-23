@@ -1,0 +1,27 @@
+{
+  "algorithm": "sha256",
+  "collector": "FileCollector",
+  "digest": "6240b3dd495214421ee3788069b58234bb8c1a27016bf65608560d0e2071a04c",
+  "subject": {
+    "__typename": "Package",
+    "namespaces": [
+      {
+        "names": [
+          {
+            "name": "sample-rpmmod",
+            "versions": [
+              {
+                "qualifiers": [],
+                "subpath": "",
+                "version": ""
+              }
+            ]
+          }
+        ],
+        "namespace": "spdx"
+      }
+    ],
+    "type": "guac"
+  },
+  "uri": "https://access.redhat.com/security/data/sbom/spdx/sample-rpmmod"
+}
