@@ -72,12 +72,44 @@ func (t *TestProvider) Close(ctx context.Context) error {
 	return nil
 }
 
+// Test Multipart Message Provider
+type TestMultipartProvider struct {
+	queue string
+}
+
+func NewTestMultipartProvider(queue string) TestMultipartProvider {
+	return TestMultipartProvider{queue}
+}
+
+func (t *TestMultipartProvider) ReceiveMessage(context.Context) (messaging.Message, error) {
+	time.Sleep(2 * time.Second)
+
+	return &TestMessage{
+		item:   "test-message",
+		bucket: t.queue,
+		event:  messaging.CompleteMultipartUpload,
+	}, nil
+}
+
+func (t *TestMultipartProvider) Close(ctx context.Context) error {
+	return nil
+}
+
 // Test Message Provider builder
 type TestMpBuilder struct {
 }
 
 func (tb *TestMpBuilder) GetMessageProvider(config messaging.MessageProviderConfig) (messaging.MessageProvider, error) {
 	provider := NewTestProvider(config.Queue)
+	return &provider, nil
+}
+
+// Test Message Provider builder
+type TestMpMultipartBuilder struct {
+}
+
+func (tb *TestMpMultipartBuilder) GetMessageProvider(config messaging.MessageProviderConfig) (messaging.MessageProvider, error) {
+	provider := NewTestMultipartProvider(config.Queue)
 	return &provider, nil
 }
 
@@ -108,13 +140,14 @@ func TestS3Collector(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("no polling", func(t *testing.T) { testNoPolling(t, ctx) })
-	t.Run("queues split polling", func(t *testing.T) { testQueuesSplitPolling(t, ctx) })
+	t.Run("queues split polling", func(t *testing.T) { testQueuesSplitPolling(t, ctx, &TestMpBuilder{}) })
+	t.Run("multipart queues split polling", func(t *testing.T) { testQueuesSplitPolling(t, ctx, &TestMpMultipartBuilder{}) })
 }
 
-func testQueuesSplitPolling(t *testing.T, ctx context.Context) {
+func testQueuesSplitPolling(t *testing.T, ctx context.Context, mpBuilder messaging.MessageProviderBuilder) {
 	s3Collector := NewS3Collector(S3CollectorConfig{
 		Queues:        "q1,q2",
-		MpBuilder:     &TestMpBuilder{},
+		MpBuilder:     mpBuilder,
 		BucketBuilder: &TestBucketBuilder{},
 		Poll:          true,
 	})

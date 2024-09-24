@@ -63,6 +63,8 @@ func (m *SqsMessage) GetEvent() (EventName, error) {
 
 	if m.Records[0].EventName == "ObjectCreated:Put" {
 		return PUT, nil
+	} else if m.Records[0].EventName == "ObjectCreated:CompleteMultipartUpload" {
+		return CompleteMultipartUpload, nil
 	}
 
 	return "", nil

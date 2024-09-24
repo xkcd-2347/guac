@@ -210,10 +210,11 @@ func retrieveWithPoll(s S3Collector, ctx context.Context, docChannel chan<- *pro
 						continue
 					}
 
-					if e, er := m.GetEvent(); e != messaging.PUT {
+					if e, er := m.GetEvent(); e != messaging.PUT && e != messaging.CompleteMultipartUpload {
 						if er != nil {
 							logger.Debugf("skipping message: %v\n", er)
 						}
+						logger.Infof("skipping event: %v\n", e)
 						continue
 					}
 					bucketName, err := m.GetBucket()
