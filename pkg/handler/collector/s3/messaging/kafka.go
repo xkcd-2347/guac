@@ -46,6 +46,8 @@ type KafkaMessage struct {
 func (m *KafkaMessage) GetEvent() (EventName, error) {
 	if m.EventName == "s3:ObjectCreated:Put" {
 		return PUT, nil
+	} else if m.EventName == "s3:ObjectCreated:CompleteMultipartUpload" {
+		return CompleteMultipartUpload, nil
 	}
 	return "", nil
 }

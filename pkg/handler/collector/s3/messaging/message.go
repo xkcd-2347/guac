@@ -20,7 +20,8 @@ import "context"
 type EventName string
 
 const (
-	PUT EventName = "PUT"
+	PUT                     EventName = "PUT"
+	CompleteMultipartUpload EventName = "CompleteMultipartUpload"
 )
 
 // Message A generic message related to an S3 bucket and item
