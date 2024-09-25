@@ -29,7 +29,8 @@ import (
 
 const (
 	// Batch size for ingesting in bulk. Increasing this could results in "PostgreSQL only supports 65535 parameters" error
-	MaxBatchSize = 5000
+	MaxBatchSize       = 5000
+	MaxWhereParameters = 65534
 )
 
 var Errorf = gqlerror.Errorf

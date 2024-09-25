@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
@@ -35,6 +36,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/backends/helper"
 	"github.com/guacsec/guac/pkg/assembler/graphql/model"
 	"github.com/pkg/errors"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -294,16 +296,25 @@ func (b *EntBackend) HasSBOM(ctx context.Context, spec *model.HasSBOMSpec) ([]*m
 		spec = &model.HasSBOMSpec{}
 	}
 
-	sbomQuery := b.client.BillOfMaterials.Query().
-		Where(hasSBOMQuery(*spec))
-
-	records, err := getSBOMObjectWithIncludes(sbomQuery).
-		All(ctx)
+	// this is kind of trick because Ent pagination expects some fields to be provided in the GraphQL request
+	// but, in this case, it's rather a conversion from the non-paginated request, i.e. HasSBOM,
+	// to a paginated request and so some fields must be added to the context for the paginated approach to work,
+	// in fact it checks for the ent.EdgesField existence otherwise no query is executed.
+	fc := graphql.GetFieldContext(ctx)
+	var node = ast.Field{Alias: ent.NodeField}
+	for _, selection := range fc.Field.Selections {
+		node.SelectionSet = append(node.SelectionSet, selection)
+	}
+	fc.Field.Selections = append(fc.Field.Selections, &ast.Field{Alias: ent.EdgesField, SelectionSet: ast.SelectionSet{&node}})
+	hasSBOMList, err := b.HasSBOMList(ctx, *spec, nil, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, funcName)
 	}
-
-	return collect(records, toModelHasSBOM), nil
+	var result []*model.HasSbom
+	for _, edge := range hasSBOMList.Edges {
+		result = append(result, edge.Node)
+	}
+	return result, nil
 }
 
 func hasSBOMQuery(spec model.HasSBOMSpec) predicate.BillOfMaterials {
