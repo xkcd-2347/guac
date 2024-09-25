@@ -414,61 +414,66 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 		return nil, gqlerror.Errorf("error querying for IncludedDependencies with SBOM URI %v due to : %v", sbomURI, err)
 	}
 	var dependenciesPackagesUUIDs uuid.UUIDs
-	for _, dependency := range dependencies {
-		dependenciesPackagesUUIDs = append(dependenciesPackagesUUIDs, dependency.DependentPackageVersionID)
+	for _, dep := range dependencies {
+		dependenciesPackagesUUIDs = append(dependenciesPackagesUUIDs, dep.DependentPackageVersionID)
 	}
 
-	// retrieve CertifyVex
-	certifyVexQuery := b.client.CertifyVex.Query().
-		Where(
-			certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
-			certifyvex.PackageIDIn(dependenciesPackagesUUIDs...),
-		).
-		WithVulnerability().
-		WithPackage(withPackageVersionTree()).
-		Order(ent.Desc(vulnerabilityid.FieldID))
-
-	if offset != nil {
-		certifyVexQuery.Offset(*offset)
-	}
-
-	if limit != nil {
-		certifyVexQuery.Limit(*limit)
-	}
-
-	certifyVexes, err := certifyVexQuery.All(ctx)
-	if err != nil {
-		return nil, gqlerror.Errorf("error querying for CertifyVex with SBOM URI %v due to : %v", sbomURI, err)
-	}
-
+	batches := chunk(dependenciesPackagesUUIDs, MaxWhereParameters)
 	var result []model.CertifyVulnOrCertifyVEXStatement
-	for _, certifyVex := range certifyVexes {
-		result = append(result, toModelCertifyVEXStatement(certifyVex))
+	for _, pkgs := range batches {
+		// retrieve CertifyVex
+		certifyVexQuery := b.client.CertifyVex.Query().
+			Where(
+				certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
+				certifyvex.PackageIDIn(pkgs...),
+			).
+			WithVulnerability().
+			WithPackage(withPackageVersionTree()).
+			Order(ent.Desc(vulnerabilityid.FieldID))
+
+		if offset != nil {
+			certifyVexQuery.Offset(*offset)
+		}
+
+		if limit != nil {
+			certifyVexQuery.Limit(*limit)
+		}
+
+		certifyVexes, err := certifyVexQuery.All(ctx)
+		if err != nil {
+			return nil, gqlerror.Errorf("error querying for CertifyVex with SBOM URI %v due to : %v", sbomURI, err)
+		}
+
+		for _, certifyVex := range certifyVexes {
+			result = append(result, toModelCertifyVEXStatement(certifyVex))
+		}
 	}
 
-	// retrieve CertifyVuln
-	certifyVulnQuery := b.client.CertifyVuln.Query().
-		Where(
-			certifyvuln.PackageIDIn(dependenciesPackagesUUIDs...),
-		).
-		WithVulnerability().
-		WithPackage(withPackageVersionTree()).
-		Order(ent.Desc(vulnerabilityid.FieldID))
+	for _, pkgs := range batches {
+		// retrieve CertifyVuln
+		certifyVulnQuery := b.client.CertifyVuln.Query().
+			Where(
+				certifyvuln.PackageIDIn(pkgs...),
+			).
+			WithVulnerability().
+			WithPackage(withPackageVersionTree()).
+			Order(ent.Desc(vulnerabilityid.FieldID))
 
-	if offset != nil {
-		certifyVulnQuery.Offset(*offset)
-	}
+		if offset != nil {
+			certifyVulnQuery.Offset(*offset)
+		}
 
-	if limit != nil {
-		certifyVulnQuery.Limit(*limit)
-	}
+		if limit != nil {
+			certifyVulnQuery.Limit(*limit)
+		}
 
-	certifyVulns, err := certifyVulnQuery.All(ctx)
-	if err != nil {
-		return nil, gqlerror.Errorf("error querying for CertifyVuln with SBOM URI %v due to : %v", sbomURI, err)
-	}
-	for _, certifyVuln := range certifyVulns {
-		result = append(result, toModelCertifyVulnerability(certifyVuln))
+		certifyVulns, err := certifyVulnQuery.All(ctx)
+		if err != nil {
+			return nil, gqlerror.Errorf("error querying for CertifyVuln with SBOM URI %v due to : %v", sbomURI, err)
+		}
+		for _, certifyVuln := range certifyVulns {
+			result = append(result, toModelCertifyVulnerability(certifyVuln))
+		}
 	}
 
 	return &result, nil
