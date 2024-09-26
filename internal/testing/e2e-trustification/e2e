@@ -124,4 +124,12 @@ echo @@@@ Running TC-1689 queries and validating output
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1609_HasSBOM | jq --sort-keys 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .HasSBOM[] ' > "${GUAC_DIR}/gotTC_1689_HasSBOM.json"
 diff -u "${SCRIPT_DIR}/expectTC_1689_HasSBOM.json" "${GUAC_DIR}/gotTC_1689_HasSBOM.json"
 
+echo @@@@ Ingesting TC-1802-rhel-9.4.0.json.bz2 into server
+time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/TC-1802-rhel-9.4.0.json.bz2;
+
+echo @@@@ Running TC-1802 queries and validating output
+
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1802_HasSBOM | jq --sort-keys 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .HasSBOM[] ' > "${GUAC_DIR}/gotTC_1802_HasSBOM.json"
+diff -u "${SCRIPT_DIR}/expectTC_1802_HasSBOM.json" "${GUAC_DIR}/gotTC_1802_HasSBOM.json"
+
 # Note: graphql_playground is left running, CI will clean it up

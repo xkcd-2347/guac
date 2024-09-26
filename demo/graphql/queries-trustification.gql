@@ -415,3 +415,12 @@ query TC_1609_HasSBOM {
     ...allHasSBOMTree
   }
 }
+
+query TC_1802_HasSBOM {
+  HasSBOM (hasSBOMSpec:{uri: "https://access.redhat.com/security/data/sbom/spdx/RHEL-9.4.0.Z.MAIN+EUS"}) {
+    uri
+    algorithm
+    id
+    digest
+  }
+}

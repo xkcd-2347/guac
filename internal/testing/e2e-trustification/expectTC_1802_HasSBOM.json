@@ -1,0 +1,5 @@
+{
+  "algorithm": "sha256",
+  "digest": "c262a33d1516e0db38634c8acb5ea3de8a7c4a74296922ac52811979014e486c",
+  "uri": "https://access.redhat.com/security/data/sbom/spdx/RHEL-9.4.0.Z.MAIN+EUS"
+}
