@@ -426,7 +426,7 @@ func fixLicense(ctx context.Context, l *model.LicenseInputSpec, ol []*spdx.Other
 		}
 	}
 	if !found {
-		logger.Error("License identifier %s not found in OtherLicenses", l.Name)
+		logger.Warnf("License identifier %s not found in OtherLicenses", l.Name)
 		s := "Not found"
 		l.Inline = &s
 	}
