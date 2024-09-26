@@ -311,8 +311,10 @@ func (b *EntBackend) HasSBOM(ctx context.Context, spec *model.HasSBOMSpec) ([]*m
 		return nil, errors.Wrap(err, funcName)
 	}
 	var result []*model.HasSbom
-	for _, edge := range hasSBOMList.Edges {
-		result = append(result, edge.Node)
+	if hasSBOMList != nil {
+		for _, edge := range hasSBOMList.Edges {
+			result = append(result, edge.Node)
+		}
 	}
 	return result, nil
 }
