@@ -1,0 +1,24 @@
+FROM registry.access.redhat.com/ubi9/ubi:latest as builder
+
+RUN curl -L -o golang.tar.gz https://go.dev/dl/go1.21.10.linux-amd64.tar.gz && tar xvf golang.tar.gz && mv go /usr/local
+RUN dnf install -y jq https://github.com/goreleaser/goreleaser/releases/download/v1.21.2/goreleaser-1.21.2-1.x86_64.rpm
+RUN dnf install -y make
+ADD . /go/src/github.com/guacsec/guac/
+WORKDIR /go/src/github.com/guacsec/guac/
+ENV GOPATH=/usr/local/go
+ENV PATH="/usr/local/go/bin:$PATH"
+RUN rm -rf bin/ && make build
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
+LABEL com.redhat.component ="Trustification-Guac"
+LABEL description="Trustification-Guac"
+LABEL io.k8s.description ="Trustification-Guac"
+LABEL io.k8s.display-name ="Trustification-Guac"
+LABEL io.openshift.tags ="Trustification-Guac"
+LABEL name ="Trustification-Guac"
+LABEL summary ="Trustification-Guac"
+
+RUN microdnf install -y tar gzip
+WORKDIR /root
+COPY --from=builder /go/src/github.com/guacsec/guac/bin/ /opt/guac/
