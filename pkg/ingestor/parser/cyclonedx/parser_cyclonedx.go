@@ -171,8 +171,12 @@ func parseContainerType(name string, version string, topLevel bool) string {
 }
 
 func (c *cyclonedxParser) getPackages() error {
-	if c.cdxBom.Components != nil {
-		for _, comp := range *c.cdxBom.Components {
+	return traverseComponents(*c, c.cdxBom.Components)
+}
+
+func traverseComponents(c cyclonedxParser, components *[]cdx.Component) error {
+	if components != nil {
+		for _, comp := range *components {
 			// skipping over the "operating-system" type as it does not contain
 			// the required purl for package node. Currently there is no use-case
 			// to capture OS for GUAC.
@@ -203,6 +207,10 @@ func (c *cyclonedxParser) getPackages() error {
 						}
 						c.packageArtifacts[comp.BOMRef] = append(c.packageArtifacts[comp.BOMRef], artifact)
 					}
+				}
+				err = traverseComponents(c, comp.Components)
+				if err != nil {
+					return err
 				}
 			}
 		}
