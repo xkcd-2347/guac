@@ -93,6 +93,8 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       - name: Install atlas
         uses: ariga/setup-atlas@v0
+        with:
+          version: "v0.25.1"
       - name: Setup the project
         run: go mod download
       - name: Run tests
