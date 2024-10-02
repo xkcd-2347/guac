@@ -116,6 +116,17 @@ echo @@@@ Running TC_1609 queries and validating output
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1609_FindDependentProduct | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findDependentProduct' > "${GUAC_DIR}/gotTC_1609_FindDependentProduct.json"
 diff -u "${SCRIPT_DIR}/expectTC_1609_FindDependentProduct.json" "${GUAC_DIR}/gotTC_1609_FindDependentProduct.json"
 
+echo @@@@ Ingesting TC_1757_openssl-3.0.7-18.el9_2.spdx.json into server
+time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/TC_1757_openssl-3.0.7-18.el9_2.spdx.json;
+
+echo @@@@ Running TC_1757 queries and validating output
+
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1757_Package_x86_64 | jq 'del(.. | .id?) | .packages[].namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .packages ' > "${GUAC_DIR}/gotTC_1757_Package_x86_64.json"
+diff -u "${SCRIPT_DIR}/expectTC_1757_Package_x86_64.json" "${GUAC_DIR}/gotTC_1757_Package_x86_64.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1757_Package_aarch64 | jq 'del(.. | .id?) | .packages[].namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .packages ' > "${GUAC_DIR}/gotTC_1757_Package_aarch64.json"
+diff -u "${SCRIPT_DIR}/expectTC_1757_Package_aarch64.json" "${GUAC_DIR}/gotTC_1757_Package_aarch64.json"
+
 echo @@@@ Ingesting TC-1689-spdx-rpmmod.json into server
 time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/TC-1689-spdx-rpmmod.json;
 
