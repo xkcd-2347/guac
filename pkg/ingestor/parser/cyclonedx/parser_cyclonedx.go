@@ -215,10 +215,6 @@ func traverseComponents(c cyclonedxParser, components *[]cdx.Component) error {
 				} else {
 					purl = asmhelpers.GuacPkgPurl(comp.Name, &comp.Version)
 				}
-				err = traverseComponents(c, comp.Components)
-				if err != nil {
-					return err
-				}
 			}
 			pkg, err := asmhelpers.PurlToPkg(purl)
 			if err != nil {
@@ -240,6 +236,10 @@ func traverseComponents(c cyclonedxParser, components *[]cdx.Component) error {
 			// get other component packages
 			if err := c.getLicenseInformation(comp); err != nil {
 				return fmt.Errorf("failed to get license information for component package with error: %w", err)
+			}
+
+			if err := traverseComponents(c, comp.Components); err != nil {
+				return err
 			}
 		}
 	}
@@ -305,6 +305,7 @@ func getLicenseFromName(c *cyclonedxParser, compLicense cdx.LicenseChoice) strin
 			license = compLicense.License.BOMRef
 		} else {
 			license = common.HashLicense(compLicense.License.Name)
+			c.licenseInLine[license] = compLicense.License.Name
 		}
 	} else {
 		license = compLicense.License.ID
