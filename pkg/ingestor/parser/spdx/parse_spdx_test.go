@@ -1522,7 +1522,9 @@ func Test_spdxParser(t *testing.T) {
 							},
 							Subpath: &packageOfEmptyString,
 						},
+						DepPkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
 						IsDependency: &generated.IsDependencyInputSpec{
+							VersionRange:   "3.0.7-18.el9_2",
 							DependencyType: "UNKNOWN",
 							Justification:  "top-level package GUAC heuristic connecting to each file/package",
 						},
@@ -1545,7 +1547,9 @@ func Test_spdxParser(t *testing.T) {
 							},
 							Subpath: &packageOfEmptyString,
 						},
+						DepPkgMatchFlag: generated.MatchFlags{Pkg: generated.PkgMatchTypeSpecificVersion},
 						IsDependency: &generated.IsDependencyInputSpec{
+							VersionRange:   "3.0.7-18.el9_2",
 							DependencyType: "UNKNOWN",
 							Justification:  "top-level package GUAC heuristic connecting to each file/package",
 						},
