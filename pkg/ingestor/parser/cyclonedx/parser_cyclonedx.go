@@ -305,7 +305,6 @@ func getLicenseFromName(c *cyclonedxParser, compLicense cdx.LicenseChoice) strin
 			license = compLicense.License.BOMRef
 		} else {
 			license = common.HashLicense(compLicense.License.Name)
-			c.licenseInLine[license] = compLicense.License.Name
 		}
 	} else {
 		license = compLicense.License.ID
