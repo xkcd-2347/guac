@@ -42,6 +42,7 @@ type spdxParser struct {
 	packageLegals       map[string][]*model.CertifyLegalInputSpec
 	filePackages        map[string][]*model.PkgInputSpec
 	fileArtifacts       map[string][]*model.ArtifactInputSpec
+	licenseInLine       map[string]string
 	topLevelPackages    []*model.PkgInputSpec
 	topLevelArtifacts   map[string][]*model.ArtifactInputSpec
 	identifierStrings   *common.IdentifierStrings
@@ -58,6 +59,7 @@ func NewSpdxParser() common.DocumentParser {
 		filePackages:        map[string][]*model.PkgInputSpec{},
 		fileArtifacts:       map[string][]*model.ArtifactInputSpec{},
 		topLevelArtifacts:   make(map[string][]*model.ArtifactInputSpec),
+		licenseInLine:       map[string]string{},
 		identifierStrings:   &common.IdentifierStrings{},
 		topLevelIsHeuristic: false,
 	}
@@ -90,6 +92,11 @@ func (s *spdxParser) Parse(ctx context.Context, doc *processor.Document) error {
 
 	if err := s.getPackages(topLevelSPDXIDs); err != nil {
 		return err
+	}
+
+	// collect SPDX otherLicenses to InLineMap to be used for license predicate creation
+	for _, o := range s.spdxDoc.OtherLicenses {
+		s.licenseInLine[o.LicenseIdentifier] = o.ExtractedText
 	}
 
 	return nil
@@ -356,22 +363,15 @@ func (s *spdxParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 	}
 	for id, cls := range s.packageLegals {
 		for _, cl := range cls {
-			dec := common.ParseLicenses(cl.DeclaredLicense, &lv, nil)
-			dis := common.ParseLicenses(cl.DiscoveredLicense, &lv, nil)
-			for i := range dec {
-				o, n := fixLicense(ctx, &dec[i], s.spdxDoc.OtherLicenses)
-				if o != "" {
-					exp := strings.ReplaceAll(cl.DeclaredLicense, o, n)
-					cl.DeclaredLicense = exp
-				}
-			}
-			for i := range dis {
-				o, n := fixLicense(ctx, &dis[i], s.spdxDoc.OtherLicenses)
-				if o != "" {
-					exp := strings.ReplaceAll(cl.DiscoveredLicense, o, n)
-					cl.DiscoveredLicense = exp
-				}
-			}
+
+			modifiedDecLicense := common.FixSPDXLicenseExpression(cl.DeclaredLicense, s.licenseInLine)
+			modifiedDisLicense := common.FixSPDXLicenseExpression(cl.DiscoveredLicense, s.licenseInLine)
+
+			cl.DeclaredLicense = modifiedDecLicense
+			cl.DiscoveredLicense = modifiedDisLicense
+
+			dec := common.ParseLicenses(modifiedDecLicense, &lv, s.licenseInLine)
+			dis := common.ParseLicenses(modifiedDisLicense, &lv, s.licenseInLine)
 			for _, pkg := range s.packagePackages[id] {
 				cli := assembler.CertifyLegalIngest{
 					Pkg:          pkg,
@@ -410,30 +410,6 @@ func (s *spdxParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 	}
 
 	return preds
-}
-
-func fixLicense(ctx context.Context, l *model.LicenseInputSpec, ol []*spdx.OtherLicense) (string, string) {
-	logger := logging.FromContext(ctx)
-	if !strings.HasPrefix(l.Name, "LicenseRef-") {
-		return "", ""
-	}
-	oldName := l.Name
-	l.ListVersion = nil
-	found := false
-	for _, o := range ol {
-		if o.LicenseIdentifier == l.Name {
-			l.Inline = &o.ExtractedText
-			found = true
-			break
-		}
-	}
-	if !found {
-		logger.Warnf("License identifier %s not found in OtherLicenses", l.Name)
-		s := "Not found"
-		l.Inline = &s
-	}
-	l.Name = common.HashLicense(*l.Inline)
-	return oldName, l.Name
 }
 
 func isDependency(rel string) bool {
