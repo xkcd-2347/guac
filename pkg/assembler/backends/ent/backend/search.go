@@ -18,6 +18,7 @@ package backend
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 
 	"entgo.io/ent/dialect/sql"
@@ -400,22 +401,41 @@ func (b *EntBackend) FindVulnerabilitySbomURI(ctx context.Context, sbomURI strin
 }
 
 func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model.HasSBOMSpec, offset *int, limit *int) (*[]model.CertifyVulnOrCertifyVEXStatement, error) {
-	// check the SBOM URI provided identifies just one SBOM
-	sbom, err := b.client.BillOfMaterials.Query().
+	// Multiple SBOMs could have the same URI when an SBOM describes multiple packages and/or artifacts
+	sboms, err := b.client.BillOfMaterials.Query().
 		Where(hasSBOMQuery(*hasSBOMSpec)).
-		Only(ctx)
+		All(ctx)
 	if err != nil {
-		return nil, gqlerror.Errorf("failed to locate a single SBOM based on the provided SBOM URI %+v due to : %v", hasSBOMSpec, err)
-	}
-	sbomURI := sbom.URI
-	// collect the SBOM's dependencies UUIDs
-	dependencies, err := b.client.BillOfMaterials.QueryIncludedDependencies(sbom).All(ctx)
-	if err != nil {
-		return nil, gqlerror.Errorf("error querying for IncludedDependencies with SBOM URI %v due to : %v", sbomURI, err)
+		return nil, gqlerror.Errorf("error querying for BillOfMaterials with hasSBOMSpec %+v due to : %v", hasSBOMSpec, err)
 	}
 	var dependenciesPackagesUUIDs uuid.UUIDs
-	for _, dep := range dependencies {
-		dependenciesPackagesUUIDs = append(dependenciesPackagesUUIDs, dep.DependentPackageVersionID)
+	var dependenciesArtifactsUUIDs uuid.UUIDs
+	sbomURI := sboms[0].URI
+	for _, sbom := range sboms {
+		// the n-th SBOM entry must have always the same SBOM of the first one in order to ensure no cross SBOMs vulnerabilities reported
+		if sbomURI != sbom.URI {
+			return nil, gqlerror.Errorf("Multiple SBOMs with different URIs have been found with the provided hasSBOMSpec %+v (URIs found \"%v\" and \"%v\")", hasSBOMSpec, sbomURI, sbom.URI)
+		}
+		// collect the SBOM's packages UUIDs
+		packages, err := b.client.BillOfMaterials.QueryIncludedSoftwarePackages(sbom).All(ctx)
+		if err != nil {
+			return nil, gqlerror.Errorf("error querying for QueryIncludedSoftwarePackages with SBOM URI %v due to : %v", sbomURI, err)
+		}
+		for _, pkg := range packages {
+			if !slices.Contains(dependenciesPackagesUUIDs, pkg.ID) {
+				dependenciesPackagesUUIDs = append(dependenciesPackagesUUIDs, pkg.ID)
+			}
+		}
+		// collect the SBOM's artifacts UUIDs
+		artifacts, err := b.client.BillOfMaterials.QueryIncludedSoftwareArtifacts(sbom).All(ctx)
+		if err != nil {
+			return nil, gqlerror.Errorf("error querying for IncludedSoftwareArtifacts with SBOM URI %v due to : %v", sbomURI, err)
+		}
+		for _, art := range artifacts {
+			if !slices.Contains(dependenciesArtifactsUUIDs, art.ID) {
+				dependenciesArtifactsUUIDs = append(dependenciesArtifactsUUIDs, art.ID)
+			}
+		}
 	}
 
 	batches := chunk(dependenciesPackagesUUIDs, MaxWhereParameters)
@@ -441,7 +461,36 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 
 		certifyVexes, err := certifyVexQuery.All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for CertifyVex with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for CertifyVex by PackageIDs with SBOM URI %v due to : %v", sbomURI, err)
+		}
+
+		for _, certifyVex := range certifyVexes {
+			result = append(result, toModelCertifyVEXStatement(certifyVex))
+		}
+	}
+
+	artifactBatches := chunk(dependenciesArtifactsUUIDs, MaxWhereParameters)
+	for _, arts := range artifactBatches {
+		certifyVexQuery := b.client.CertifyVex.Query().
+			Where(
+				certifyvex.StatusNEQ(model.VexStatusNotAffected.String()),
+				certifyvex.ArtifactIDIn(arts...),
+			).
+			WithVulnerability().
+			WithArtifact().
+			Order(ent.Desc(vulnerabilityid.FieldID))
+
+		if offset != nil {
+			certifyVexQuery.Offset(*offset)
+		}
+
+		if limit != nil {
+			certifyVexQuery.Limit(*limit)
+		}
+
+		certifyVexes, err := certifyVexQuery.All(ctx)
+		if err != nil {
+			return nil, gqlerror.Errorf("error querying for CertifyVex by ArtifactIDs with SBOM URI %v due to : %v", sbomURI, err)
 		}
 
 		for _, certifyVex := range certifyVexes {
