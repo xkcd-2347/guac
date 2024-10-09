@@ -448,3 +448,20 @@ query TC_1757_Package_aarch64 {
     ...allPkgTree
   }
 }
+
+query TC_1814_HasSBOM {
+  HasSBOM (hasSBOMSpec: {uri: "http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301"}) {
+    ...allHasSBOMTree
+  }
+}
+
+query TC_1814_FindVulnerabilityBySbomURI {
+  findVulnerabilityBySbomURI (sbomURI:"http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301") {
+    ... on CertifyVuln {
+      ...allCertifyVulnTree
+    }
+    ... on CertifyVEXStatement {
+      ...allCertifyVEXStatementTree
+    }
+  }
+}

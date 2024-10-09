@@ -1,0 +1,46 @@
+[
+  {
+    "algorithm": "sha256",
+    "collector": "FileCollector",
+    "digest": "113d8e59fc85b85c08ac059eb17cf5e7e1757f5dbb7ea1df89f9c5b2250d31a1",
+    "subject": {
+      "__typename": "Artifact",
+      "algorithm": "sha256",
+      "digest": "11b6d3ee554eedf79299905a98f9b9a04e498210b59f15094c916c91d150efcd"
+    },
+    "uri": "http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301"
+  },
+  {
+    "algorithm": "sha256",
+    "collector": "FileCollector",
+    "digest": "113d8e59fc85b85c08ac059eb17cf5e7e1757f5dbb7ea1df89f9c5b2250d31a1",
+    "subject": {
+      "__typename": "Artifact",
+      "algorithm": "md5",
+      "digest": "624c1abb3664f4b35547e7c73864ad24"
+    },
+    "uri": "http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301"
+  },
+  {
+    "algorithm": "sha256",
+    "collector": "FileCollector",
+    "digest": "113d8e59fc85b85c08ac059eb17cf5e7e1757f5dbb7ea1df89f9c5b2250d31a1",
+    "subject": {
+      "__typename": "Artifact",
+      "algorithm": "sha1",
+      "digest": "85ed0817af83a24ad8da68c2b5094de69833983c"
+    },
+    "uri": "http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301"
+  },
+  {
+    "algorithm": "sha256",
+    "collector": "FileCollector",
+    "digest": "113d8e59fc85b85c08ac059eb17cf5e7e1757f5dbb7ea1df89f9c5b2250d31a1",
+    "subject": {
+      "__typename": "Artifact",
+      "algorithm": "sha1",
+      "digest": "d6a770ba38583ed4bb4525bd96e50461655d2758"
+    },
+    "uri": "http://spdx.org/spdxdocs/spdx-example-json-2.2-444504E0-4F89-41D3-9A0C-0305E82C3301"
+  }
+]
