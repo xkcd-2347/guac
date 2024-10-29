@@ -154,4 +154,12 @@ diff -u "${SCRIPT_DIR}/expectTC_1814_HasSBOM.json" "${GUAC_DIR}/gotTC_1814_HasSB
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1814_FindVulnerabilityBySbomURI | jq ' .findVulnerabilityBySbomURI ' > "${GUAC_DIR}/gotTC_1814_FindVulnerabilityBySbomURI.json"
 diff -u "${SCRIPT_DIR}/expectTC_1814_FindVulnerabilityBySbomURI.json" "${GUAC_DIR}/gotTC_1814_FindVulnerabilityBySbomURI.json"
 
+echo @@@@ Running TC-1847 queries and validating output
+# the SBOM is the same one used for TC_1757, i.e. TC_1757_openssl-3.0.7-18.el9_2.spdx.json, so need to ingest it again
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1847_FindDependentProduct_source | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findDependentProduct' > "${GUAC_DIR}/gotTC_1847_FindDependentProduct_source.json"
+diff -u "${SCRIPT_DIR}/expectTC_1847_FindDependentProduct_source.json" "${GUAC_DIR}/gotTC_1847_FindDependentProduct_source.json"
+
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1847_FindDependentProduct_rpm | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findDependentProduct' > "${GUAC_DIR}/gotTC_1847_FindDependentProduct_rpm.json"
+diff -u "${SCRIPT_DIR}/expectTC_1847_FindDependentProduct_rpm.json" "${GUAC_DIR}/gotTC_1847_FindDependentProduct_rpm.json"
+
 # Note: graphql_playground is left running, CI will clean it up
