@@ -1,0 +1,13 @@
+[
+  {
+    "subject": {
+      "__typename": "Artifact",
+      "algorithm": "sha256",
+      "digest": "31b5079268339cff7ba65a0aee77930560c5adef4b1b3f8f5927a43ee46a56d9"
+    },
+    "uri": "https://www.redhat.com/openssl-3.0.7-18.el9_2.spdx.json",
+    "algorithm": "sha256",
+    "digest": "b9bc355df9867cddb41208fac6327f94cc32099ed2bbb7fe4848651326d6a000",
+    "collector": "FileCollector"
+  }
+]

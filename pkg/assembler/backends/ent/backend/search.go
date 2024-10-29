@@ -544,6 +544,7 @@ func (b *EntBackend) FindDependentProduct(ctx context.Context, purl string, offs
 			}),
 		).
 		WithPackage(withPackageVersionTree()).
+		WithArtifact().
 		Order(billofmaterials.ByID(), ent.Desc())
 	if offset != nil {
 		sbomQuery.Offset(*offset)

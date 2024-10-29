@@ -414,8 +414,9 @@ func (s *spdxParser) GetPredicates(ctx context.Context) *assembler.IngestPredica
 
 func isDependency(rel string) bool {
 	return map[string]bool{
-		spdx_common.TypeRelationshipContains:  true,
-		spdx_common.TypeRelationshipDependsOn: true,
+		spdx_common.TypeRelationshipContains:      true,
+		spdx_common.TypeRelationshipDependsOn:     true,
+		spdx_common.TypeRelationshipGeneratedFrom: true,
 	}[rel]
 }
 
@@ -423,6 +424,7 @@ func isDependent(rel string) bool {
 	return map[string]bool{
 		spdx_common.TypeRelationshipContainedBy:  true,
 		spdx_common.TypeRelationshipDependencyOf: true,
+		spdx_common.TypeRelationshipGenerates:    true,
 	}[rel]
 }
 

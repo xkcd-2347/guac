@@ -465,3 +465,19 @@ query TC_1814_FindVulnerabilityBySbomURI {
     }
   }
 }
+
+query TC_1847_FindDependentProduct_source {
+  findDependentProduct (
+    purl: "pkg:generic/openssl@3.0.7?checksum=sha256:83049d042a260e696f62406ac5c08bf706fd84383f945cf21bd61e9ed95c396e&download_url=https://openssl.org/source/openssl-3.0.7.tar.gz"
+  ) {
+    ...allHasSBOMTree
+  }
+}
+
+query TC_1847_FindDependentProduct_rpm {
+  findDependentProduct (
+    purl: "pkg:rpm/redhat/openssl-perl@3.0.7-18.el9_2?arch=aarch64&repository_id=rhel-9-for-aarch64-baseos-eus-rpms"
+  ) {
+    ...allHasSBOMTree
+  }
+}
