@@ -1024,9 +1024,70 @@ var (
 		},
 	}
 
+	CdxHasMetadata = []assembler.HasMetadataIngest{
+		{
+			Pkg: &generated.PkgInputSpec{
+				Type:       "deb",
+				Namespace:  ptrfrom.String("debian"),
+				Name:       "base-files",
+				Version:    ptrfrom.String("11.1+deb11u5"),
+				Qualifiers: []generated.PackageQualifierInputSpec{{Key: "arch", Value: "amd64"}, {Key: "distro", Value: "debian-11"}},
+				Subpath:    ptrfrom.String(""),
+			},
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "cpe",
+				Value:         "cpe:2.3:a:base-files:base-files:11.1\\+deb11u5:*:*:*:*:*:*:*",
+				Timestamp:     cdxTime,
+				Justification: "CycloneDX BOM CPE",
+				Origin:        "GUAC CycloneDX",
+				Collector:     "GUAC",
+			},
+		},
+		{
+			Pkg: &generated.PkgInputSpec{
+				Type:       "deb",
+				Namespace:  ptrfrom.String("debian"),
+				Name:       "netbase",
+				Version:    ptrfrom.String("6.3"),
+				Qualifiers: []generated.PackageQualifierInputSpec{{Key: "arch", Value: "all"}, {Key: "distro", Value: "debian-11"}},
+				Subpath:    ptrfrom.String(""),
+			},
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "cpe",
+				Value:         "cpe:2.3:a:netbase:netbase:6.3:*:*:*:*:*:*:*",
+				Timestamp:     cdxTime,
+				Justification: "CycloneDX BOM CPE",
+				Origin:        "GUAC CycloneDX",
+				Collector:     "GUAC",
+			},
+		},
+		{
+			Pkg: &generated.PkgInputSpec{
+				Type:       "deb",
+				Namespace:  ptrfrom.String("debian"),
+				Name:       "tzdata",
+				Version:    ptrfrom.String("2021a-1+deb11u6"),
+				Qualifiers: []generated.PackageQualifierInputSpec{{Key: "arch", Value: "all"}, {Key: "distro", Value: "debian-11"}},
+				Subpath:    ptrfrom.String(""),
+			},
+			PkgMatchFlag: generated.MatchFlags{Pkg: "SPECIFIC_VERSION"},
+			HasMetadata: &generated.HasMetadataInputSpec{
+				Key:           "cpe",
+				Value:         "cpe:2.3:a:tzdata:tzdata:2021a-1\\+deb11u6:*:*:*:*:*:*:*",
+				Timestamp:     cdxTime,
+				Justification: "CycloneDX BOM CPE",
+				Origin:        "GUAC CycloneDX",
+				Collector:     "GUAC",
+			},
+		},
+	}
+
 	CdxIngestionPredicates = assembler.IngestPredicates{
 		IsDependency: CdxDeps,
 		HasSBOM:      CdxHasSBOM,
+		HasMetadata:  CdxHasMetadata,
 	}
 
 	cdxTopQuarkusPack, _ = asmhelpers.PurlToPkg("pkg:maven/org.acme/getting-started@1.0.0-SNAPSHOT?type=jar")

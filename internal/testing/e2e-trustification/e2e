@@ -162,4 +162,11 @@ diff -u "${SCRIPT_DIR}/expectTC_1847_FindDependentProduct_source.json" "${GUAC_D
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1847_FindDependentProduct_rpm | jq 'del(.. | .id?) | del(.. | .downloadLocation?) | del(.. | .origin?) | .findDependentProduct[].subject.namespaces[]?.names[]?.versions[]?.qualifiers? |= sort | .findDependentProduct' > "${GUAC_DIR}/gotTC_1847_FindDependentProduct_rpm.json"
 diff -u "${SCRIPT_DIR}/expectTC_1847_FindDependentProduct_rpm.json" "${GUAC_DIR}/gotTC_1847_FindDependentProduct_rpm.json"
 
+echo @@@@ Ingesting alpine-cyclonedx.json into server for TC-1842
+time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/exampledata/alpine-cyclonedx.json;
+
+echo @@@@ Running TC-1842 queries and validating output
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1842_HasMetadata | jq 'del(.. | .id?) | .HasMetadata ' > "${GUAC_DIR}/gotTC_1842_HasMetadata.json"
+diff -u "${SCRIPT_DIR}/expectTC_1842_HasMetadata.json" "${GUAC_DIR}/gotTC_1842_HasMetadata.json"
+
 # Note: graphql_playground is left running, CI will clean it up

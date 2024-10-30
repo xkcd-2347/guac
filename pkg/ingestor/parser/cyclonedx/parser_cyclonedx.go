@@ -24,14 +24,13 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	jsoniter "github.com/json-iterator/go"
-
 	"github.com/guacsec/guac/pkg/assembler"
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
 	asmhelpers "github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/guacsec/guac/pkg/handler/processor"
 	"github.com/guacsec/guac/pkg/ingestor/parser/common"
 	"github.com/guacsec/guac/pkg/logging"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -342,6 +341,24 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 	if c.cdxBom.Metadata != nil && c.cdxBom.Metadata.Component != nil {
 		topLevelArts = c.packageArtifacts[c.cdxBom.Metadata.Component.BOMRef]
 		topLevelPkgs = c.packagePackages[c.cdxBom.Metadata.Component.BOMRef]
+		for _, pkgSpec := range topLevelPkgs {
+			var cpe = c.cdxBom.Metadata.Component.CPE
+			if cpe != "" {
+				hasMetadata := assembler.HasMetadataIngest{
+					Pkg:          pkgSpec,
+					PkgMatchFlag: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+					HasMetadata: &model.HasMetadataInputSpec{
+						Key:           "cpe",
+						Value:         cpe,
+						Timestamp:     c.timestamp,
+						Justification: "CycloneDX BOM CPE",
+						Origin:        "GUAC CycloneDX",
+						Collector:     "GUAC",
+					},
+				}
+				preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+			}
+		}
 	}
 
 	// adding top level package edge manually for all depends on package
@@ -371,6 +388,29 @@ func (c *cyclonedxParser) GetPredicates(ctx context.Context) *assembler.IngestPr
 						Justification: "cdx package with checksum",
 					},
 				})
+			}
+		}
+	}
+
+	if c.cdxBom.Components != nil {
+		for _, component := range *c.cdxBom.Components {
+			var cpe = component.CPE
+			if cpe != "" {
+				for _, pkgSpec := range c.packagePackages[component.BOMRef] {
+					hasMetadata := assembler.HasMetadataIngest{
+						Pkg:          pkgSpec,
+						PkgMatchFlag: model.MatchFlags{Pkg: model.PkgMatchTypeSpecificVersion},
+						HasMetadata: &model.HasMetadataInputSpec{
+							Key:           "cpe",
+							Value:         cpe,
+							Timestamp:     c.timestamp,
+							Justification: "CycloneDX BOM CPE",
+							Origin:        "GUAC CycloneDX",
+							Collector:     "GUAC",
+						},
+					}
+					preds.HasMetadata = append(preds.HasMetadata, hasMetadata)
+				}
 			}
 		}
 	}
