@@ -1,0 +1,37 @@
+[
+  {
+    "subject": {
+      "type": "alpine",
+      "namespaces": [
+        {
+          "namespace": "",
+          "names": [
+            {
+              "name": "alpine-baselayout-data",
+              "versions": [
+                {
+                  "version": "3.2.0-r22",
+                  "qualifiers": [
+                    {
+                      "key": "arch",
+                      "value": "x86_64"
+                    },
+                    {
+                      "key": "distro",
+                      "value": "alpine-3.16.2"
+                    },
+                    {
+                      "key": "upstream",
+                      "value": "alpine-baselayout"
+                    }
+                  ],
+                  "subpath": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

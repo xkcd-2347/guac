@@ -481,3 +481,13 @@ query TC_1847_FindDependentProduct_rpm {
     ...allHasSBOMTree
   }
 }
+
+query TC_1842_HasMetadata {
+  HasMetadata (hasMetadataSpec:{key: "cpe", value:"cpe:2.3:a:alpine-baselayout-data:alpine-baselayout-data:3.2.0-r22:*:*:*:*:*:*:*"}) {
+    subject {
+      ... on Package {
+        ...allPkgTree
+      }
+    }
+  }
+}
