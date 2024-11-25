@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/guacsec/guac/
 ADD . /go/src/github.com/guacsec/guac/
 RUN --mount=type=cache,target=/go/pkg/mod make build
 
-FROM docker.io/library/ubuntu:22.04
+FROM docker.io/library/ubuntu:24.04
 RUN apt update
 RUN apt install -y ca-certificates
 WORKDIR /root
