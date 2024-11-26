@@ -23,7 +23,7 @@ GUAC_DIR=$(cd ${SCRIPT_DIR}/../../..; pwd)
 guac_data_hash="f26c3fa0a1c1c46ac4ea21a4b17085db80bbfb46"
 
 echo @@@@ Installing gql Python package
-pip install gql[all]
+pip install "gql[all]"
 
 echo @@@@ Cloning trustification-data
 pushd "$GUAC_DIR"
@@ -168,5 +168,9 @@ time go run ./cmd/guacone collect files ${GUAC_DIR}/internal/testing/testdata/ex
 echo @@@@ Running TC-1842 queries and validating output
 cat "$queries" | gql-cli http://localhost:8080/query -o TC_1842_HasMetadata | jq 'del(.. | .id?) | .HasMetadata ' > "${GUAC_DIR}/gotTC_1842_HasMetadata.json"
 diff -u "${SCRIPT_DIR}/expectTC_1842_HasMetadata.json" "${GUAC_DIR}/gotTC_1842_HasMetadata.json"
+
+echo @@@@ Running TC-1928 queries
+cat "$queries" | gql-cli http://localhost:8080/query -o TC_1928_FindVulnerabilityBySbomURI | jq ' .findVulnerabilityBySbomURI ' > "${GUAC_DIR}/gotTC_1928_FindVulnerabilityBySbomURI.json"
+diff -u "${SCRIPT_DIR}/expectTC_1928_FindVulnerabilityBySbomURI.json" "${GUAC_DIR}/gotTC_1928_FindVulnerabilityBySbomURI.json"
 
 # Note: graphql_playground is left running, CI will clean it up

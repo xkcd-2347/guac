@@ -491,3 +491,14 @@ query TC_1842_HasMetadata {
     }
   }
 }
+
+query TC_1928_FindVulnerabilityBySbomURI {
+  findVulnerabilityBySbomURI (sbomURI: "inexistent") {
+    ... on CertifyVuln {
+      ...allCertifyVulnTree
+    }
+    ... on CertifyVEXStatement {
+      ...allCertifyVEXStatementTree
+    }
+  }
+}
