@@ -410,16 +410,15 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 	}
 	var dependenciesPackagesUUIDs uuid.UUIDs
 	var dependenciesArtifactsUUIDs uuid.UUIDs
-	sbomURI := sboms[0].URI
 	for _, sbom := range sboms {
 		// the n-th SBOM entry must have always the same SBOM of the first one in order to ensure no cross SBOMs vulnerabilities reported
-		if sbomURI != sbom.URI {
-			return nil, gqlerror.Errorf("Multiple SBOMs with different URIs have been found with the provided hasSBOMSpec %+v (URIs found \"%v\" and \"%v\")", hasSBOMSpec, sbomURI, sbom.URI)
+		if sboms[0].URI != sbom.URI {
+			return nil, gqlerror.Errorf("Multiple SBOMs with different URIs have been found with the provided hasSBOMSpec %+v (URIs found \"%v\" and \"%v\")", hasSBOMSpec, sboms[0].URI, sbom.URI)
 		}
 		// collect the SBOM's packages UUIDs
 		packages, err := b.client.BillOfMaterials.QueryIncludedSoftwarePackages(sbom).All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for QueryIncludedSoftwarePackages with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for QueryIncludedSoftwarePackages with SBOM URI %v due to : %v", sbom.URI, err)
 		}
 		for _, pkg := range packages {
 			if !slices.Contains(dependenciesPackagesUUIDs, pkg.ID) {
@@ -429,7 +428,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 		// collect the SBOM's artifacts UUIDs
 		artifacts, err := b.client.BillOfMaterials.QueryIncludedSoftwareArtifacts(sbom).All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for IncludedSoftwareArtifacts with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for IncludedSoftwareArtifacts with SBOM URI %v due to : %v", sbom.URI, err)
 		}
 		for _, art := range artifacts {
 			if !slices.Contains(dependenciesArtifactsUUIDs, art.ID) {
@@ -461,7 +460,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 
 		certifyVexes, err := certifyVexQuery.All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for CertifyVex by PackageIDs with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for CertifyVex by PackageIDs due to : %v", err)
 		}
 
 		for _, certifyVex := range certifyVexes {
@@ -490,7 +489,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 
 		certifyVexes, err := certifyVexQuery.All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for CertifyVex by ArtifactIDs with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for CertifyVex by ArtifactIDs due to : %v", err)
 		}
 
 		for _, certifyVex := range certifyVexes {
@@ -518,7 +517,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 
 		certifyVulns, err := certifyVulnQuery.All(ctx)
 		if err != nil {
-			return nil, gqlerror.Errorf("error querying for CertifyVuln with SBOM URI %v due to : %v", sbomURI, err)
+			return nil, gqlerror.Errorf("error querying for CertifyVuln due to : %v", err)
 		}
 		for _, certifyVuln := range certifyVulns {
 			result = append(result, toModelCertifyVulnerability(certifyVuln))
