@@ -336,6 +336,11 @@ var (
 					Where: "package_id IS NULL",
 				},
 			},
+			{
+				Name:    "certifyvex_package_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{CertifyVexesColumns[9], CertifyVexesColumns[2]},
+			},
 		},
 	}
 	// CertifyVulnsColumns holds the columns for the "certify_vulns" table.
@@ -376,6 +381,11 @@ var (
 				Name:    "certifyvuln_db_uri_db_version_scanner_uri_scanner_version_origin_collector_time_scanned_document_ref_vulnerability_id_package_id",
 				Unique:  true,
 				Columns: []*schema.Column{CertifyVulnsColumns[2], CertifyVulnsColumns[3], CertifyVulnsColumns[4], CertifyVulnsColumns[5], CertifyVulnsColumns[6], CertifyVulnsColumns[7], CertifyVulnsColumns[1], CertifyVulnsColumns[8], CertifyVulnsColumns[9], CertifyVulnsColumns[10]},
+			},
+			{
+				Name:    "certifyvuln_package_id_vulnerability_id",
+				Unique:  false,
+				Columns: []*schema.Column{CertifyVulnsColumns[10], CertifyVulnsColumns[9]},
 			},
 		},
 	}

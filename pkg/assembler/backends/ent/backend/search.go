@@ -17,11 +17,8 @@ package backend
 
 import (
 	"context"
-	"fmt"
-	"slices"
-	"sort"
-
 	"entgo.io/ent/dialect/sql"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/guacsec/guac/internal/testing/ptrfrom"
 	"github.com/guacsec/guac/pkg/assembler/backends/ent"
@@ -38,6 +35,7 @@ import (
 	"github.com/guacsec/guac/pkg/assembler/helpers"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/exp/maps"
+	"sort"
 )
 
 // FindSoftware takes in a searchText string and looks for software
@@ -416,24 +414,14 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 			return nil, gqlerror.Errorf("Multiple SBOMs with different URIs have been found with the provided hasSBOMSpec %+v (URIs found \"%v\" and \"%v\")", hasSBOMSpec, sboms[0].URI, sbom.URI)
 		}
 		// collect the SBOM's packages UUIDs
-		packages, err := b.client.BillOfMaterials.QueryIncludedSoftwarePackages(sbom).All(ctx)
+		dependenciesPackagesUUIDs, err = b.client.BillOfMaterials.QueryIncludedSoftwarePackages(sbom).IDs(ctx)
 		if err != nil {
 			return nil, gqlerror.Errorf("error querying for QueryIncludedSoftwarePackages with SBOM URI %v due to : %v", sbom.URI, err)
 		}
-		for _, pkg := range packages {
-			if !slices.Contains(dependenciesPackagesUUIDs, pkg.ID) {
-				dependenciesPackagesUUIDs = append(dependenciesPackagesUUIDs, pkg.ID)
-			}
-		}
 		// collect the SBOM's artifacts UUIDs
-		artifacts, err := b.client.BillOfMaterials.QueryIncludedSoftwareArtifacts(sbom).All(ctx)
+		dependenciesArtifactsUUIDs, err = b.client.BillOfMaterials.QueryIncludedSoftwareArtifacts(sbom).IDs(ctx)
 		if err != nil {
 			return nil, gqlerror.Errorf("error querying for IncludedSoftwareArtifacts with SBOM URI %v due to : %v", sbom.URI, err)
-		}
-		for _, art := range artifacts {
-			if !slices.Contains(dependenciesArtifactsUUIDs, art.ID) {
-				dependenciesArtifactsUUIDs = append(dependenciesArtifactsUUIDs, art.ID)
-			}
 		}
 	}
 
@@ -447,8 +435,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 				certifyvex.PackageIDIn(pkgs...),
 			).
 			WithVulnerability().
-			WithPackage(withPackageVersionTree()).
-			Order(ent.Desc(vulnerabilityid.FieldID))
+			WithPackage(withPackageVersionTree())
 
 		if offset != nil {
 			certifyVexQuery.Offset(*offset)
@@ -476,8 +463,7 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 				certifyvex.ArtifactIDIn(arts...),
 			).
 			WithVulnerability().
-			WithArtifact().
-			Order(ent.Desc(vulnerabilityid.FieldID))
+			WithArtifact()
 
 		if offset != nil {
 			certifyVexQuery.Offset(*offset)
@@ -502,10 +488,10 @@ func (b *EntBackend) findVulnerabilities(ctx context.Context, hasSBOMSpec *model
 		certifyVulnQuery := b.client.CertifyVuln.Query().
 			Where(
 				certifyvuln.PackageIDIn(pkgs...),
+				certifyvuln.HasVulnerabilityWith(vulnerabilityid.TypeNEQ(NoVuln)),
 			).
 			WithVulnerability().
-			WithPackage(withPackageVersionTree()).
-			Order(ent.Desc(vulnerabilityid.FieldID))
+			WithPackage(withPackageVersionTree())
 
 		if offset != nil {
 			certifyVulnQuery.Offset(*offset)
