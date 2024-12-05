@@ -65,6 +65,8 @@ func (CertifyVex) Indexes() []ent.Index {
 		index.Fields("known_since", "justification", "status", "statement", "status_notes", "origin", "collector", "document_ref").
 			Edges("vulnerability", "package").Unique().Annotations(entsql.IndexWhere("artifact_id IS NULL")).StorageKey("vex_artifact_id"),
 		index.Fields("known_since", "justification", "status", "statement", "status_notes", "origin", "collector", "document_ref").
-		Edges("vulnerability", "artifact").Unique().Annotations(entsql.IndexWhere("package_id IS NULL")).StorageKey("vex_package_id"),
+			Edges("vulnerability", "artifact").Unique().Annotations(entsql.IndexWhere("package_id IS NULL")).StorageKey("vex_package_id"),
+		// supporting search.findVulnerabilities method
+		index.Fields("package_id", "status"),
 	}
 }
