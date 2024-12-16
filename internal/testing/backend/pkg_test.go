@@ -115,6 +115,57 @@ func TestPackages(t *testing.T) {
 		idInFilter: false,
 		want:       []*model.Package{testdata.P5out},
 		wantErr:    false,
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [1/2] package without namespace",
+		pkgInput: &model.PkgInputSpec{
+			Type:    "maven",
+			Name:    "jenkins-core",
+			Version: ptrfrom.String("1.498"),
+		},
+		pkgFilter: &model.PkgSpec{
+			Name:    ptrfrom.String("jenkins-core"),
+			Version: ptrfrom.String("1.498"),
+		},
+		idInFilter: false,
+		want: []*model.Package{{
+			Type: "maven",
+			Namespaces: []*model.PackageNamespace{{
+				Names: []*model.PackageName{{
+					Name: "jenkins-core",
+					Versions: []*model.PackageVersion{{
+						Version: "1.498",
+					}},
+				}},
+			}},
+		}},
+		wantErr: false,
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [2/2] package with empty namespace",
+		pkgInput: &model.PkgInputSpec{
+			Type:      "maven",
+			Namespace: ptrfrom.String(""),
+			Name:      "jenkins-core",
+			Version:   ptrfrom.String("1.498"),
+		},
+		pkgFilter: &model.PkgSpec{
+			Name:    ptrfrom.String("jenkins-core"),
+			Version: ptrfrom.String("1.498"),
+		},
+		idInFilter: false,
+		want: []*model.Package{{
+			Type: "maven",
+			Namespaces: []*model.PackageNamespace{{
+				Names: []*model.PackageName{{
+					Name: "jenkins-core",
+					Versions: []*model.PackageVersion{{
+						Version: "1.498",
+					}},
+				}},
+			}},
+		}},
+		wantErr: false,
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
