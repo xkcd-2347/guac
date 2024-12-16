@@ -60,12 +60,13 @@ func guacPkgId(pkgType string, namespace *string, name string, pkgVersion *strin
 	ids.TypeId = pkgType
 
 	var ns string
-	if namespace != nil {
-		if *namespace != "" {
-			ns = *namespace
-		} else {
-			ns = guacEmpty
-		}
+	// https://issues.redhat.com/browse/TC-2026 it turned out that guac-rs sends PkgInputSpec to ingestPackage/s
+	// w/o the namespace field instead of providing it with the default "" value. This created an inconsistency when
+	// the same PURL was ingested through 'guacone collect', i.e. bombastic-collector, or guac-rs, i.e. collector-osv,
+	if namespace != nil && *namespace != "" {
+		ns = *namespace
+	} else {
+		ns = guacEmpty
 	}
 	ids.NamespaceId = fmt.Sprintf("%s::%s", ids.TypeId, ns)
 	ids.NameId = fmt.Sprintf("%s::%s", ids.NamespaceId, name)

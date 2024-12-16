@@ -277,7 +277,7 @@ func upsertPackage(ctx context.Context, tx *ent.Tx, pkg model.IDorPkgInput) (*mo
 		Exec(ctx)
 	if err != nil {
 		if err != stdsql.ErrNoRows {
-			return nil, errors.Wrap(err, "upsert package name")
+			return nil, errors.Wrap(err, fmt.Sprintf("upsert package name %+v (%v)", pkg.PackageInput, pkgNameID))
 		}
 	}
 
@@ -293,7 +293,7 @@ func upsertPackage(ctx context.Context, tx *ent.Tx, pkg model.IDorPkgInput) (*mo
 		DoNothing().
 		Exec(ctx); err != nil {
 		if err != stdsql.ErrNoRows {
-			return nil, errors.Wrap(err, "upsert package version")
+			return nil, errors.Wrap(err, fmt.Sprintf("upsert package version %+v (%v->%v)", pkg.PackageInput, pkgVersionID, pkgNameID))
 		}
 	}
 
