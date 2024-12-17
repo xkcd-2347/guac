@@ -19,6 +19,7 @@ package backend_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -117,51 +118,45 @@ func TestPackages(t *testing.T) {
 		wantErr:    false,
 	}, {
 		// https://issues.redhat.com/browse/TC-2026
-		name: "TC-2026 [1/2] package without namespace",
+		name: "TC-2026 [1/2] package without namespace, version, subpath",
 		pkgInput: &model.PkgInputSpec{
-			Type:    "maven",
-			Name:    "jenkins-core",
-			Version: ptrfrom.String("1.498"),
+			Type: "maven",
+			Name: "jenkins-core",
 		},
 		pkgFilter: &model.PkgSpec{
-			Name:    ptrfrom.String("jenkins-core"),
-			Version: ptrfrom.String("1.498"),
+			Name: ptrfrom.String("jenkins-core"),
 		},
 		idInFilter: false,
 		want: []*model.Package{{
 			Type: "maven",
 			Namespaces: []*model.PackageNamespace{{
 				Names: []*model.PackageName{{
-					Name: "jenkins-core",
-					Versions: []*model.PackageVersion{{
-						Version: "1.498",
-					}},
+					Name:     "jenkins-core",
+					Versions: []*model.PackageVersion{{}},
 				}},
 			}},
 		}},
 		wantErr: false,
 	}, {
 		// https://issues.redhat.com/browse/TC-2026
-		name: "TC-2026 [2/2] package with empty namespace",
+		name: "TC-2026 [2/2] package with empty namespace, version, subpath",
 		pkgInput: &model.PkgInputSpec{
 			Type:      "maven",
 			Namespace: ptrfrom.String(""),
 			Name:      "jenkins-core",
-			Version:   ptrfrom.String("1.498"),
+			Version:   ptrfrom.String(""),
+			Subpath:   ptrfrom.String(""),
 		},
 		pkgFilter: &model.PkgSpec{
-			Name:    ptrfrom.String("jenkins-core"),
-			Version: ptrfrom.String("1.498"),
+			Name: ptrfrom.String("jenkins-core"),
 		},
 		idInFilter: false,
 		want: []*model.Package{{
 			Type: "maven",
 			Namespaces: []*model.PackageNamespace{{
 				Names: []*model.PackageName{{
-					Name: "jenkins-core",
-					Versions: []*model.PackageVersion{{
-						Version: "1.498",
-					}},
+					Name:     "jenkins-core",
+					Versions: []*model.PackageVersion{{}},
 				}},
 			}},
 		}},
@@ -216,6 +211,50 @@ func TestIngestPackages(t *testing.T) {
 			}
 			if len(got) != len(tt.pkgInputs) {
 				t.Errorf("Unexpected number of results. Wanted: %d, got %d", len(tt.pkgInputs), len(got))
+			}
+		})
+	}
+}
+
+func TestMultipleIngestPackage(t *testing.T) {
+	ctx := context.Background()
+	b := setupTest(t)
+	tests := []struct {
+		name      string
+		pkgInputs []*model.IDorPkgInput
+		wantErr   bool
+	}{{
+		name: "Same package with empty or without namespace, version, subpath",
+		pkgInputs: []*model.IDorPkgInput{
+			{PackageInput: &model.PkgInputSpec{
+				Type:      "maven",
+				Namespace: ptrfrom.String(""),
+				Name:      "jenkins-core",
+				Version:   ptrfrom.String(""),
+				Subpath:   ptrfrom.String(""),
+			}}, {PackageInput: &model.PkgInputSpec{
+				Type: "maven",
+				Name: "jenkins-core",
+			}},
+		},
+		wantErr: false,
+	}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got []*model.PackageIDs
+			for _, pkgInput := range tt.pkgInputs {
+				result, err := b.IngestPackage(ctx, *pkgInput)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("IngestPackage() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				got = append(got, result)
+			}
+			if len(got) != len(tt.pkgInputs) {
+				t.Errorf("Unexpected number of results. Wanted: %d, got %d", len(tt.pkgInputs), len(got))
+			}
+			if !reflect.DeepEqual(got[0], got[1]) {
+				t.Errorf("Unexpected different IDs. Wanted: %v, got %v", got[0], got[1])
 			}
 		})
 	}

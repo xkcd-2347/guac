@@ -102,6 +102,72 @@ func Test_guacPkgId(t *testing.T) {
 			NameId:      "maven::guac-empty-@@::batik-anim",
 			VersionId:   "maven::guac-empty-@@::batik-anim::1.9.1::guac-empty-@@?classifier=dist&type=zip&",
 		},
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [1/2] pkg with empty version",
+		pkgServer: &model.PkgInputSpec{
+			Type:       "maven",
+			Namespace:  ptrfrom.String("org.apache.xmlgraphics"),
+			Name:       "batik-anim",
+			Version:    ptrfrom.String(""),
+			Subpath:    ptrfrom.String(""),
+			Qualifiers: serverQualifiers,
+		},
+		want: PkgIds{
+			TypeId:      "maven",
+			NamespaceId: "maven::org.apache.xmlgraphics",
+			NameId:      "maven::org.apache.xmlgraphics::batik-anim",
+			VersionId:   "maven::org.apache.xmlgraphics::batik-anim::guac-empty-@@::guac-empty-@@?classifier=dist&type=zip&",
+		},
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [2/2] pkg without version",
+		pkgServer: &model.PkgInputSpec{
+			Type:       "maven",
+			Namespace:  ptrfrom.String("org.apache.xmlgraphics"),
+			Name:       "batik-anim",
+			Subpath:    ptrfrom.String(""),
+			Qualifiers: serverQualifiers,
+		},
+		want: PkgIds{
+			TypeId:      "maven",
+			NamespaceId: "maven::org.apache.xmlgraphics",
+			NameId:      "maven::org.apache.xmlgraphics::batik-anim",
+			VersionId:   "maven::org.apache.xmlgraphics::batik-anim::guac-empty-@@::guac-empty-@@?classifier=dist&type=zip&",
+		},
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [1/2] pkg with empty subpath",
+		pkgServer: &model.PkgInputSpec{
+			Type:       "maven",
+			Namespace:  ptrfrom.String("org.apache.xmlgraphics"),
+			Name:       "batik-anim",
+			Version:    ptrfrom.String("1.9.1"),
+			Subpath:    ptrfrom.String(""),
+			Qualifiers: serverQualifiers,
+		},
+		want: PkgIds{
+			TypeId:      "maven",
+			NamespaceId: "maven::org.apache.xmlgraphics",
+			NameId:      "maven::org.apache.xmlgraphics::batik-anim",
+			VersionId:   "maven::org.apache.xmlgraphics::batik-anim::1.9.1::guac-empty-@@?classifier=dist&type=zip&",
+		},
+	}, {
+		// https://issues.redhat.com/browse/TC-2026
+		name: "TC-2026 [2/2] pkg without subpath",
+		pkgServer: &model.PkgInputSpec{
+			Type:       "maven",
+			Namespace:  ptrfrom.String("org.apache.xmlgraphics"),
+			Name:       "batik-anim",
+			Version:    ptrfrom.String("1.9.1"),
+			Qualifiers: serverQualifiers,
+		},
+		want: PkgIds{
+			TypeId:      "maven",
+			NamespaceId: "maven::org.apache.xmlgraphics",
+			NameId:      "maven::org.apache.xmlgraphics::batik-anim",
+			VersionId:   "maven::org.apache.xmlgraphics::batik-anim::1.9.1::guac-empty-@@?classifier=dist&type=zip&",
+		},
 	},
 	}
 	for _, tt := range tests {
