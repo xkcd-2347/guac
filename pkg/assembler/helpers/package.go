@@ -72,21 +72,17 @@ func guacPkgId(pkgType string, namespace *string, name string, pkgVersion *strin
 	ids.NameId = fmt.Sprintf("%s::%s", ids.NamespaceId, name)
 
 	var version string
-	if pkgVersion != nil {
-		if *pkgVersion != "" {
-			version = *pkgVersion
-		} else {
-			version = guacEmpty
-		}
+	if pkgVersion != nil && *pkgVersion != "" {
+		version = *pkgVersion
+	} else {
+		version = guacEmpty
 	}
 
 	var subpath string
-	if pkgSubpath != nil {
-		if *pkgSubpath != "" {
-			subpath = *pkgSubpath
-		} else {
-			subpath = guacEmpty
-		}
+	if pkgSubpath != nil && *pkgSubpath != "" {
+		subpath = *pkgSubpath
+	} else {
+		subpath = guacEmpty
 	}
 
 	ids.VersionId = fmt.Sprintf("%s::%s::%s?", ids.NameId, version, subpath)
