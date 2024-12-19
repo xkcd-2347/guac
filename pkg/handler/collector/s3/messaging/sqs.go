@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -81,7 +82,12 @@ func (m *SqsMessage) GetItem() (string, error) {
 	if len(m.Records) == 0 {
 		return "", fmt.Errorf("error getting item from message %s", m)
 	}
-	return m.Records[0].S3.Object.Key, nil
+	// https://issues.redhat.com/browse/TC-1817 requires the key to be unescaped
+	unescapedKey, err := url.QueryUnescape(m.Records[0].S3.Object.Key)
+	if err != nil {
+		return "", fmt.Errorf("error getting decoded item from message %s due to %s", m, err)
+	}
+	return unescapedKey, nil
 }
 
 func NewSqsProvider(mpConfig MessageProviderConfig) (SqsProvider, error) {
